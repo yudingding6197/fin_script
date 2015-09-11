@@ -1,10 +1,11 @@
 # -*- coding:gbk -*-
-#from openpyxl import Workbook
-#from openpyxl.reader.excel  import  load_workbook
 import sys
 import re
+import os
 import urllib
 import urllib2
+from openpyxl import Workbook
+from openpyxl.reader.excel  import  load_workbook
 
 #url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001&date=2015-09-10&page=48"
 #成交时间	成交价	涨跌幅	价格变动	成交量(手)		成交额(元)	性质
@@ -36,19 +37,34 @@ else:
 	else:
 		print "非法代码:" +code+ "\n"
 		exit(1);
-	
-dateObj = re.search(r'^\d{4}-\d{2}-\d{2}', qdate)
+
+#dateObj = re.search(r'^\d{4}-\d+-\d+', qdate)
+dateObj = re.match(r'^(\d{4})-(\d+)-(\d+)', qdate)
 if (dateObj is None):
 	print "非法日期格式：" +qdate+ ",期望格式:YYYY-MM-DD"
 	exit(1);
 
-qdate = dateObj.group(0)
-url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=" + code
+qdate = dateObj.group(1)
+if len(dateObj.group(2))==1:
+	qdate = qdate+ "-0" +dateObj.group(2)
+else:
+	qdate = qdate+ "-" +dateObj.group(2)
+if len(dateObj.group(3))==1:
+	qdate = qdate+ "-0" +dateObj.group(3)
+else:
+	qdate = qdate+ "-" +dateObj.group(3)
+#print qdate
 
+url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=" + code
+url = url + "&date=" + qdate
+
+totalline = 0
 lasttime = ''
-fl = open('a.csv', 'w')
+filename = code+ '_' + qdate + '.csv'
+fl = open(filename, 'w')
+fl.write("成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质\n")
 for i in range(1,1000):
-	urlall = url + "&date=2015-09-10&page=" +str(i)
+	urlall = url + "&page=" +str(i)
 #	print "%d, %s" %(i,urlall)
 	
 	req = urllib2.Request(urlall)
@@ -59,6 +75,7 @@ for i in range(1,1000):
 	line = res_data.readline()
 	checkStr = '成交时间'
 	while line:
+#		print line
 		index = line.find(checkStr)
 		if (index<0):
 			line = res_data.readline()
@@ -76,8 +93,12 @@ for i in range(1,1000):
 					pass
 				else:
 					lasttime = curtime
-					strline = key.group(1) +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ key.group(6) +","+ key.group(7) + "\n"
+					amount = key.group(6)
+					obj = amount.split(',')
+					amount = ''.join(obj)
+					strline = curtime +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ amount +","+ key.group(7) + "\n"
 					fl.write(strline)
+					totalline += 1
 				count += 1
 				pass
 			else:
@@ -89,6 +110,9 @@ for i in range(1,1000):
 		line = res_data.readline()
 
 	if (count==0):
-		print "page:" +str(i)+ " No DATA"
 		break;
+
 fl.close()
+if (totalline==0):
+	print "No Record"
+	os.remove(filename)
