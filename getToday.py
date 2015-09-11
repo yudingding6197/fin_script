@@ -2,6 +2,7 @@
 import sys
 import re
 import os
+import string
 import urllib
 import urllib2
 from openpyxl import Workbook
@@ -58,11 +59,22 @@ else:
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=" + code
 url = url + "&date=" + qdate
 
+wb = Workbook()
+# grab the active worksheet
+ws = wb.active
+
 totalline = 0
 lasttime = ''
-filename = code+ '_' + qdate + '.csv'
-fl = open(filename, 'w')
-fl.write("成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质\n")
+filename = code+ '_' + qdate
+filecsv = filename + '.csv'
+fl = open(filecsv, 'w')
+strline = '成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
+fl.write(strline)
+fl.write("\n")
+
+strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
+strObj = strline.split(u',')
+ws.append(strObj)
 for i in range(1,1000):
 	urlall = url + "&page=" +str(i)
 #	print "%d, %s" %(i,urlall)
@@ -85,7 +97,7 @@ for i in range(1,1000):
 			checkStr = '<th>'
 			flag = 1
 		else:
-			key = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>\+?-?(\d+.\d+)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', line)
+			key = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', line)
 			if (key):
 #				print key.groups()
 				curtime = key.group(1)
@@ -98,7 +110,24 @@ for i in range(1,1000):
 					amount = ''.join(obj)
 					strline = curtime +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ amount +","+ key.group(7) + "\n"
 					fl.write(strline)
+					
 					totalline += 1
+					row = totalline+1
+					cell = 'A' + str(row)
+					ws[cell] = curtime
+					cell = 'B' + str(row)
+					ws[cell] = key.group(2)
+					cell = 'C' + str(row)
+					ws[cell] = key.group(3)
+					cell = 'D' + str(row)
+					ws[cell] = key.group(4)
+					cell = 'E' + str(row)
+					ws[cell] = int(key.group(5))
+					cell = 'F' + str(row)
+					ws[cell] = int(amount)
+					cell = 'G' + str(row)
+					s1 = key.group(7).decode('gbk')
+					ws[cell] = s1
 				count += 1
 				pass
 			else:
@@ -113,6 +142,9 @@ for i in range(1,1000):
 		break;
 
 fl.close()
+filexlsx = filename+ '.xlsx'
+wb.save(filexlsx)
 if (totalline==0):
 	print "No Record"
-	os.remove(filename)
+	os.remove(filecsv)
+	os.remove(filexlsx)

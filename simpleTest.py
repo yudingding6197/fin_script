@@ -26,7 +26,6 @@ if len(dateObj.group(3))==1:
 	qdate = qdate+ "-0" +dateObj.group(3)
 else:
 	qdate = qdate+ "-" +dateObj.group(3)
-print "_____" + qdate
 
 pattern = re.compile(r'heldlo')
 match = pattern.match('hello world!')
