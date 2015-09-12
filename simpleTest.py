@@ -11,26 +11,20 @@ s3 = '<tr ><th>11:29:21</th><td>14.56</td><td>-3.13%</td><td>-0.02</td><td>10</t
 s4 = '	<tr class="huge"><th>15:00:35</th><td>14.37</td><td>-4.39%</td><td>--</td><td>2437</td><td>3,503,320</td><th><h1>中性盘</h1></th></tr>'
 s5 = '<tr class="medium"><th>14:56:59</th><td>14.37</td><td>-4.39%</td><td>--</td><td>136</td><td>195,432</td><th><h6>卖盘</h6></th></tr>'
 s6 = '<tr class="medium"><th>14:56:59</th><td>14.37</td><td>4.39%</td><td>--</td><td>136</td><td>195,432</td><th><h6>卖盘</h6></th></tr>'
+s7 = "<td width='103' align='left'><a title='重大事项' target='_blank' href='/information/companyinfo.html' onClick=\"setLmCode2('fulltext?','000016','012002');\">"
 
 dateObj = re.match(r'^(\d{4})-(\d+)-(\d+)', s0)
 if (dateObj is None):
 	print "非法日期格式：" +qdate+ ",期望格式:YYYY-MM-DD"
 	exit(1);
 
-qdate = dateObj.group(1)
-if len(dateObj.group(2))==1:
-	qdate = qdate+ "-0" +dateObj.group(2)
+s7 = "金城股份</a></td>"
+obj = re.match(r'(.+)(</a></td>)', s7)
+if obj:
+	print obj.groups()
 else:
-	qdate = qdate+ "-" +dateObj.group(2)
-if len(dateObj.group(3))==1:
-	qdate = qdate+ "-0" +dateObj.group(3)
-else:
-	qdate = qdate+ "-" +dateObj.group(3)
+	print obj
 
-pattern = re.compile(r'heldlo')
-match = pattern.match('hello world!')
-if match:
-	print match.group()
 
 '''
 m = re.match(r'(\w+) (\w+)(?P<sign>.*)', 'hello world!')
@@ -49,7 +43,6 @@ print "m.end(2):", m.end(2)
 print "m.span(2):", m.span(2)
 print r"m.expand(r'\2 \1\3'):", m.expand(r'\2 \1\3')
 print "\n"
-'''
 
 fl = open('ts.txt', 'w')
 fl.write("abcd\n")
@@ -79,3 +72,4 @@ if (dateObj):
 	print dateObj.group(1)
 else:
 	print "NO MATCH"
+'''
