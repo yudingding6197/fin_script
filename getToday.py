@@ -3,6 +3,7 @@ import sys
 import re
 import os
 import string
+import datetime
 import urllib
 import urllib2
 from openpyxl import Workbook
@@ -14,9 +15,10 @@ from openpyxl.reader.excel  import  load_workbook
 #<tr ><th>11:29:36</th><td>14.56</td><td>-3.13%</td><td>--</td><td>9</td><td>13,104</td><th><h6>卖盘</h6></th></tr>
 #<tr ><th>11:29:21</th><td>14.56</td><td>-3.13%</td><td>-0.02</td><td>10</td><td>14,560</td><th><h6>卖盘</h6></th></tr>
 
+addcsv = 0
 pindex = len(sys.argv)
 if (pindex != 3):
-	sys.stderr.write("Usage: command 代码 时间<YYYY-MM-DD>\n")
+	sys.stderr.write("Usage: command 代码 时间<YYYY-MM-DD or MM-DD>\n")
 	exit(1);
 
 code = sys.argv[1]
@@ -29,31 +31,40 @@ head3 = code[0:3]
 result = (cmp(head3, "000")==0) or (cmp(head3, "002")==0) or (cmp(head3, "300")==0)
 if result is True:
 	code = "sz" + code
-	print code
 else:
 	result = (cmp(head3, "600")==0) or (cmp(head3, "601")==0) or (cmp(head3, "603")==0)
 	if result is True:
 		code = "sh" + code
-		print code
 	else:
 		print "非法代码:" +code+ "\n"
 		exit(1);
 
-#dateObj = re.search(r'^\d{4}-\d+-\d+', qdate)
 dateObj = re.match(r'^(\d{4})-(\d+)-(\d+)', qdate)
 if (dateObj is None):
-	print "非法日期格式：" +qdate+ ",期望格式:YYYY-MM-DD"
-	exit(1);
+	dateObj = re.match(r'^(\d+)-(\d+)', qdate)
+	if (dateObj is None):
+		print "非法日期格式：" +qdate+ ",期望格式:YYYY-MM-DD or MM-DD"
+		exit(1);
+	else:
+		today = datetime.date.today()
+		year = str(today.year)
+		month = dateObj.group(1)
+		day = dateObj.group(2)
+		pass
+else:
+	year = dateObj.group(1)
+	month = dateObj.group(2)
+	day = dateObj.group(3)
 
-qdate = dateObj.group(1)
-if len(dateObj.group(2))==1:
-	qdate = qdate+ "-0" +dateObj.group(2)
+qdate = year
+if len(month)==1:
+	qdate = year+ "-0" +month
 else:
-	qdate = qdate+ "-" +dateObj.group(2)
-if len(dateObj.group(3))==1:
-	qdate = qdate+ "-0" +dateObj.group(3)
+	qdate = year+ "-" +month
+if len(day)==1:
+	qdate = qdate+ "-0" +day
 else:
-	qdate = qdate+ "-" +dateObj.group(3)
+	qdate = qdate+ "-" +day
 #print qdate
 
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=" + code
@@ -66,11 +77,12 @@ ws = wb.active
 totalline = 0
 lasttime = ''
 filename = code+ '_' + qdate
-filecsv = filename + '.csv'
-fl = open(filecsv, 'w')
-strline = '成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
-fl.write(strline)
-fl.write("\n")
+if addcsv==1:
+	filecsv = filename + '.csv'
+	fcsv = open(filecsv, 'w')
+	strline = '成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
+	fcsv.write(strline)
+	fcsv.write("\n")
 
 strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
 strObj = strline.split(u',')
@@ -108,8 +120,9 @@ for i in range(1,1000):
 					amount = key.group(6)
 					obj = amount.split(',')
 					amount = ''.join(obj)
-					strline = curtime +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ amount +","+ key.group(7) + "\n"
-					fl.write(strline)
+					if addcsv==1:
+						strline = curtime +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ amount +","+ key.group(7) + "\n"
+						fcsv.write(strline)
 					
 					totalline += 1
 					row = totalline+1
@@ -141,10 +154,15 @@ for i in range(1,1000):
 	if (count==0):
 		break;
 
-fl.close()
+if addcsv==1:
+	fcsv.close()
+	if (totalline==0):
+		os.remove(filecsv)
+		
 filexlsx = filename+ '.xlsx'
 wb.save(filexlsx)
 if (totalline==0):
 	print "No Matched Record"
-	os.remove(filecsv)
 	os.remove(filexlsx)
+
+

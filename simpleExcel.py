@@ -29,5 +29,8 @@ strObj = strline.split(',')
 print strObj
 ws.append(strObj)
 
+ws = wb.create_sheet()
+ws.title = 'A2'
+
 # Save the file
 wb.save("z_excel.xlsx")
