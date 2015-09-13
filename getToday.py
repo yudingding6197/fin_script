@@ -16,6 +16,7 @@ from openpyxl.reader.excel  import  load_workbook
 #<tr ><th>11:29:21</th><td>14.56</td><td>-3.13%</td><td>-0.02</td><td>10</td><td>14,560</td><th><h6>卖盘</h6></th></tr>
 
 addcsv = 0
+prepath = "D:\\stock\\Data\\"
 pindex = len(sys.argv)
 if (pindex != 3):
 	sys.stderr.write("Usage: command 代码 时间<YYYY-MM-DD or MM-DD>\n")
@@ -75,14 +76,30 @@ wb = Workbook()
 ws = wb.active
 
 totalline = 0
+#可能数据在不同的页面，同时存在，这是重复数据需要过滤重复结果
+#还可能相同时间，产生多个成交量，需要都保留
 lasttime = ''
+lastvol = 0
 filename = code+ '_' + qdate
 if addcsv==1:
-	filecsv = filename + '.csv'
+	filecsv = prepath + filename + '.csv'
 	fcsv = open(filecsv, 'w')
 	strline = '成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
 	fcsv.write(strline)
 	fcsv.write("\n")
+
+sellall = 0
+buyall = 0
+sellct = 0
+buyct = 0
+sell3all = 0
+buy3all = 0
+sell3ct = 0
+buy3ct = 0
+sell6all = 0
+buy6all = 0
+sell6ct = 0
+buy6ct = 0
 
 strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
 strObj = strline.split(u',')
@@ -113,13 +130,40 @@ for i in range(1,1000):
 			if (key):
 #				print key.groups()
 				curtime = key.group(1)
-				if re.search(curtime, lasttime):
+				curvol = int(key.group(5))
+				timeobj = re.search(curtime, lasttime)
+				if (timeobj and curvol==lastvol):
 					pass
 				else:
 					lasttime = curtime
+					lastvol = curvol
 					amount = key.group(6)
 					obj = amount.split(',')
 					amount = ''.join(obj)
+					
+					intamount = int(key.group(5))
+					state = key.group(7)
+					if cmp(state, '卖盘')==0:
+						sellall += intamount
+						sellct += 1
+						if intamount>=300:
+							sell3all += intamount
+							sell3ct += 1
+						if intamount>=600:
+							sell6all += intamount
+							sell6ct += 1
+#						print "S:%d %d" %(sellall, intamount)
+					elif cmp(state, '买盘')==0:
+						buyall += intamount
+						buyct += 1
+						if intamount>=300:
+							buy3all += intamount
+							buy3ct += 1
+						if intamount>=600:
+							buy6all += intamount
+							buy6ct += 1
+#						print "B:%d %d" %(buyall, intamount)
+						pass
 					if addcsv==1:
 						strline = curtime +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ amount +","+ key.group(7) + "\n"
 						fcsv.write(strline)
@@ -158,8 +202,82 @@ if addcsv==1:
 	fcsv.close()
 	if (totalline==0):
 		os.remove(filecsv)
-		
-filexlsx = filename+ '.xlsx'
+
+if (totalline>0):
+	ws = wb.create_sheet()
+	ws.title = 'statistics'
+
+	row = 1
+	cell = 'B' + str(row)
+	ws[cell] = 'B'
+	cell = 'C' + str(row)
+	ws[cell] = 'B_vol'
+	cell = 'D' + str(row)
+	ws[cell] = 'B_avg'
+	cell = 'E' + str(row)
+	ws[cell] = 'S'
+	cell = 'F' + str(row)
+	ws[cell] = 'S_vol'
+	cell = 'G' + str(row)
+	ws[cell] = 'S_avg'
+
+	row = row+1
+	cell = 'A' + str(row)
+	ws[cell] = 0
+	cell = 'B' + str(row)
+	ws[cell] = buyall
+	cell = 'C' + str(row)
+	ws[cell] = buyct
+	cell = 'D' + str(row)
+	ws[cell] = buyall/buyct
+	cell = 'E' + str(row)
+	ws[cell] = sellall
+	cell = 'F' + str(row)
+	ws[cell] = sellct
+	cell = 'G' + str(row)
+	ws[cell] = sellall/sellct
+
+	row = row+1
+	cell = 'A' + str(row)
+	ws[cell] = 300
+	cell = 'B' + str(row)
+	ws[cell] = buy3all
+	cell = 'C' + str(row)
+	ws[cell] = buy3ct
+	cell = 'D' + str(row)
+	ws[cell] = buy3all/buy3ct
+	cell = 'E' + str(row)
+	ws[cell] = sell3all
+	cell = 'F' + str(row)
+	ws[cell] = sell3ct
+	cell = 'G' + str(row)
+	ws[cell] = sell3all/sell3ct
+	cell = 'H' + str(row)
+	ws[cell] = buy3all + sell3all
+	cell = 'I' + str(row)
+	ws[cell] = buy3ct + sell3ct
+
+	row = row+1
+	cell = 'A' + str(row)
+	ws[cell] = 600
+	cell = 'B' + str(row)
+	ws[cell] = buy6all
+	cell = 'C' + str(row)
+	ws[cell] = buy6ct
+	cell = 'D' + str(row)
+	ws[cell] = buy6all/buy6ct
+	cell = 'E' + str(row)
+	ws[cell] = sell6all
+	cell = 'F' + str(row)
+	ws[cell] = sell6ct
+	cell = 'G' + str(row)
+	ws[cell] = sell6all/sell6ct
+	cell = 'H' + str(row)
+	ws[cell] = buy6all + sell6all
+	cell = 'I' + str(row)
+	ws[cell] = buy6ct + sell6ct
+
+filexlsx = prepath +filename+ '.xlsx'
 wb.save(filexlsx)
 if (totalline==0):
 	print "No Matched Record"

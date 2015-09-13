@@ -26,6 +26,20 @@ else:
 	print obj
 
 
+curtime = 'aaa'
+lasttime = 'aawa'
+curvol = 11
+lastvol = 11
+timeobj = re.search(curtime, lasttime)
+print curtime+ ',' +lasttime+ '****' +str(curvol)+ ',' +str(lastvol)
+print timeobj
+if (timeobj is not None) and (curvol==lastvol):
+	print "Match condition"
+	pass
+else:
+	print "NOt"
+
+
 '''
 m = re.match(r'(\w+) (\w+)(?P<sign>.*)', 'hello world!')
 print "m.string:", m.string
