@@ -9,6 +9,7 @@ import urllib2
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 from internal.common import handle_data
+from internal.common import handle_his_data
 
 #url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001&date=2015-09-10&page=48"
 #成交时间	成交价	涨跌幅	价格变动	成交量(手)		成交额(元)	性质
@@ -21,7 +22,7 @@ prepath = ".\\"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
 pindex = len(sys.argv)
 if pindex<2:
-	sys.stderr.write("Usage: command 代码 [arr=[number, number...]]\n")
+	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 [arr=[number, number...]]\n")
 	exit(1);
 
 code = sys.argv[1]

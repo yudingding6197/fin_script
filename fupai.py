@@ -10,12 +10,12 @@ import binascii
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
-prepath = ""
+prepath = "..\\GongSi\\"
 pindex = len(sys.argv)
 if (pindex == 1):
-	sys.stderr.write("Usage: command 时间<YYYY-MM-DD or MM-DD>\n")
+	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 时间<YYYY-MM-DD or MM-DD>\n")
 	exit(1);
-	
+
 '''
 if (len(code) != 6):
 	sys.stderr.write("Len should be 6\n")

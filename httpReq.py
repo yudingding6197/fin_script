@@ -3,7 +3,7 @@ import urllib
 import urllib2
 
 #url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001"
-url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001&date=2015-9-11&page=1"
+url = "http://market.finance.sina.com.cn/transHis.php?symbol=sz300001&date=2015-9-11&page=1"
 
 req = urllib2.Request(url)
 #print req
