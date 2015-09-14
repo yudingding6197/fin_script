@@ -35,6 +35,8 @@ class fitItem:
 
 def handle_data(addcsv, prepath, url, code, qdate, sarr):
 	url = url + "?symbol=" +code+ "&date=" +qdate
+	#print url
+
 	if not os.path.isdir(prepath):
 		os.makedirs(prepath)
 
@@ -57,6 +59,8 @@ def handle_data(addcsv, prepath, url, code, qdate, sarr):
 	#还可能相同时间，产生多个成交量，需要都保留
 	lasttime = ''
 	lastvol = 0
+	pageFtime = ''
+	bFtime = 0
 	filename = code+ '_' + qdate
 	if addcsv==1:
 		filecsv = prepath + filename + '.csv'
@@ -68,7 +72,7 @@ def handle_data(addcsv, prepath, url, code, qdate, sarr):
 	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
 	strObj = strline.split(u',')
 	ws.append(strObj)
-	for i in range(1,1000):
+	for i in range(1,500):
 		urlall = url + "&page=" +str(i)
 		#print "%d, %s" %(i,urlall)
 		
@@ -95,6 +99,14 @@ def handle_data(addcsv, prepath, url, code, qdate, sarr):
 					#print key.groups()
 					curtime = key.group(1)
 					curvol = int(key.group(5))
+					#记住当前页第一个的时间
+					if (bFtime==0):
+						timeobj = re.search(curtime, pageFtime)
+						if timeobj:
+							break
+						pageFtime = curtime
+						bFtime = 1
+
 					timeobj = re.search(curtime, lasttime)
 					if (timeobj and curvol==lastvol):
 						pass
@@ -104,7 +116,7 @@ def handle_data(addcsv, prepath, url, code, qdate, sarr):
 						amount = key.group(6)
 						obj = amount.split(',')
 						amount = ''.join(obj)
-						
+
 						intamount = int(key.group(5))
 						state = key.group(7)
 						for j in range(0, dataObjLen):
@@ -150,6 +162,7 @@ def handle_data(addcsv, prepath, url, code, qdate, sarr):
 						break;
 			line = res_data.readline()
 
+		bFtime = 0
 		if (count==0):
 			break;
 
@@ -213,7 +226,5 @@ def handle_data(addcsv, prepath, url, code, qdate, sarr):
 	filexlsx = prepath +filename+ '.xlsx'
 	wb.save(filexlsx)
 	if (totalline==0):
-		print "No Matched Record"
+		print qdate+ " No Matched Record"
 		os.remove(filexlsx)
-
-

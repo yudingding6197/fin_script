@@ -4,6 +4,8 @@ from openpyxl.reader.excel  import  load_workbook
 import sys
 import re
 import os
+import time
+import datetime
 
 class fitItem:
 	volumn = 0
@@ -26,40 +28,19 @@ s5 = '<tr class="medium"><th>14:56:59</th><td>14.37</td><td>-4.39%</td><td>--</t
 s6 = '<tr class="medium"><th>14:56:59</th><td>14.37</td><td>4.39%</td><td>--</td><td>136</td><td>195,432</td><th><h6>卖盘</h6></th></tr>'
 s7 = "<td width='103' align='left'><a title='重大事项' target='_blank' href='/information/companyinfo.html' onClick=\"setLmCode2('fulltext?','000016','012002');\">"
 
-sarr = ''
-dataObj = []
-if cmp(sarr, '')==0:
-	sarr = "300,600,900,1200,1800"
-volumn = sarr.split(',')
-arrlen = len(volumn)
-for i in range(0,arrlen):
-	obj = fitItem(volumn[i])
-	dataObj.append(obj)
-dataObjLen = len(dataObj)
-print dataObjLen
+delta1=datetime.timedelta(days=1)
+today = datetime.date.today()
+sdate = datetime.datetime.strptime('2015-09-01', '%Y-%m-%d').date()
+edate = datetime.datetime.strptime('2015-09-14', '%Y-%m-%d').date()
+curdate = sdate
+print sdate
+print edate
 
-'''
-prepath = "..\\Da1ta\\"
-if not os.path.isdir(prepath):
-	os.makedirs(prepath)
-fl = open(prepath+ 'ts.txt', 'w')
-fl.write("abcd\n")
-fl.write("1234\n")
-fl.close()
 
-dateObj = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>\+?-?(\d+.\d+)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', s3)
-#dateObj = re.match(r'(\d{4}-\d{1,2}-\d{1,2})', s0)
-if (dateObj):
-	print dateObj.groups()
-	print dateObj.group(1)
-else:
-	print "NO MATCH"
-	
-dateObj = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>\+?-?(\d+.\d+)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', s2)
-#dateObj = re.match(r'(\d{4}-\d{1,2}-\d{1,2})', s0)
-if (dateObj):
-	print dateObj.groups()
-	print dateObj.group(1)
-else:
-	print "NO MATCH"
-'''
+delta = edate - curdate
+while (delta.days>=0):
+	qdate = curdate.strftime("%Y-%m-%d")
+	print qdate
+	curdate = curdate + delta1
+	delta = edate - curdate
+

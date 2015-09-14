@@ -45,6 +45,7 @@ else:
 		exit(1);
 #print code
 
+today = datetime.date.today()
 dateObj = re.match(r'^(\d{4})-(\d+)-(\d+)', qdate)
 if (dateObj is None):
 	dateObj = re.match(r'^(\d+)-(\d+)', qdate)
@@ -52,7 +53,6 @@ if (dateObj is None):
 		print "非法日期格式：" +qdate+ ",期望格式:YYYY-MM-DD or MM-DD"
 		exit(1);
 	else:
-		today = datetime.date.today()
 		year = str(today.year)
 		month = dateObj.group(1)
 		day = dateObj.group(2)
@@ -76,6 +76,12 @@ else:
 qarr = ''
 if pindex==4:
 	qarr = sys.argv[3]
+
+edate = datetime.datetime.strptime(qdate, '%Y-%m-%d').date()
+delta = edate - today
+if (delta.days>=0):
+	print "Warning:日期可能不正确，导致数据错误！"
+
 handle_data(addcsv, prepath, url, code, qdate, qarr)
 
 '''
