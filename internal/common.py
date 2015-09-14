@@ -35,7 +35,7 @@ class fitItem:
 
 def handle_data(addcsv, prepath, url, code, qdate, sarr):
 	url = url + "?symbol=" +code+ "&date=" +qdate
-	print url
+	#print url
 
 	if not os.path.isdir(prepath):
 		os.makedirs(prepath)
@@ -228,6 +228,8 @@ def handle_data(addcsv, prepath, url, code, qdate, sarr):
 	if (totalline==0):
 		print qdate+ " No Matched Record"
 		os.remove(filexlsx)
+	else:
+		print qdate+ " Saved OK"
 
 def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 	url = url + "?symbol=" +code+ "&date=" +qdate
@@ -261,11 +263,11 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 	if addcsv==1:
 		filecsv = prepath + filename + '.csv'
 		fcsv = open(filecsv, 'w')
-		strline = '成交时间,成交价,价格变动,成交量,成交额,性质'
+		strline = '成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
 		fcsv.write(strline)
 		fcsv.write("\n")
 
-	strline = u'成交时间,成交价,价格变动,成交量,成交额,性质'
+	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
 	strObj = strline.split(u',')
 	ws.append(strObj)
 	for i in range(1,500):
@@ -300,6 +302,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 					intcurvol = int(key.group(4))
 					amount = key.group(5)
 					state = key.group(6)
+					srange = ''
 					
 					#记住当前页第一个的时间
 					if (bFtime==0):
@@ -333,7 +336,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 								#print "B:%d %d" %(dataObj[j].buyvol, dataObj[j].buyct)
 
 						if addcsv==1:
-							strline = curtime +","+ price +","+ p_change +","+ curvol +","+ amount_n +","+ state +"\n"
+							strline = curtime +","+ price +","+ srange +","+ p_change +","+ curvol +","+ amount_n +","+ state +"\n"
 							fcsv.write(strline)
 
 						totalline += 1
@@ -343,12 +346,14 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 						cell = 'B' + str(row)
 						ws[cell] = price
 						cell = 'C' + str(row)
-						ws[cell] = p_change
+						ws[cell] = srange
 						cell = 'D' + str(row)
-						ws[cell] = curvol
+						ws[cell] = p_change
 						cell = 'E' + str(row)
-						ws[cell] = intamount
+						ws[cell] = curvol
 						cell = 'F' + str(row)
+						ws[cell] = intamount
+						cell = 'G' + str(row)
 						s1 = state.decode('gbk')
 						ws[cell] = s1
 					count += 1
@@ -424,5 +429,9 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 	filexlsx = prepath +filename+ '.xlsx'
 	wb.save(filexlsx)
 	if (totalline==0):
-		print qdate+ " No Matched Record"
+		#print qdate+ " No Matched Record"
 		os.remove(filexlsx)
+		url1 = 'http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php'
+		handle_data(addcsv, prepath, url1, code, qdate, sarr)
+	else:
+		print qdate+ " Saved OK!"
