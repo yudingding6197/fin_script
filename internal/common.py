@@ -40,7 +40,7 @@ def handle_data(addcsv, prepath, url, code, qdate, sarr):
 
 	dataObj = []
 	if cmp(sarr, '')==0:
-		sarr = "300,600,900"
+		sarr = "0,300,600,900"
 	volObj = sarr.split(',')
 	arrlen = len(volObj)
 	for i in range(0,arrlen):
