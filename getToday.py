@@ -8,6 +8,7 @@ import urllib
 import urllib2
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
+from internal.common import handle_data
 
 #url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001&date=2015-09-10&page=48"
 #成交时间	成交价	涨跌幅	价格变动	成交量(手)		成交额(元)	性质
@@ -19,12 +20,11 @@ addcsv = 0
 prepath = ".\\"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
 pindex = len(sys.argv)
-if (pindex != 3):
-	sys.stderr.write("Usage: command 代码 时间<YYYY-MM-DD or MM-DD>\n")
+if pindex<2:
+	sys.stderr.write("Usage: command 代码 [arr=[number, number...]]\n")
 	exit(1);
 
 code = sys.argv[1]
-qdate = sys.argv[2]
 if (len(code) != 6):
 	sys.stderr.write("Len should be 6\n")
 	exit(1);
@@ -41,23 +41,10 @@ else:
 		print "非法代码:" +code+ "\n"
 		exit(1);
 
-dateObj = re.match(r'^(\d{4})-(\d+)-(\d+)', qdate)
-if (dateObj is None):
-	dateObj = re.match(r'^(\d+)-(\d+)', qdate)
-	if (dateObj is None):
-		print "非法日期格式：" +qdate+ ",期望格式:YYYY-MM-DD or MM-DD"
-		exit(1);
-	else:
-		today = datetime.date.today()
-		year = str(today.year)
-		month = dateObj.group(1)
-		day = dateObj.group(2)
-		pass
-else:
-	year = dateObj.group(1)
-	month = dateObj.group(2)
-	day = dateObj.group(3)
-
+today = datetime.date.today()
+year = str(today.year)
+month = str(today.month)
+day = str(today.day)
 qdate = year
 if len(month)==1:
 	qdate = year+ "-0" +month
@@ -69,6 +56,12 @@ else:
 	qdate = qdate+ "-" +day
 #print qdate
 
+sarr = ''
+if pindex==3:
+	sarr = sys.argv[2]
+handle_data(addcsv, prepath, url, code, qdate, sarr)
+
+'''
 url = url + "?symbol=" +code+ "&date=" +qdate
 if not os.path.isdir(prepath):
 	os.makedirs(prepath)
@@ -296,5 +289,4 @@ wb.save(filexlsx)
 if (totalline==0):
 	print "No Matched Record"
 	os.remove(filexlsx)
-
-
+'''

@@ -6,7 +6,8 @@ import datetime
 import urllib
 import urllib2
 from openpyxl import Workbook
-from openpyxl.reader.excel  import  load_workbook
+from openpyxl.reader.excel import load_workbook
+from internal.common import handle_data
 
 #url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001&date=2015-09-10&page=48"
 #url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php?symbol=sz300001&date=2015-09-10&page=1"
@@ -18,11 +19,11 @@ from openpyxl.reader.excel  import  load_workbook
 #如果需要记录到csv文件中，修改addcsv=1
 addcsv = 0
 prepath = "..\\Data\\"
-url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php?symbol=" + code
+url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php"
 
 pindex = len(sys.argv)
-if (pindex != 3):
-	sys.stderr.write("Usage: command 代码 时间<YYYY-MM-DD or MM-DD>\n")
+if pindex<3:
+	sys.stderr.write("Usage: command 代码 时间<YYYY-MM-DD or MM-DD> [arr=[number, number...]]\n")
 	exit(1);
 
 code = sys.argv[1]
@@ -72,6 +73,12 @@ else:
 	qdate = qdate+ "-" +day
 #print qdate
 
+qarr = ''
+if pindex==4:
+	qarr = sys.argv[3]
+handle_data(addcsv, prepath, url, code, qdate, qarr)
+
+'''
 url = url + "?symbol=" +code+ "&date=" +qdate
 if not os.path.isdir(prepath):
 	os.makedirs(prepath)
@@ -299,5 +306,5 @@ wb.save(filexlsx)
 if (totalline==0):
 	print "No Matched Record"
 	os.remove(filexlsx)
-
+'''
 
