@@ -17,7 +17,9 @@ from openpyxl.reader.excel  import  load_workbook
 
 #如果需要记录到csv文件中，修改addcsv=1
 addcsv = 0
-prepath = "D:\\stock\\Data\\"
+prepath = "..\\Data\\"
+url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php?symbol=" + code
+
 pindex = len(sys.argv)
 if (pindex != 3):
 	sys.stderr.write("Usage: command 代码 时间<YYYY-MM-DD or MM-DD>\n")
@@ -70,8 +72,9 @@ else:
 	qdate = qdate+ "-" +day
 #print qdate
 
-url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php?symbol=" + code
-url = url + "&date=" + qdate
+url = url + "?symbol=" +code+ "&date=" +qdate
+if not os.path.isdir(prepath):
+	os.makedirs(prepath)
 
 wb = Workbook()
 # grab the active worksheet
@@ -247,13 +250,19 @@ if (totalline>0):
 	cell = 'C' + str(row)
 	ws[cell] = buy3ct
 	cell = 'D' + str(row)
-	ws[cell] = buy3all/buy3ct
+	if buy3ct==0:
+		ws[cell] = 0
+	else:
+		ws[cell] = buy3all/buy3ct
 	cell = 'E' + str(row)
 	ws[cell] = sell3all
 	cell = 'F' + str(row)
 	ws[cell] = sell3ct
 	cell = 'G' + str(row)
-	ws[cell] = sell3all/sell3ct
+	if sell3ct==0:
+		ws[cell] = 0
+	else:
+		ws[cell] = sell3all/sell3ct
 	cell = 'H' + str(row)
 	ws[cell] = buy3all + sell3all
 	cell = 'I' + str(row)
@@ -267,13 +276,19 @@ if (totalline>0):
 	cell = 'C' + str(row)
 	ws[cell] = buy6ct
 	cell = 'D' + str(row)
-	ws[cell] = buy6all/buy6ct
+	if buy6ct==0:
+		ws[cell] = 0
+	else:
+		ws[cell] = buy6all/buy6ct
 	cell = 'E' + str(row)
 	ws[cell] = sell6all
 	cell = 'F' + str(row)
 	ws[cell] = sell6ct
 	cell = 'G' + str(row)
-	ws[cell] = sell6all/sell6ct
+	if sell6ct==0:
+		ws[cell] = 0
+	else:
+		ws[cell] = sell6all/sell6ct
 	cell = 'H' + str(row)
 	ws[cell] = buy6all + sell6all
 	cell = 'I' + str(row)

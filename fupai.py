@@ -10,7 +10,7 @@ import binascii
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
-prepath = "D:\\stock\\GongSi"
+prepath = ""
 pindex = len(sys.argv)
 if (pindex == 1):
 	sys.stderr.write("Usage: command Ê±¼ä<YYYY-MM-DD or MM-DD>\n")
@@ -70,7 +70,7 @@ url = "http://www.cninfo.com.cn/information/memo/jyts_more.jsp?datePara="
 
 totalline = 0
 lasttime = ''
-filename = prepath + '\\fupai_' + qdate
+filename = prepath + 'fupai_' + qdate
 filetxt = filename + '.txt'
 fl = open(filetxt, 'w')
 

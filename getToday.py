@@ -16,7 +16,8 @@ from openpyxl.reader.excel  import  load_workbook
 #<tr ><th>11:29:21</th><td>14.56</td><td>-3.13%</td><td>-0.02</td><td>10</td><td>14,560</td><th><h6>ÂôÅÌ</h6></th></tr>
 
 addcsv = 0
-prepath = "D:\\stock\\Data\\"
+prepath = ".\\"
+url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
 pindex = len(sys.argv)
 if (pindex != 3):
 	sys.stderr.write("Usage: command ´úÂë Ê±¼ä<YYYY-MM-DD or MM-DD>\n")
@@ -68,8 +69,9 @@ else:
 	qdate = qdate+ "-" +day
 #print qdate
 
-url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=" + code
-url = url + "&date=" + qdate
+url = url + "?symbol=" +code+ "&date=" +qdate
+if not os.path.isdir(prepath):
+	os.makedirs(prepath)
 
 wb = Workbook()
 # grab the active worksheet
@@ -245,13 +247,19 @@ if (totalline>0):
 	cell = 'C' + str(row)
 	ws[cell] = buy3ct
 	cell = 'D' + str(row)
-	ws[cell] = buy3all/buy3ct
+	if buy3ct==0:
+		ws[cell] = 0
+	else:
+		ws[cell] = buy3all/buy3ct
 	cell = 'E' + str(row)
 	ws[cell] = sell3all
 	cell = 'F' + str(row)
 	ws[cell] = sell3ct
 	cell = 'G' + str(row)
-	ws[cell] = sell3all/sell3ct
+	if sell3ct==0:
+		ws[cell] = 0
+	else:
+		ws[cell] = sell3all/sell3ct
 	cell = 'H' + str(row)
 	ws[cell] = buy3all + sell3all
 	cell = 'I' + str(row)
@@ -265,13 +273,19 @@ if (totalline>0):
 	cell = 'C' + str(row)
 	ws[cell] = buy6ct
 	cell = 'D' + str(row)
-	ws[cell] = buy6all/buy6ct
+	if buy6ct==0:
+		ws[cell] = 0
+	else:
+		ws[cell] = buy6all/buy6ct
 	cell = 'E' + str(row)
 	ws[cell] = sell6all
 	cell = 'F' + str(row)
 	ws[cell] = sell6ct
 	cell = 'G' + str(row)
-	ws[cell] = sell6all/sell6ct
+	if sell6ct==0:
+		ws[cell] = 0
+	else:
+		ws[cell] = sell6all/sell6ct
 	cell = 'H' + str(row)
 	ws[cell] = buy6all + sell6all
 	cell = 'I' + str(row)

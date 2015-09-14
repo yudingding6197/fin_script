@@ -3,6 +3,7 @@ from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 import sys
 import re
+import os
 
 s0 = '2012-12-13'
 s1 = '	<tr ><th>11:29:48</th><td>14.57</td><td>-3.06%</td><td>+0.01</td><td>16</td><td>23,312</td><th><h1>ÖÐÐÔÅÌ</h1></th></tr>'
@@ -39,37 +40,13 @@ if (timeobj is not None) and (curvol==lastvol):
 else:
 	print "NOt"
 
-
-'''
-m = re.match(r'(\w+) (\w+)(?P<sign>.*)', 'hello world!')
-print "m.string:", m.string
-print "m.re:", m.re
-print "m.pos:", m.pos
-print "m.endpos:", m.endpos
-print "m.lastindex:", m.lastindex
-print "m.lastgroup:", m.lastgroup
-
-print "m.group(1,2):", m.group(1, 2, 3)
-print "m.groups():", m.groups()
-print "m.groupdict():", m.groupdict()
-print "m.start(2):", m.start(2)
-print "m.end(2):", m.end(2)
-print "m.span(2):", m.span(2)
-print r"m.expand(r'\2 \1\3'):", m.expand(r'\2 \1\3')
-print "\n"
-
-fl = open('ts.txt', 'w')
+prepath = "..\\Da1ta\\"
+if not os.path.isdir(prepath):
+	os.makedirs(prepath)
+fl = open(prepath+ 'ts.txt', 'w')
 fl.write("abcd\n")
 fl.write("1234\n")
-pos = fl.tell()
 fl.close()
-fl = open('ts.txt', 'a+')
-fl.seek(0,0)
-#x = fl.readline()
-#print x
-fl.write("start line\n")
-fl.close()
-print pos
 
 dateObj = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>\+?-?(\d+.\d+)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(ÂôÅÌ|ÂòÅÌ|ÖÐÐÔÅÌ)\D', s3)
 #dateObj = re.match(r'(\d{4}-\d{1,2}-\d{1,2})', s0)
@@ -86,4 +63,3 @@ if (dateObj):
 	print dateObj.group(1)
 else:
 	print "NO MATCH"
-'''
