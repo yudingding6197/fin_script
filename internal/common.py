@@ -33,8 +33,14 @@ class fitItem:
 		self.sellavg = 0
 
 
-def handle_data(addcsv, prepath, url, code, qdate, sarr):
-	url = url + "?symbol=" +code+ "&date=" +qdate
+def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
+	if dflag==0:
+		url = url +"?symbol="+ code
+	elif dflag==1:
+		url = url +"?date="+ qdate +"&symbol="+ code
+	else:
+		print "Unknown flag:"+ str(dflag)
+		return
 	#print url
 
 	if not os.path.isdir(prepath):
@@ -61,6 +67,8 @@ def handle_data(addcsv, prepath, url, code, qdate, sarr):
 	lastvol = 0
 	pageFtime = ''
 	bFtime = 0
+	bFindHist = 0
+	hisUrl = ''
 	filename = code+ '_' + qdate
 	if addcsv==1:
 		filecsv = prepath + filename + '.csv'
@@ -72,6 +80,8 @@ def handle_data(addcsv, prepath, url, code, qdate, sarr):
 	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
 	strObj = strline.split(u',')
 	ws.append(strObj)
+	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
+	frameRe = re.compile(r'.*name=\"list_frame\" src=\"(.*)\" frameborder')
 	for i in range(1,500):
 		urlall = url + "&page=" +str(i)
 		#print "%d, %s" %(i,urlall)
@@ -82,84 +92,99 @@ def handle_data(addcsv, prepath, url, code, qdate, sarr):
 		flag = 0
 		count = 0
 		line = res_data.readline()
-		checkStr = '成交时间'
+		if dflag==0:
+			checkStr = '成交时间'
+		else:
+			checkStr = '前收价'
 		while line:
-			#print line
 			index = line.find(checkStr)
 			if (index<0):
 				line = res_data.readline()
 				continue
-
-			if flag==0:
-				checkStr = '<th>'
-				flag = 1
 			else:
-				key = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', line)
-				if (key):
-					#print key.groups()
-					curtime = key.group(1)
-					curvol = int(key.group(5))
-					#记住当前页第一个的时间
-					if (bFtime==0):
-						timeobj = re.search(curtime, pageFtime)
-						if timeobj:
-							break
-						pageFtime = curtime
-						bFtime = 1
+				checkStr = '<script type='
+				break;
 
-					timeobj = re.search(curtime, lasttime)
-					if (timeobj and curvol==lastvol):
-						pass
-					else:
-						lasttime = curtime
-						lastvol = curvol
-						amount = key.group(6)
-						obj = amount.split(',')
-						amount = ''.join(obj)
+		#找到关键字后，查找新的关键字
+		while line:
+			#print "s='"+ line + "'"
+			index = line.find(checkStr)
+			if (index>=0):
+				#找到之后退出
+				break;
 
-						intamount = int(key.group(5))
-						state = key.group(7)
-						for j in range(0, dataObjLen):
-							filtvol = int(dataObj[j].volumn)
-							if intamount<filtvol:
-								continue;
-							if cmp(state, '卖盘')==0:
-								dataObj[j].sellvol += intamount
-								dataObj[j].sellct += 1
-								#print "S:%d %d" %(dataObj[j].sellvol, dataObj[j].sellct)
-							elif cmp(state, '买盘')==0:
-								dataObj[j].buyvol += intamount
-								dataObj[j].buyct += 1
-								#print "B:%d %d" %(dataObj[j].buyvol, dataObj[j].buyct)
+			#key = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', line)
+			key = dtlRe.match(line)
+			if key:
+				#print key.groups()
+				curtime = key.group(1)
+				curvol = int(key.group(5))
+				#记住当前页第一个的时间
+				if (bFtime==0):
+					timeobj = re.search(curtime, pageFtime)
+					if timeobj:
+						break
+					pageFtime = curtime
+					bFtime = 1
 
-						if addcsv==1:
-							strline = curtime +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ amount +","+ key.group(7) + "\n"
-							fcsv.write(strline)
-
-						totalline += 1
-						row = totalline+1
-						cell = 'A' + str(row)
-						ws[cell] = curtime
-						cell = 'B' + str(row)
-						ws[cell] = key.group(2)
-						cell = 'C' + str(row)
-						ws[cell] = key.group(3)
-						cell = 'D' + str(row)
-						ws[cell] = key.group(4)
-						cell = 'E' + str(row)
-						ws[cell] = int(key.group(5))
-						cell = 'F' + str(row)
-						ws[cell] = int(amount)
-						cell = 'G' + str(row)
-						s1 = key.group(7).decode('gbk')
-						ws[cell] = s1
-					count += 1
+				timeobj = re.search(curtime, lasttime)
+				if (timeobj and curvol==lastvol):
+					pass
 				else:
-					endObj = re.search(r'</td><td>', qdate)
-					if (endObj):
-						print "Error line:" + line
-					else:
-						break;
+					lasttime = curtime
+					lastvol = curvol
+					amount = key.group(6)
+					obj = amount.split(',')
+					amount = ''.join(obj)
+
+					intamount = int(key.group(5))
+					state = key.group(7)
+					for j in range(0, dataObjLen):
+						filtvol = int(dataObj[j].volumn)
+						if intamount<filtvol:
+							continue;
+						if cmp(state, '卖盘')==0:
+							dataObj[j].sellvol += intamount
+							dataObj[j].sellct += 1
+							#print "S:%d %d" %(dataObj[j].sellvol, dataObj[j].sellct)
+						elif cmp(state, '买盘')==0:
+							dataObj[j].buyvol += intamount
+							dataObj[j].buyct += 1
+							#print "B:%d %d" %(dataObj[j].buyvol, dataObj[j].buyct)
+
+					if addcsv==1:
+						strline = curtime +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ amount +","+ key.group(7) + "\n"
+						fcsv.write(strline)
+
+					totalline += 1
+					row = totalline+1
+					cell = 'A' + str(row)
+					ws[cell] = curtime
+					cell = 'B' + str(row)
+					ws[cell] = key.group(2)
+					cell = 'C' + str(row)
+					ws[cell] = key.group(3)
+					cell = 'D' + str(row)
+					ws[cell] = key.group(4)
+					cell = 'E' + str(row)
+					ws[cell] = int(key.group(5))
+					cell = 'F' + str(row)
+					ws[cell] = int(amount)
+					cell = 'G' + str(row)
+					s1 = key.group(7).decode('gbk')
+					ws[cell] = s1
+				count += 1
+				line = res_data.readline()
+				continue
+
+			if dflag==1:
+				key = frameRe.match(line)
+				if key:
+					bFindHist = 1
+					hisUrl = key.group(1)
+					#print key.groups()
+					break
+			
 			line = res_data.readline()
 
 		bFtime = 0
@@ -176,6 +201,8 @@ def handle_data(addcsv, prepath, url, code, qdate, sarr):
 		ws.title = 'statistics'
 
 		row = 1
+		cell = 'A' + str(row)
+		ws[cell] = qdate
 		cell = 'B' + str(row)
 		ws[cell] = 'B'
 		cell = 'C' + str(row)
@@ -226,15 +253,16 @@ def handle_data(addcsv, prepath, url, code, qdate, sarr):
 	filexlsx = prepath +filename+ '.xlsx'
 	wb.save(filexlsx)
 	if (totalline==0):
-		print qdate+ " No Matched Record"
 		os.remove(filexlsx)
+		if bFindHist==1:
+			handle_his_data(addcsv, prepath, hisUrl, code, qdate, sarr)
+		else:
+			print qdate+ " No Matched Record"
 	else:
 		print qdate+ " Saved OK"
 
 def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
-	url = url + "?symbol=" +code+ "&date=" +qdate
 	#print url
-
 	if not os.path.isdir(prepath):
 		os.makedirs(prepath)
 
@@ -270,7 +298,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
 	strObj = strline.split(u',')
 	ws.append(strObj)
-	for i in range(1,500):
+	for i in range(46,500):
 		urlall = url + "&page=" +str(i)
 		#print "%d, %s" %(i,urlall)
 
@@ -294,7 +322,6 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 			else:
 				key = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(--|\+?\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', line)
 				if (key):
-					#print key.groups()
 					curtime = key.group(1)
 					price = key.group(2)
 					p_change = key.group(3)
@@ -379,6 +406,8 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 		ws.title = 'statistics'
 
 		row = 1
+		cell = 'A' + str(row)
+		ws[cell] = qdate
 		cell = 'B' + str(row)
 		ws[cell] = 'B'
 		cell = 'C' + str(row)
@@ -429,9 +458,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 	filexlsx = prepath +filename+ '.xlsx'
 	wb.save(filexlsx)
 	if (totalline==0):
-		#print qdate+ " No Matched Record"
+		print qdate +" No Matched Record!"
 		os.remove(filexlsx)
-		url1 = 'http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php'
-		handle_data(addcsv, prepath, url1, code, qdate, sarr)
 	else:
 		print qdate+ " Saved OK!"

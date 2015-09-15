@@ -9,7 +9,6 @@ import urllib2
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 from internal.common import handle_data
-from internal.common import handle_his_data
 
 #url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001&date=2015-09-10&page=48"
 #成交时间	成交价	涨跌幅	价格变动	成交量(手)		成交额(元)	性质
@@ -18,7 +17,7 @@ from internal.common import handle_his_data
 #<tr ><th>11:29:21</th><td>14.56</td><td>-3.13%</td><td>-0.02</td><td>10</td><td>14,560</td><th><h6>卖盘</h6></th></tr>
 
 addcsv = 0
-prepath = ".\\"
+prepath = "..\\Data\\"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
 pindex = len(sys.argv)
 if pindex<2:
@@ -60,7 +59,8 @@ else:
 sarr = ''
 if pindex==3:
 	sarr = sys.argv[2]
-handle_data(addcsv, prepath, url, code, qdate, sarr)
+
+handle_data(addcsv, prepath, 0, url, code, qdate, sarr)
 
 '''
 url = url + "?symbol=" +code+ "&date=" +qdate

@@ -20,7 +20,7 @@ from internal.common import handle_his_data
 #如果需要记录到csv文件中，修改addcsv=1
 addcsv = 0
 prepath = "..\\Data\\"
-url = "http://market.finance.sina.com.cn/transHis.php"
+url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php"
 
 pindex = len(sys.argv)
 if pindex<3:
@@ -100,6 +100,6 @@ while (delta.days>=0):
 		print "当前日期(" +curdate.strftime("%Y-%m-%d")+ ")超过当天日期了！"
 		break
 	qdate = curdate.strftime("%Y-%m-%d")
-	handle_his_data(addcsv, prepath, url, code, qdate, qarr)
+	handle_data(addcsv, prepath, 1, url, code, qdate, qarr)
 	curdate = curdate + delta1
 	delta = edate - curdate

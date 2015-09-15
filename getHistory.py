@@ -8,7 +8,6 @@ import urllib2
 from openpyxl import Workbook
 from openpyxl.reader.excel import load_workbook
 from internal.common import handle_data
-from internal.common import handle_his_data
 
 #url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001&date=2015-09-10&page=48"
 #url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php?symbol=sz300001&date=2015-09-10&page=1"
@@ -20,7 +19,7 @@ from internal.common import handle_his_data
 #如果需要记录到csv文件中，修改addcsv=1
 addcsv = 0
 prepath = "..\\Data\\"
-url = "http://market.finance.sina.com.cn/transHis.php"
+url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php"
 
 pindex = len(sys.argv)
 if pindex<3:
@@ -83,7 +82,7 @@ delta = edate - today
 if (delta.days>=0):
 	print "Warning:日期可能不正确，导致数据错误！"
 
-handle_his_data(addcsv, prepath, url, code, qdate, qarr)
+handle_data(addcsv, prepath, 1, url, code, qdate, qarr)
 
 '''
 url = url + "?symbol=" +code+ "&date=" +qdate
