@@ -32,6 +32,52 @@ class fitItem:
 		self.sellct = 0
 		self.sellavg = 0
 
+dftsarr = "0,200,300,600,900"
+
+def write_statics(ws, dataObj, qdate):
+	ws.title = 'statistics'
+
+	ascid = 65
+	row = 1
+	title = [qdate, 'B', 'S', 'B_vol', 'S_vol', 'B_avg', 'S_avg']
+	number = len(title)
+	for i in range(0,number):
+		cell = chr(ascid+i) + str(row)
+		ws[cell] = title[i]
+
+	dataObjLen = len(dataObj)
+	for j in range(0, dataObjLen):
+		list = []
+		list.append(dataObj[j].volumn)
+		
+		buyvol = dataObj[j].buyvol
+		buyct = dataObj[j].buyct
+		
+		sellvol = dataObj[j].sellvol
+		sellct = dataObj[j].sellct
+		
+		list.append(buyvol)
+		list.append(sellvol)
+		list.append(buyct)
+		list.append(sellct)
+		if buyct==0:
+			list.append(0)
+		else:
+			list.append(buyvol/buyct)
+		if sellct==0:
+			list.append(0)
+		else:
+			list.append(sellvol/sellct)
+		list.append('')
+		list.append(buyvol + sellvol)
+		list.append(buyct + sellct)
+		list.append((buyvol + sellvol)/(buyct + sellct))
+		
+		row = row+1
+		number = len(list)
+		for i in range(0,number):
+			cell = chr(ascid+i) + str(row)
+			ws[cell] = list[i]
 
 def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 	if dflag==0:
@@ -48,7 +94,7 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 
 	dataObj = []
 	if cmp(sarr, '')==0:
-		sarr = "0,300,600,900"
+		sarr = dftsarr
 	volObj = sarr.split(',')
 	arrlen = len(volObj)
 	for i in range(0,arrlen):
@@ -70,6 +116,9 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 	bFindHist = 0
 	hisUrl = ''
 	filename = code+ '_' + qdate
+	if dflag==0:
+		cur=datetime.datetime.now()
+		filename = '%s_%02d-%02d' %(filename, cur.hour, cur.minute)
 	if addcsv==1:
 		filecsv = prepath + filename + '.csv'
 		fcsv = open(filecsv, 'w')
@@ -196,59 +245,9 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 		if (totalline==0):
 			os.remove(filecsv)
 
-	if (totalline>0):
+	if totalline>0:
 		ws = wb.create_sheet()
-		ws.title = 'statistics'
-
-		row = 1
-		cell = 'A' + str(row)
-		ws[cell] = qdate
-		cell = 'B' + str(row)
-		ws[cell] = 'B'
-		cell = 'C' + str(row)
-		ws[cell] = 'B_vol'
-		cell = 'D' + str(row)
-		ws[cell] = 'B_avg'
-		cell = 'E' + str(row)
-		ws[cell] = 'S'
-		cell = 'F' + str(row)
-		ws[cell] = 'S_vol'
-		cell = 'G' + str(row)
-		ws[cell] = 'S_avg'
-
-		for j in range(0, dataObjLen):
-			row = row+1
-			cell = 'A' + str(row)
-			ws[cell] = dataObj[j].volumn
-
-			buyvol = dataObj[j].buyvol
-			buyct = dataObj[j].buyct
-			cell = 'B' + str(row)
-			ws[cell] = buyvol
-			cell = 'C' + str(row)
-			ws[cell] = buyct
-			cell = 'D' + str(row)
-			if buyct==0:
-				ws[cell] = 0
-			else:
-				ws[cell] = buyvol/buyct
-
-			sellvol = dataObj[j].sellvol
-			sellct = dataObj[j].sellct
-			cell = 'E' + str(row)
-			ws[cell] = sellvol
-			cell = 'F' + str(row)
-			ws[cell] = sellct
-			cell = 'G' + str(row)
-			if sellct==0:
-				ws[cell] = 0
-			else:
-				ws[cell] = sellvol/sellct
-
-			cell = 'I' + str(row)
-			ws[cell] = buyvol + sellvol
-			cell = 'J' + str(row)
-			ws[cell] = buyct + sellct
+		write_statics(ws, dataObj, qdate)
 
 	filexlsx = prepath +filename+ '.xlsx'
 	wb.save(filexlsx)
@@ -268,7 +267,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 
 	dataObj = []
 	if cmp(sarr, '')==0:
-		sarr = "0,300,600,900"
+		sarr = dftsarr
 	volObj = sarr.split(',')
 	arrlen = len(volObj)
 	for i in range(0,arrlen):
@@ -298,7 +297,8 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
 	strObj = strline.split(u',')
 	ws.append(strObj)
-	for i in range(46,500):
+	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(--|\+?\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
+	for i in range(1,500):
 		urlall = url + "&page=" +str(i)
 		#print "%d, %s" %(i,urlall)
 
@@ -320,7 +320,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 				checkStr = '<th>'
 				flag = 1
 			else:
-				key = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(--|\+?\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', line)
+				key = dtlRe.match(line)
 				if (key):
 					curtime = key.group(1)
 					price = key.group(2)
@@ -403,57 +403,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 
 	if (totalline>0):
 		ws = wb.create_sheet()
-		ws.title = 'statistics'
-
-		row = 1
-		cell = 'A' + str(row)
-		ws[cell] = qdate
-		cell = 'B' + str(row)
-		ws[cell] = 'B'
-		cell = 'C' + str(row)
-		ws[cell] = 'B_vol'
-		cell = 'D' + str(row)
-		ws[cell] = 'B_avg'
-		cell = 'E' + str(row)
-		ws[cell] = 'S'
-		cell = 'F' + str(row)
-		ws[cell] = 'S_vol'
-		cell = 'G' + str(row)
-		ws[cell] = 'S_avg'
-
-		for j in range(0, dataObjLen):
-			row = row+1
-			cell = 'A' + str(row)
-			ws[cell] = dataObj[j].volumn
-
-			buyvol = dataObj[j].buyvol
-			buyct = dataObj[j].buyct
-			cell = 'B' + str(row)
-			ws[cell] = buyvol
-			cell = 'C' + str(row)
-			ws[cell] = buyct
-			cell = 'D' + str(row)
-			if buyct==0:
-				ws[cell] = 0
-			else:
-				ws[cell] = buyvol/buyct
-
-			sellvol = dataObj[j].sellvol
-			sellct = dataObj[j].sellct
-			cell = 'E' + str(row)
-			ws[cell] = sellvol
-			cell = 'F' + str(row)
-			ws[cell] = sellct
-			cell = 'G' + str(row)
-			if sellct==0:
-				ws[cell] = 0
-			else:
-				ws[cell] = sellvol/sellct
-
-			cell = 'I' + str(row)
-			ws[cell] = buyvol + sellvol
-			cell = 'J' + str(row)
-			ws[cell] = buyct + sellct
+		write_statics(ws, dataObj, qdate)
 
 	filexlsx = prepath +filename+ '.xlsx'
 	wb.save(filexlsx)

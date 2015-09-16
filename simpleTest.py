@@ -18,7 +18,8 @@ class fitItem:
 	def __init__(self,vol):
 		self.volumn = vol
 
-
+ascid = 65
+chid = chr(65)
 s0 = '2012-12-13'
 s1 = '	<tr ><th>11:29:48</th><td>14.57</td><td>-3.06%</td><td>+0.01</td><td>16</td><td>23,312</td><th><h1>÷––‘≈Ã</h1></th></tr>'
 s2 = '<iframe id="list_frame" name="list_frame" src="http://market.finance.sina.com.cn/transHis.php?date=2015-07-10&symbol=sz300001" frameborder="0" style="width:948px; margin:0 -10px; overflow:hidden;" scrolling="no"></iframe>'
@@ -37,4 +38,18 @@ if (key):
 else:
 	print "NONE"
 
+arr = []
+arr.append(10)
+arr.append("aaa")
+for i in range(0, len(arr)):
+	print arr[i]
+
+ascid = 64
+row = 1
+title = ["2001", 'B', 'B_vol', 'B_avg', 'S', 'S_vol', 'S_avg']
+number = len(title)
+for i in range(0,number):
+	ascid += 1
+	cell = chr(ascid) + str(row)
+	print cell +","+ title[i]
 
