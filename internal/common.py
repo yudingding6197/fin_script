@@ -34,6 +34,16 @@ class fitItem:
 
 dftsarr = "0,200,300,600,900"
 
+def loginfo():
+	log = 0
+	if (log==1):
+		frame = None
+		try:
+			raise  ZeroDivisionError
+		except  ZeroDivisionError:
+			frame = sys.exc_info()[2].tb_frame.f_back
+		print "%s in line %d" %(str(datetime.datetime.now()), frame.f_lineno)
+
 def write_statics(ws, dataObj, qdate):
 	ws.title = 'statistics'
 
@@ -71,7 +81,11 @@ def write_statics(ws, dataObj, qdate):
 		list.append('')
 		list.append(buyvol + sellvol)
 		list.append(buyct + sellct)
-		list.append((buyvol + sellvol)/(buyct + sellct))
+		bsct = buyct + sellct
+		if bsct==0:
+			list.append(0)
+		else:
+			list.append((buyvol + sellvol)/bsct)
 		
 		row = row+1
 		number = len(list)
@@ -134,9 +148,12 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 	for i in range(1,500):
 		urlall = url + "&page=" +str(i)
 		#print "%d, %s" %(i,urlall)
+		loginfo()
 
 		req = urllib2.Request(urlall)
 		res_data = urllib2.urlopen(req)
+		#print "Parse data"
+		loginfo()
 
 		flag = 0
 		count = 0
@@ -153,6 +170,7 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 			else:
 				checkStr = '<script type='
 				break;
+		loginfo()
 
 		#找到关键字后，查找新的关键字
 		while line:
@@ -236,6 +254,7 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 			
 			line = res_data.readline()
 
+		loginfo()
 		bFtime = 0
 		if (count==0):
 			break;
@@ -246,9 +265,11 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 			os.remove(filecsv)
 
 	if totalline>0:
+		loginfo()
 		ws = wb.create_sheet()
 		write_statics(ws, dataObj, qdate)
 
+	loginfo()
 	filexlsx = prepath +filename+ '.xlsx'
 	wb.save(filexlsx)
 	if (totalline==0):

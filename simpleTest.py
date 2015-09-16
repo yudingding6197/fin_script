@@ -43,7 +43,8 @@ arr.append(10)
 arr.append("aaa")
 for i in range(0, len(arr)):
 	print arr[i]
-
+cur=datetime.datetime.now()
+print str(cur) + "a"
 ascid = 64
 row = 1
 title = ["2001", 'B', 'B_vol', 'B_avg', 'S', 'S_vol', 'S_avg']

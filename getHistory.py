@@ -27,7 +27,6 @@ if pindex<3:
 	exit(1);
 
 code = sys.argv[1]
-qdate = sys.argv[2]
 if (len(code) != 6):
 	sys.stderr.write("Len should be 6\n")
 	exit(1);
@@ -45,6 +44,7 @@ else:
 		exit(1);
 #print code
 
+qdate = sys.argv[2]
 today = datetime.date.today()
 dateObj = re.match(r'^(\d{4})-(\d+)-(\d+)', qdate)
 if (dateObj is None):
@@ -61,7 +61,7 @@ else:
 	month = int(dateObj.group(2))
 	day = int(dateObj.group(3))
 
-qdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
+qdate = '%04d-%02d-%02d' %(year, month, day)
 #print qdate
 
 qarr = ''

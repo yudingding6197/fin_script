@@ -48,6 +48,12 @@ qdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
 sarr = ''
 if pindex==3:
 	sarr = sys.argv[2]
+	arrObj = sarr.split(',')
+	for i in range(0, len(arrObj)):
+		val = arrObj[i].isdigit()
+		if val is False:
+			print "Invalide parameter:" + sarr
+			exit(1)
 
 handle_data(addcsv, prepath, 0, url, code, qdate, sarr)
 

@@ -28,7 +28,6 @@ if pindex<3:
 	exit(1);
 
 code = sys.argv[1]
-strdate = sys.argv[2]
 if (len(code) != 6):
 	sys.stderr.write("Len should be 6\n")
 	exit(1);
@@ -46,6 +45,7 @@ else:
 		exit(1);
 #print code
 
+strdate = sys.argv[2]
 dObj = strdate.split('~')
 if len(dObj)!=2:
 	print "非法日期格式：" +strdate+ ",期望格式:(YYYY-MM-DD or MM-DD)~(YYYY-MM-DD or MM-DD)"
@@ -62,24 +62,15 @@ for i in range(0,2):
 			print "非法日期格式：" +qdate+ ",期望格式:YYYY-MM-DD or MM-DD"
 			exit(1);
 		else:
-			year = str(today.year)
-			month = dateObj.group(1)
-			day = dateObj.group(2)
+			year = today.year
+			month = int(dateObj.group(1))
+			day = int(dateObj.group(2))
 	else:
-		year = dateObj.group(1)
-		month = dateObj.group(2)
-		day = dateObj.group(3)
+		year = int(dateObj.group(1))
+		month = int(dateObj.group(2))
+		day = int(dateObj.group(3))
 
-	qdate = year
-	if len(month)==1:
-		qdate = year+ "-0" +month
-	else:
-		qdate = year+ "-" +month
-	if len(day)==1:
-		qdate = qdate+ "-0" +day
-	else:
-		qdate = qdate+ "-" +day
-
+	qdate = '%04d-%02d-%02d' %(year, month, day)
 	if i==0:
 		sdate = datetime.datetime.strptime(qdate, '%Y-%m-%d').date()
 		curdate = sdate
