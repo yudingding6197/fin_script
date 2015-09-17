@@ -9,6 +9,16 @@ from openpyxl.reader.excel  import  load_workbook
 
 prepath = '../Data/'
 allFileNum = 0
+def loginfo():
+	log = 1
+	if (log==1):
+		frame = None
+		try:
+			raise  ZeroDivisionError
+		except  ZeroDivisionError:
+			frame = sys.exc_info()[2].tb_frame.f_back
+		print "%s in line %d" %(str(datetime.datetime.now()), frame.f_lineno)
+
 def printPath(level, path,fileList):
 	global allFileNum
 	# 所有文件夹，第一个字段是次目录的级别
@@ -65,33 +75,34 @@ def printPath(level, path,fileList):
 		print sheet_ranges_r
 	'''	
 
+# 建立存储数据的字典 
+data_dic = [] 
+
 def parseFile(path, filename):
 	wkfile = path +"/"+ filename
 	print wkfile
 
+	loginfo()
 	wb = load_workbook(wkfile)
-	print "Worksheet range(s):", wb.get_named_ranges()
-	print "Worksheet name(s):", wb.get_sheet_names()
+	#print "Worksheet range(s):", wb.get_named_ranges()
+	#print "Worksheet name(s):", wb.get_sheet_names()
+	loginfo()
 	if "statistics" not in wb.get_sheet_names():
 		return
 
+	loginfo()
 	ws = wb.get_sheet_by_name(name='statistics')
-	print   "Work Sheet Titile:" , ws.title
-	print   "Work Sheet Rows:" , ws.max_row
-
+	loginfo()
 	max_column = ws.max_column
 	if max_column<7:
 		print "column(%d) too short, please check" % max_column
 		return
 
-	# 建立存储数据的字典 
-	data_dic = {} 
-
+	print 111
 	#把数据存到字典中
+	pid = ''
+	data_list = []
 	for rx in range(1,ws.max_row):
-		print "rx=", rx
-		temp_list = []
-		pid = ws.cell(row = rx, column = 0).value
 		w1 = ws.cell(row = rx, column = 1).value
 		w2 = ws.cell(row = rx, column = 2).value
 		w3 = ws.cell(row = rx, column = 3).value
@@ -99,18 +110,69 @@ def parseFile(path, filename):
 		w5 = ws.cell(row = rx, column = 5).value
 		w6 = ws.cell(row = rx, column = 6).value
 		w7 = ws.cell(row = rx, column = 7).value
+		if (w1 is None) and (w2 is None) and (w3 is None) and (w4 is None)\
+			and (w5 is None) and (w6 is None) and (w7 is None):
+			break
+		if (w1 is None) or (w2 is None) or (w3 is None) or (w4 is None)\
+			or (w5 is None) or (w6 is None) or (w7 is None):
+			print "某项记录为None，不正确", w1, w2, w3, w4, w5, w6, w7 
+			continue
 		temp_list = [w1,w2,w3,w4,w5,w6,w7]
-		print temp_list
+		if rx==1:
+			pid = w1
+		else:
+			data_list.append(temp_list)
 
-		data_dic[pid] = temp_list
+	if cmp(pid, '')!=0:
+		day_list = [pid, data_list]
+		data_dic.append(day_list)
 
-	#打印字典数据个数
-	print 'Total:%d' %len(data_dic)
 	
-	
-	
-	
+def updateFile(path, filename):
+	fltlist = [200, 300, 600]
+	wkfile = path +"/"+ filename
 
+	dataObjLen = len(data_dic)
+	if dataObjLen==0:
+		print "没有数据"
+		return
+	
+	wb = Workbook()
+	ws = wb.active
+	ws.title = 'statistics'
+	
+	ascid = 65
+	row = 1
+	for fltvol in fltlist:
+		title = [fltvol, 'B', 'S', 'B_vol', 'S_vol', 'B_avg', 'S_avg', ]
+		number = len(title)
+		for i in range(0,number):
+			cell = chr(ascid+i) + str(row)
+			ws[cell] = title[i]
+		row += 1
+
+		index = dataObjLen-1
+		while index>=0:
+			day_list = data_dic[index]
+			index -= 1
+			for data_list in day_list[1]:
+				if data_list[0]!=fltvol:
+					continue
+
+				number = len(data_list)
+				for i in range(0,number):
+					cell = chr(ascid+i) + str(row)
+					if i==0:
+						ws[cell] = day_list[0]
+					else:
+						ws[cell] = data_list[i]
+				row += 1
+		#写完相同数据然后空一行
+		row += 1
+	wb.save(wkfile)
+
+
+	
 if __name__ == '__main__':
 	pindex = len(sys.argv)
 	if pindex<2:
@@ -133,7 +195,6 @@ if __name__ == '__main__':
 		else:
 			print "非法代码:" +code+ "\n"
 			exit(1);
-	#print code
 
 	fileList = []
 	path = prepath + code
@@ -142,15 +203,24 @@ if __name__ == '__main__':
 		exit(1)
 
 	for (dirpath, dirnames, filenames) in os.walk(path):  
-		print('dirpath = ' + dirpath)
+		#print('dirpath = ' + dirpath)
+		i = 0
 		for filename in filenames:
 			extname = filename.split('.')[-1]
 			if cmp(extname,"xlsx")!=0:
 				continue
+			prename = code+"_"
+			if cmp(filename[0:9], prename[0:9])!=0:
+				continue
 
+			#print filename
 			parseFile(path, filename)
+			i += 1
 			
 		#仅仅得到父文件夹的文件，忽略子文件夹下文件
 		break;
 
+	if cmp('meg', '')!=0:
+		stfile = '_'+ code +'__result.xlsx'
+		updateFile(path, stfile)
 		

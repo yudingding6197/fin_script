@@ -38,19 +38,28 @@ if (key):
 else:
 	print "NONE"
 
-arr = []
-arr.append(10)
-arr.append("aaa")
-for i in range(0, len(arr)):
-	print arr[i]
-cur=datetime.datetime.now()
-print str(cur) + "a"
-ascid = 64
-row = 1
-title = ["2001", 'B', 'B_vol', 'B_avg', 'S', 'S_vol', 'S_avg']
-number = len(title)
-for i in range(0,number):
-	ascid += 1
-	cell = chr(ascid) + str(row)
-	print cell +","+ title[i]
+path = "..\\Data\\"
+for (dirpath, dirnames, filenames) in os.walk(path):  
+	print('dirpath = ' + dirpath)
+	i = len(filenames)
+	print len(filenames)
+	j = -1
+	while i>0:
+		i -= 1
+		print filenames[j]
+		j -= 1
+
+	for filename in filenames:
+		i += 1
+		if i>2:
+			break
+
+		extname = filename.split('.')[-1]
+		if cmp(extname,"xlsx")!=0:
+			continue
+
+		#parseFile(path, filename)
+		
+	#仅仅得到父文件夹的文件，忽略子文件夹下文件
+	break;
 

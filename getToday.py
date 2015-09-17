@@ -8,7 +8,7 @@ import urllib
 import urllib2
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
-from internal.common import handle_data
+import internal.common
 
 #url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001&date=2015-09-10&page=48"
 #成交时间	成交价	涨跌幅	价格变动	成交量(手)		成交额(元)	性质
@@ -55,5 +55,6 @@ if pindex==3:
 			print "Invalide parameter:" + sarr
 			exit(1)
 
-handle_data(addcsv, prepath, 0, url, code, qdate, sarr)
+internal.common.handle_data(addcsv, prepath, 0, url, code, qdate, sarr)
+
 

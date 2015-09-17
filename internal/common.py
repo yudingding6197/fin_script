@@ -44,12 +44,15 @@ def loginfo():
 			frame = sys.exc_info()[2].tb_frame.f_back
 		print "%s in line %d" %(str(datetime.datetime.now()), frame.f_lineno)
 
-def write_statics(ws, dataObj, qdate):
+def write_statics(ws, fctime, dataObj, qdate):
 	ws.title = 'statistics'
 
 	ascid = 65
 	row = 1
-	title = [qdate, 'B', 'S', 'B_vol', 'S_vol', 'B_avg', 'S_avg']
+	if cmp(fctime, '')==0:
+		title = [qdate, 'B', 'S', 'B_vol', 'S_vol', 'B_avg', 'S_avg', ]
+	else:
+		title = [qdate, 'B', 'S', 'B_vol', 'S_vol', 'B_avg', 'S_avg', fctime]
 	number = len(title)
 	for i in range(0,number):
 		cell = chr(ascid+i) + str(row)
@@ -130,8 +133,10 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 	bFindHist = 0
 	hisUrl = ''
 	filename = code+ '_' + qdate
+	fctime = ''
 	if dflag==0:
 		cur=datetime.datetime.now()
+		fctime = '%02d:%02d' %(cur.hour, cur.minute)
 		filename = '%s_%02d-%02d' %(filename, cur.hour, cur.minute)
 	if addcsv==1:
 		filecsv = prepath + filename + '.csv'
@@ -267,7 +272,7 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 	if totalline>0:
 		loginfo()
 		ws = wb.create_sheet()
-		write_statics(ws, dataObj, qdate)
+		write_statics(ws, fctime, dataObj, qdate)
 
 	loginfo()
 	filexlsx = prepath +filename+ '.xlsx'
@@ -424,7 +429,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 
 	if (totalline>0):
 		ws = wb.create_sheet()
-		write_statics(ws, dataObj, qdate)
+		write_statics(ws, '', dataObj, qdate)
 
 	filexlsx = prepath +filename+ '.xlsx'
 	wb.save(filexlsx)
