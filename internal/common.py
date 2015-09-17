@@ -150,13 +150,25 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 	ws.append(strObj)
 	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(ÂôÅÌ|ÂòÅÌ|ÖÐÐÔÅÌ)\D')
 	frameRe = re.compile(r'.*name=\"list_frame\" src=\"(.*)\" frameborder')
+	excecount = 0
 	for i in range(1,500):
 		urlall = url + "&page=" +str(i)
 		#print "%d, %s" %(i,urlall)
 		loginfo()
 
+		if excecount>10:
+			break
+
 		req = urllib2.Request(urlall)
-		res_data = urllib2.urlopen(req)
+		try:
+			res_data = urllib2.urlopen(req)
+		except:
+			print "Get URL except"
+			i -= 1
+			excecount += 1
+			continue
+		else:
+			pass
 		#print "Parse data"
 		loginfo()
 

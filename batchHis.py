@@ -45,22 +45,13 @@ else:
 		exit(1);
 #print code
 
-strdate = sys.argv[2]
-dObj = strdate.split('~')
-if len(dObj)!=2:
-	print "非法日期格式：" +strdate+ ",期望格式:(YYYY-MM-DD or MM-DD)~(YYYY-MM-DD or MM-DD)"
-	print "如：9-19~9-22 or 2014-8-2~2-14-8-23"
-	exit(1)
-
-today = datetime.date.today()
-for i in range(0,2):
-	qdate = dObj[i]
+def parseDate(qdate, today):
 	dateObj = re.match(r'^(\d{4})-(\d+)-(\d+)', qdate)
 	if (dateObj is None):
 		dateObj = re.match(r'^(\d+)-(\d+)', qdate)
 		if (dateObj is None):
 			print "非法日期格式：" +qdate+ ",期望格式:YYYY-MM-DD or MM-DD"
-			exit(1);
+			return (-1, '')
 		else:
 			year = today.year
 			month = int(dateObj.group(1))
@@ -69,21 +60,33 @@ for i in range(0,2):
 		year = int(dateObj.group(1))
 		month = int(dateObj.group(2))
 		day = int(dateObj.group(3))
+	strdate = '%04d-%02d-%02d' %(year, month, day)
+	return (0, strdate)
+	
+delta1=datetime.timedelta(days=1)
+today = datetime.date.today()
+ret,stdate = parseDate(sys.argv[2], today)
+if ret==-1:
+	exit(1)
+sdate = datetime.datetime.strptime(stdate, '%Y-%m-%d').date()
+curdate = sdate
 
-	qdate = '%04d-%02d-%02d' %(year, month, day)
-	if i==0:
-		sdate = datetime.datetime.strptime(qdate, '%Y-%m-%d').date()
-		curdate = sdate
-	elif i==1:
-		edate = datetime.datetime.strptime(qdate, '%Y-%m-%d').date()
-#print qdate
+if pindex==3:
+	eddate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
+	edate = datetime.datetime.strptime(eddate, '%Y-%m-%d').date()
+	edate = edate - delta1
+elif pindex>=4:
+	ret,eddate = parseDate(sys.argv[3], today)
+	if ret==-1:
+		exit(1)
+	edate = datetime.datetime.strptime(eddate, '%Y-%m-%d').date()
+#print sdate, edate
 
 qarr = ''
-if pindex==4:
-	qarr = sys.argv[3]
+if pindex==5:
+	qarr = sys.argv[4]
 prepath = prepath+ code+ "\\"
 
-delta1=datetime.timedelta(days=1)
 delta = edate - curdate
 while (delta.days>=0):
 	dltoday = curdate - today
