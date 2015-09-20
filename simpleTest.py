@@ -7,16 +7,8 @@ import os
 import time
 import datetime
 
-class fitItem:
-	volumn = 0
-	buyvol = 0
-	buyct = 0
-	buyavg = 0
-	sellvol = 0
-	sellct = 0
-	sellavg = 0
-	def __init__(self,vol):
-		self.volumn = vol
+from internal.common import *
+
 
 ascid = 65
 chid = chr(65)
@@ -30,15 +22,41 @@ s6 = '<tr ><th>14:56:48</th><td>19.66</td><td>0.01</td><td>64</td><td>125,824</t
 s7 = "<td width='103' align='left'><a title='重大事项' target='_blank' href='/information/companyinfo.html' onClick=\"setLmCode2('fulltext?','000016','012002');\">"
 s8 = '<tr ><th>11:29:21</th><td>14.56</td><td>-0.02</td><td>10</td><td>14,560</td><th><h6>卖盘</h6></th></tr>'
 
+time1 = time.time()
+#要度量时间的程序
+tm1 = datetime.time(23, 46, 10)
+tm2 = datetime.time(12, 46, 10)
+print tm2, tm1
+
+time2 = time.time()
+print time2
+print time2 - time1
+dt1=datetime.timedelta(hours=18, minutes=46, seconds=10).seconds
+dt2=datetime.timedelta(hours=16, minutes=46, seconds=10).seconds
+print dt1, dt2
+if dt2-dt1>0:
+	print ">>"
+else:
+	print "<<"
+
+
+val1="10:32:00"
+t1 = time.strptime(val1, "%H:%M:%S")
+time.mktime(t1)
+val2="7:32:00"
+t2 = time.strptime(val2, "%H:%M:%S")
+print t1, t2
+
 #key = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', s6)
 key = re.match(r'.*name=\"list_frame\" src=\"(.*)\" frameborder', s2)
 if (key):
 	print key.groups()
-	print key.group(1)
+#	print key.group(1)
 else:
 	print "NONE"
 
 path = "..\\Data\\"
+loginfo(1)
 for (dirpath, dirnames, filenames) in os.walk(path):  
 	print('dirpath = ' + dirpath)
 	i = len(filenames)

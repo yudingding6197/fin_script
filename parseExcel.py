@@ -9,15 +9,6 @@ from openpyxl.reader.excel  import  load_workbook
 
 prepath = '../Data/'
 allFileNum = 0
-def loginfo():
-	log = 1
-	if (log==1):
-		frame = None
-		try:
-			raise  ZeroDivisionError
-		except  ZeroDivisionError:
-			frame = sys.exc_info()[2].tb_frame.f_back
-		print "%s in line %d" %(str(datetime.datetime.now()), frame.f_lineno)
 
 def printPath(level, path,fileList):
 	global allFileNum
@@ -110,6 +101,7 @@ def parseFile(path, filename):
 		w5 = ws.cell(row = rx, column = 5).value
 		w6 = ws.cell(row = rx, column = 6).value
 		w7 = ws.cell(row = rx, column = 7).value
+		
 		if (w1 is None) and (w2 is None) and (w3 is None) and (w4 is None)\
 			and (w5 is None) and (w6 is None) and (w7 is None):
 			break

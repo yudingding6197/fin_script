@@ -34,15 +34,51 @@ class fitItem:
 
 dftsarr = "0,200,300,600,900"
 
-def loginfo():
-	log = 0
-	if (log==1):
+def loginfo(flag=0):
+	if (flag==1):
 		frame = None
 		try:
 			raise  ZeroDivisionError
 		except  ZeroDivisionError:
 			frame = sys.exc_info()[2].tb_frame.f_back
 		print "%s in line %d" %(str(datetime.datetime.now()), frame.f_lineno)
+
+def parseCode(code):
+	if (len(code) != 6):
+		sys.stderr.write("Len should be 6\n")
+		return (-1, '')
+
+	head3 = code[0:3]
+	result = (cmp(head3, "000")==0) or (cmp(head3, "002")==0) or (cmp(head3, "300")==0)
+	if result is True:
+		ncode = "sz" + code
+	else:
+		result = (cmp(head3, "600")==0) or (cmp(head3, "601")==0) or (cmp(head3, "603")==0)
+		if result is True:
+			ncode = "sh" + code
+		else:
+			print "非法代码:" +code+ "\n"
+			return (-1, '')
+	return (0, ncode)
+
+def parseDate(qdate, today):
+	dateObj = re.match(r'^(\d{4})-(\d+)-(\d+)', qdate)
+	if (dateObj is None):
+		dateObj = re.match(r'^(\d+)-(\d+)', qdate)
+		if (dateObj is None):
+			print "非法日期格式：" +qdate+ ",期望格式:YYYY-MM-DD or MM-DD"
+			return (-1, '')
+		else:
+			year = today.year
+			month = int(dateObj.group(1))
+			day = int(dateObj.group(2))
+	else:
+		year = int(dateObj.group(1))
+		month = int(dateObj.group(2))
+		day = int(dateObj.group(3))
+	strdate = '%04d-%02d-%02d' %(year, month, day)
+	return (0, strdate)
+
 
 def write_statics(ws, fctime, dataObj, qdate):
 	ws.title = 'statistics'

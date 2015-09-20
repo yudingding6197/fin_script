@@ -45,24 +45,6 @@ else:
 		exit(1);
 #print code
 
-def parseDate(qdate, today):
-	dateObj = re.match(r'^(\d{4})-(\d+)-(\d+)', qdate)
-	if (dateObj is None):
-		dateObj = re.match(r'^(\d+)-(\d+)', qdate)
-		if (dateObj is None):
-			print "非法日期格式：" +qdate+ ",期望格式:YYYY-MM-DD or MM-DD"
-			return (-1, '')
-		else:
-			year = today.year
-			month = int(dateObj.group(1))
-			day = int(dateObj.group(2))
-	else:
-		year = int(dateObj.group(1))
-		month = int(dateObj.group(2))
-		day = int(dateObj.group(3))
-	strdate = '%04d-%02d-%02d' %(year, month, day)
-	return (0, strdate)
-	
 delta1=datetime.timedelta(days=1)
 today = datetime.date.today()
 ret,stdate = parseDate(sys.argv[2], today)
