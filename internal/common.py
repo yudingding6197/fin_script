@@ -281,7 +281,7 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 					cell = 'A' + str(row)
 					ws[cell] = curtime
 					cell = 'B' + str(row)
-					ws[cell] = key.group(2)
+					ws[cell] = float(key.group(2))
 					cell = 'C' + str(row)
 					ws[cell] = key.group(3)
 					cell = 'D' + str(row)
@@ -445,7 +445,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 						cell = 'A' + str(row)
 						ws[cell] = curtime
 						cell = 'B' + str(row)
-						ws[cell] = price
+						ws[cell] = float(price)
 						cell = 'C' + str(row)
 						ws[cell] = srange
 						cell = 'D' + str(row)

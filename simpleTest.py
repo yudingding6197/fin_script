@@ -55,8 +55,10 @@ if (key):
 else:
 	print "NONE"
 
+val = "19.342"
+print float(val)
+
 path = "..\\Data\\"
-loginfo(1)
 for (dirpath, dirnames, filenames) in os.walk(path):  
 	print('dirpath = ' + dirpath)
 	i = len(filenames)
