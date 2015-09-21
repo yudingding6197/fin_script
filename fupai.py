@@ -16,26 +16,6 @@ if (pindex == 1):
 	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 时间<YYYY-MM-DD or MM-DD>\n")
 	exit(1);
 
-'''
-if (len(code) != 6):
-	sys.stderr.write("Len should be 6\n")
-	exit(1);
-
-head3 = code[0:3]
-result = (cmp(head3, "000")==0) or (cmp(head3, "002")==0) or (cmp(head3, "300")==0)
-if result is True:
-	code = "sz" + code
-	print code
-else:
-	result = (cmp(head3, "600")==0) or (cmp(head3, "601")==0) or (cmp(head3, "603")==0)
-	if result is True:
-		code = "sh" + code
-		print code
-	else:
-		print "非法代码:" +code+ "\n"
-		exit(1);
-'''
-
 qdate = sys.argv[1]
 #dateObj = re.search(r'^\d{4}-\d+-\d+', qdate)
 dateObj = re.match(r'^(\d{4})-(\d+)-(\d+)', qdate)
