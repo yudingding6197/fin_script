@@ -255,10 +255,3 @@ if __name__ == '__main__':
 		exit(1)
 
 	parseFile(path, dftArray, stdelta, eddelta)
-
-'''
-
-	if cmp('meg', '')!=0:
-		stfile = '_'+ code +'__result.xlsx'
-		updateFile(path, stfile)
-'''		
