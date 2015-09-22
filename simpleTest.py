@@ -31,7 +31,7 @@ print tm2, tm1
 time2 = time.time()
 print time2
 print time2 - time1
-dt1=datetime.timedelta(hours=18, minutes=46, seconds=10).seconds
+dt1=datetime.timedelta(hours=0, minutes=10, seconds=2).seconds
 dt2=datetime.timedelta(hours=16, minutes=46, seconds=10).seconds
 print dt1, dt2
 if dt2-dt1>0:

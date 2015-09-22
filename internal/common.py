@@ -132,15 +132,15 @@ def write_statics(ws, fctime, dataObj, qdate):
 			cell = chr(ascid+i) + str(row)
 			ws[cell] = list[i]
 
-def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
-	if dflag==0:
+def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
+	if bhist==0:
 		url = url +"?symbol="+ code
-	elif dflag==1:
+	elif bhist==1:
 		url = url +"?date="+ qdate +"&symbol="+ code
 	else:
-		print "Unknown flag:"+ str(dflag)
+		print "Unknown flag:", bhist
 		return
-	#print url
+	print url
 
 	if not os.path.isdir(prepath):
 		os.makedirs(prepath)
@@ -170,7 +170,7 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 	hisUrl = ''
 	filename = code+ '_' + qdate
 	fctime = ''
-	if dflag==0:
+	if bhist==0:
 		cur=datetime.datetime.now()
 		fctime = '%02d:%02d' %(cur.hour, cur.minute)
 		filename = '%s_%02d-%02d' %(filename, cur.hour, cur.minute)
@@ -181,12 +181,15 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 		fcsv.write(strline)
 		fcsv.write("\n")
 
-	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
+	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质,收盘价,涨跌幅,前收价,开盘价,最高价,最低价,成交量,成交额'
 	strObj = strline.split(u',')
 	ws.append(strObj)
 	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
 	frameRe = re.compile(r'.*name=\"list_frame\" src=\"(.*)\" frameborder')
+	keyw = '收盘价|涨跌幅|前收价|开盘价|最高价|最低价|成交量|成交额'
+	infoRe = re.compile(r'\D+('+keyw+').*>(\d+\.\d+)')
 	excecount = 0
+	stockInfo = []
 	for i in range(1,500):
 		urlall = url + "&page=" +str(i)
 		#print "%d, %s" %(i,urlall)
@@ -211,10 +214,10 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 		flag = 0
 		count = 0
 		line = res_data.readline()
-		if dflag==0:
+		if bhist==0:
 			checkStr = '成交时间'
 		else:
-			checkStr = '前收价'
+			checkStr = '收盘价'
 		while line:
 			index = line.find(checkStr)
 			if (index<0):
@@ -223,7 +226,14 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 			else:
 				checkStr = '<script type='
 				break;
-		loginfo()
+		if bhist==1 and i==1:
+			while line:
+				infoObj = infoRe.match(line)
+				if infoObj:
+					stockInfo.append(float(infoObj.group(2)))
+				else:
+					break;
+				line = res_data.readline()
 
 		#找到关键字后，查找新的关键字
 		while line:
@@ -271,6 +281,8 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 							dataObj[j].buyvol += intamount
 							dataObj[j].buyct += 1
 							#print "B:%d %d" %(dataObj[j].buyvol, dataObj[j].buyct)
+						elif cmp(state, '中性盘')==0:
+							pass
 
 					if addcsv==1:
 						strline = curtime +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ amount +","+ key.group(7) + "\n"
@@ -293,11 +305,20 @@ def handle_data(addcsv, prepath, dflag, url, code, qdate, sarr):
 					cell = 'G' + str(row)
 					s1 = key.group(7).decode('gbk')
 					ws[cell] = s1
+					
+					if row==2:
+						if bhist==1:
+							ascid = 72
+							number = len(stockInfo)
+							for j in range(0,number):
+								cell = chr(ascid+j) + str(row)
+								ws[cell] = stockInfo[j]
+
 				count += 1
 				line = res_data.readline()
 				continue
 
-			if dflag==1:
+			if bhist==1:
 				key = frameRe.match(line)
 				if key:
 					bFindHist = 1
