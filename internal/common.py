@@ -140,7 +140,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	else:
 		print "Unknown flag:", bhist
 		return
-	print url
+	#print url
 
 	if not os.path.isdir(prepath):
 		os.makedirs(prepath)

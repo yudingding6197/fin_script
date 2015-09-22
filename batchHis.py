@@ -7,8 +7,7 @@ import urllib
 import urllib2
 from openpyxl import Workbook
 from openpyxl.reader.excel import load_workbook
-from internal.common import handle_data
-from internal.common import handle_his_data
+from internal.common import *
 
 #url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001&date=2015-09-10&page=48"
 #url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php?symbol=sz300001&date=2015-09-10&page=1"
@@ -23,7 +22,7 @@ prepath = "..\\Data\\"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php"
 
 pindex = len(sys.argv)
-if pindex<3:
+if pindex<4:
 	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 时间<YYYY-MM-DD or MM-DD> [arr=[number, number...]]\n")
 	exit(1);
 
@@ -53,12 +52,15 @@ if ret==-1:
 sdate = datetime.datetime.strptime(stdate, '%Y-%m-%d').date()
 curdate = sdate
 
-if pindex==3:
+eddate = sys.argv[3]
+if cmp(eddate, '.')==0:
 	eddate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
 	edate = datetime.datetime.strptime(eddate, '%Y-%m-%d').date()
+	#如果是当日的数据通过history链接目前不能得到，所以暂时得到前一天的数据
+	#今日数据通过getToday获取
 	edate = edate - delta1
-elif pindex>=4:
-	ret,eddate = parseDate(sys.argv[3], today)
+else:
+	ret,eddate = parseDate(eddate, today)
 	if ret==-1:
 		exit(1)
 	edate = datetime.datetime.strptime(eddate, '%Y-%m-%d').date()
