@@ -9,6 +9,7 @@ from openpyxl.reader.excel  import  load_workbook
 
 prepath = '../Data/'
 allFileNum = 0
+volumnList = [200, 300, 600, 900]
 
 def printPath(level, path,fileList):
 	global allFileNum
@@ -73,23 +74,18 @@ def parseFile(path, filename):
 	wkfile = path +"/"+ filename
 	print wkfile
 
-	loginfo()
 	wb = load_workbook(wkfile)
 	#print "Worksheet range(s):", wb.get_named_ranges()
 	#print "Worksheet name(s):", wb.get_sheet_names()
-	loginfo()
 	if "statistics" not in wb.get_sheet_names():
 		return
 
-	loginfo()
 	ws = wb.get_sheet_by_name(name='statistics')
-	loginfo()
 	max_column = ws.max_column
 	if max_column<7:
 		print "column(%d) too short, please check" % max_column
 		return
 
-	print 111
 	#把数据存到字典中
 	pid = ''
 	data_list = []
@@ -121,7 +117,6 @@ def parseFile(path, filename):
 
 	
 def updateFile(path, filename):
-	fltlist = [200, 300, 600]
 	wkfile = path +"/"+ filename
 
 	dataObjLen = len(data_dic)
@@ -135,7 +130,7 @@ def updateFile(path, filename):
 	
 	ascid = 65
 	row = 1
-	for fltvol in fltlist:
+	for fltvol in volumnList:
 		title = [fltvol, 'B', 'S', 'B_vol', 'S_vol', 'B_avg', 'S_avg', ]
 		number = len(title)
 		for i in range(0,number):
