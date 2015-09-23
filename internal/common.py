@@ -271,11 +271,13 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					amount = ''.join(obj)
 
 					intamount = int(key.group(5))
-					state = key.group(7)
+					updatestate = key.group(7)
 					for j in range(0, dataObjLen):
-						filtvol = int(dataObj[j].volumn)
+						state = key.group(7)
+						#filtvol = int(dataObj[j].volumn)
+						filtvol = dataObj[j].volumn
 						if intamount<filtvol:
-							continue;
+							break;
 						if cmp(state, '卖盘')==0:
 							dataObj[j].sellvol += intamount
 							dataObj[j].sellct += 1
@@ -291,7 +293,25 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 							hour = int(timeobj[0])
 							minute = int(timeobj[1])
 							if (hour==9 and (minute>24 and minute<30)):
-								print curtime, "-------", urlall
+								if key.group(3) is None:
+									#TODO: 处理数据
+									pass
+								else:
+									rangeobj = re.match(r'(.*)\%', key.group(3))
+									if rangeobj:
+										fltval = float(rangeobj.group(1))
+										if fltval>0.001:
+											dataObj[j].buyvol += intamount
+											dataObj[j].buyct += 1
+										elif fltval<-0.001:
+											dataObj[j].sellvol += intamount
+											dataObj[j].sellct += 1
+										else:
+											intamount = intamount/2
+											dataObj[j].sellvol += intamount
+											dataObj[j].sellct += 1
+											dataObj[j].buyvol += intamount
+											dataObj[j].buyct += 1
 								continue
 							if (fluctuate=='--'):
 								intamount = intamount/2
@@ -309,14 +329,18 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 								dataObj[j].buyvol += intamount
 								dataObj[j].buyct += 1
 							elif (ftfluct>1.0 or ftfluct<-1.0):
-								print "ZXXXXXXXX FLL"
+								print "Flucture is too big:", fluctuate
 								continue
 							elif (ftfluct>0.02):
 								dataObj[j].buyvol += intamount
 								dataObj[j].buyct += 1
+								updatestate = '买盘'
+								#print "Update Middle B:", ftfluct
 							elif (ftfluct<-0.02):
 								dataObj[j].sellvol += intamount
 								dataObj[j].sellct += 1
+								updatestate = '卖盘'
+								#print "Update Middle S:", ftfluct
 							pass
 
 					if addcsv==1:
@@ -342,7 +366,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					cell = 'F' + str(row)
 					ws[cell] = int(amount)
 					cell = 'G' + str(row)
-					s1 = key.group(7).decode('gbk')
+					s1 = updatestate.decode('gbk')
 					ws[cell] = s1
 					
 					if row==2:

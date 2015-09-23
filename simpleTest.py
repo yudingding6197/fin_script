@@ -22,9 +22,13 @@ s6 = '<tr ><th>14:56:48</th><td>19.66</td><td>0.01</td><td>64</td><td>125,824</t
 s7 = "<td width='103' align='left'><a title='重大事项' target='_blank' href='/information/companyinfo.html' onClick=\"setLmCode2('fulltext?','000016','012002');\">"
 s8 = '<tr ><th>11:29:21</th><td>14.56</td><td>-0.02</td><td>10</td><td>14,560</td><th><h6>卖盘</h6></th></tr>'
 
-s1 = str('-0.02')
-f1 = round(13.1/9.2, 2)
-print f1
+
+s1 = '0.000%'
+obj = re.match(r'(.*)\%', s1)
+print obj
+if obj:
+	val = obj.group(1)
+	print float(val)
 
 if (s0=='2012-12-13'):
 	print "==="
