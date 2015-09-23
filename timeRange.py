@@ -244,9 +244,10 @@ if __name__ == '__main__':
 		extname = filename.split('.')[-1]
 		if cmp(extname,"xlsx")!=0:
 			filename = filename + '.xlsx'
+		path = prepath +"/"+ filename
 	else:
 		filename = code +"_"+ qdate +".xlsx"
-	path = prepath + code +"/"+ filename
+		path = prepath + code +"/"+ filename
 	print path
 	print os.path.exists(path) 
 

@@ -33,6 +33,7 @@ class fitItem:
 		self.sellavg = 0
 
 dftsarr = "0,200,300,600,900"
+HandleMid = 1
 
 def loginfo(flag=0):
 	if (flag==1):
@@ -261,6 +262,8 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 				if (timeobj and curvol==lastvol):
 					pass
 				else:
+					curprice = key.group(2)
+					fluctuate = key.group(4)
 					lasttime = curtime
 					lastvol = curvol
 					amount = key.group(6)
@@ -282,6 +285,38 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 							dataObj[j].buyct += 1
 							#print "B:%d %d" %(dataObj[j].buyvol, dataObj[j].buyct)
 						elif cmp(state, 'ÖÐÐÔÅÌ')==0:
+							if HandleMid!=1:
+								continue;
+							timeobj = curtime.split(':')
+							hour = int(timeobj[0])
+							minute = int(timeobj[1])
+							if (hour==9 and (minute>24 and minute<30)):
+								print curtime, "-------", urlall
+								continue
+							if (fluctuate=='--'):
+								intamount = intamount/2
+								dataObj[j].sellvol += intamount
+								dataObj[j].sellct += 1
+								dataObj[j].buyvol += intamount
+								dataObj[j].buyct += 1
+								continue
+
+							ftfluct = float(fluctuate)
+							if (ftfluct>-0.021 and ftfluct<0.021):
+								intamount = intamount/2
+								dataObj[j].sellvol += intamount
+								dataObj[j].sellct += 1
+								dataObj[j].buyvol += intamount
+								dataObj[j].buyct += 1
+							elif (ftfluct>1.0 or ftfluct<-1.0):
+								print "ZXXXXXXXX FLL"
+								continue
+							elif (ftfluct>0.02):
+								dataObj[j].buyvol += intamount
+								dataObj[j].buyct += 1
+							elif (ftfluct<-0.02):
+								dataObj[j].sellvol += intamount
+								dataObj[j].sellct += 1
 							pass
 
 					if addcsv==1:
@@ -297,7 +332,11 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					cell = 'C' + str(row)
 					ws[cell] = key.group(3)
 					cell = 'D' + str(row)
-					ws[cell] = key.group(4)
+					if (fluctuate=='--'):
+						ws[cell] = key.group(4)
+					else:
+						ftfluct = float(fluctuate)
+						ws[cell] = ftfluct
 					cell = 'E' + str(row)
 					ws[cell] = int(key.group(5))
 					cell = 'F' + str(row)

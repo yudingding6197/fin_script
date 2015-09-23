@@ -208,6 +208,6 @@ if __name__ == '__main__':
 		break;
 
 	if cmp('meg', '')!=0:
-		stfile = '_'+ code +'__result.xlsx'
+		stfile = 'z_'+ code +'__result.xlsx'
 		updateFile(path, stfile)
 		
