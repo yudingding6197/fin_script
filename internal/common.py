@@ -80,6 +80,75 @@ def parseDate(qdate, today):
 	strdate = '%04d-%02d-%02d' %(year, month, day)
 	return (0, strdate)
 
+#type:
+#	1:Buy,	2:Sell
+def handle_volumn(exVolumn, dataObj, type, flag=0):
+	dataObjLen = len(dataObj)
+	chgVolumn = exVolumn
+	if flag==1:
+		chgVolumn = exVolumn/2
+
+	if type==1:
+		for j in range(0, dataObjLen):
+			if exVolumn<dataObj[j].volumn:
+				break;
+			dataObj[j].buyvol += chgVolumn
+			dataObj[j].buyct += 1
+	elif type==2:
+		for j in range(0, dataObjLen):
+			if exVolumn<dataObj[j].volumn:
+				break;
+			dataObj[j].sellvol += chgVolumn
+			dataObj[j].sellct += 1
+			
+def handle_middle_volumn(exVolumn, dataObj, exTime, fluctuate, increaseRange):
+	if HandleMid!=1:
+		return 0
+
+	ret = 0
+	dataObjLen = len(dataObj)
+
+	#特殊处理第一笔 (9:25) 的成交
+	timeobj = exTime.split(':')
+	hour = int(timeobj[0])
+	minute = int(timeobj[1])
+	if (hour==9 and (minute>24 and minute<30)):
+		if increaseRange is None:
+			print "______ It is NONE"
+			return 0
+		rangeobj = re.match(r'(.*)\%', increaseRange)
+		if rangeobj is None:
+			print "Not match string:", increaseRange
+			return 0
+
+		fltval = float(rangeobj.group(1))
+		if fltval>0.001:
+			handle_volumn(exVolumn, dataObj, 1)
+		elif fltval<-0.001:
+			handle_volumn(exVolumn, dataObj, 2)
+		else:
+			handle_volumn(exVolumn, dataObj, 1, 1)
+			handle_volumn(exVolumn, dataObj, 2, 1)
+		return 0
+
+	if (fluctuate=='--'):
+		handle_volumn(exVolumn, dataObj, 1, 1)
+		handle_volumn(exVolumn, dataObj, 2, 1)
+		return 0
+
+	ftfluct = float(fluctuate)
+	if (ftfluct>-0.021 and ftfluct<0.021):
+		handle_volumn(exVolumn, dataObj, 1, 1)
+		handle_volumn(exVolumn, dataObj, 2, 1)
+	elif (ftfluct>1.0 or ftfluct<-1.0):
+		print "??? Flucture is too big:", fluctuate
+	elif (ftfluct>0.02):
+		handle_volumn(exVolumn, dataObj, 1)
+		ret = 1
+	elif (ftfluct<-0.02):
+		handle_volumn(exVolumn, dataObj, 2)
+		ret = 2
+	return ret
 
 def write_statics(ws, fctime, dataObj, qdate):
 	ws.title = 'statistics'
@@ -141,6 +210,8 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	else:
 		print "Unknown flag:", bhist
 		return
+	if HandleMid==0:
+		print "Message: Ignore 中性盘"
 	#print url
 
 	if not os.path.isdir(prepath):
@@ -226,13 +297,18 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 				break;
 		#从第一页读取：收盘价,涨跌幅,前收价等数据
 		if bhist==1 and i==1:
+			infoCount = 0
 			while line:
 				infoObj = infoRe.match(line)
 				if infoObj:
 					stockInfo.append(float(infoObj.group(2)))
 				else:
+					if infoCount<8:
+						print "Parse fail", line
 					break;
+				infoCount += 1
 				line = res_data.readline()
+			#print stockInfo
 
 		#找到关键字后，查找新的关键字
 		while line:
@@ -269,75 +345,17 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 					intamount = int(key.group(5))
 					updatestate = key.group(7)
-					for j in range(0, dataObjLen):
-						state = key.group(7)
-						filtvol = dataObj[j].volumn
-						if intamount<filtvol:
-							break;
-						if cmp(state, '卖盘')==0:
-							dataObj[j].sellvol += intamount
-							dataObj[j].sellct += 1
-							#print "S:%d %d" %(dataObj[j].sellvol, dataObj[j].sellct)
-						elif cmp(state, '买盘')==0:
-							dataObj[j].buyvol += intamount
-							dataObj[j].buyct += 1
-							#print "B:%d %d" %(dataObj[j].buyvol, dataObj[j].buyct)
-						elif cmp(state, '中性盘')==0:
-							if HandleMid!=1:
-								continue;
-							timeobj = curtime.split(':')
-							hour = int(timeobj[0])
-							minute = int(timeobj[1])
-							if (hour==9 and (minute>24 and minute<30)):
-								if key.group(3) is None:
-									#TODO: 处理数据
-									pass
-								else:
-									rangeobj = re.match(r'(.*)\%', key.group(3))
-									if rangeobj:
-										fltval = float(rangeobj.group(1))
-										if fltval>0.001:
-											dataObj[j].buyvol += intamount
-											dataObj[j].buyct += 1
-										elif fltval<-0.001:
-											dataObj[j].sellvol += intamount
-											dataObj[j].sellct += 1
-										else:
-											intamount = intamount/2
-											dataObj[j].sellvol += intamount
-											dataObj[j].sellct += 1
-											dataObj[j].buyvol += intamount
-											dataObj[j].buyct += 1
-								continue
-							if (fluctuate=='--'):
-								intamount = intamount/2
-								dataObj[j].sellvol += intamount
-								dataObj[j].sellct += 1
-								dataObj[j].buyvol += intamount
-								dataObj[j].buyct += 1
-								continue
-
-							ftfluct = float(fluctuate)
-							if (ftfluct>-0.021 and ftfluct<0.021):
-								intamount = intamount/2
-								dataObj[j].sellvol += intamount
-								dataObj[j].sellct += 1
-								dataObj[j].buyvol += intamount
-								dataObj[j].buyct += 1
-							elif (ftfluct>1.0 or ftfluct<-1.0):
-								print "Flucture is too big:", fluctuate
-								continue
-							elif (ftfluct>0.02):
-								dataObj[j].buyvol += intamount
-								dataObj[j].buyct += 1
-								updatestate = '买盘'
-								#print "Update Middle B:", ftfluct
-							elif (ftfluct<-0.02):
-								dataObj[j].sellvol += intamount
-								dataObj[j].sellct += 1
-								updatestate = '卖盘'
-								#print "Update Middle S:", ftfluct
-							pass
+					state = key.group(7)
+					if cmp(state, '卖盘')==0:
+						handle_volumn(intamount, dataObj, 2)
+					elif cmp(state, '买盘')==0:
+						handle_volumn(intamount, dataObj, 1)
+					elif cmp(state, '中性盘')==0:
+						ret = handle_middle_volumn(intamount, dataObj, curtime, fluctuate, key.group(3))
+						if ret==1:
+							state = '买盘'
+						elif ret==2:
+							state = '卖盘'
 
 					if addcsv==1:
 						strline = curtime +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ amount +","+ key.group(7) + "\n"
@@ -362,16 +380,15 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					cell = 'F' + str(row)
 					ws[cell] = int(amount)
 					cell = 'G' + str(row)
-					s1 = updatestate.decode('gbk')
+					s1 = state.decode('gbk')
 					ws[cell] = s1
 					
-					if row==2:
-						if bhist==1:
-							ascid = 72
-							number = len(stockInfo)
-							for j in range(0,number):
-								cell = chr(ascid+j) + str(row)
-								ws[cell] = stockInfo[j]
+					if (row==2 and bhist==1):
+						ascid = 72
+						number = len(stockInfo)
+						for j in range(0,number):
+							cell = chr(ascid+j) + str(row)
+							ws[cell] = stockInfo[j]
 
 				count += 1
 				line = res_data.readline()
@@ -408,13 +425,13 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	if (totalline==0):
 		os.remove(filexlsx)
 		if bFindHist==1:
-			handle_his_data(addcsv, prepath, hisUrl, code, qdate, sarr)
+			handle_his_data(addcsv, prepath, hisUrl, code, qdate, stockInfo, sarr)
 		else:
 			print qdate+ " No Matched Record"
 	else:
 		print qdate+ " Saved OK"
 
-def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
+def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 	#print url
 	if not os.path.isdir(prepath):
 		os.makedirs(prepath)
@@ -448,7 +465,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 		fcsv.write(strline)
 		fcsv.write("\n")
 
-	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
+	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质,收盘价,涨跌幅,前收价,开盘价,最高价,最低价,成交量,成交额'
 	strObj = strline.split(u',')
 	ws.append(strObj)
 	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(--|\+?\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
@@ -478,7 +495,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 				if (key):
 					curtime = key.group(1)
 					price = key.group(2)
-					p_change = key.group(3)
+					fluctuate = key.group(3)
 					curvol = int(key.group(4))
 					intcurvol = int(key.group(4))
 					amount = key.group(5)
@@ -503,21 +520,19 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 						amount_n = ''.join(obj)
 						intamount = int(amount_n)
 
-						for j in range(0, dataObjLen):
-							filvol = int(dataObj[j].volumn)
-							if intcurvol<filvol:
-								continue;
-							if cmp(state, '卖盘')==0:
-								dataObj[j].sellvol += intcurvol
-								dataObj[j].sellct += 1
-								#print "S:%d %d" %(dataObj[j].sellvol, dataObj[j].sellct)
-							elif cmp(state, '买盘')==0:
-								dataObj[j].buyvol += intcurvol
-								dataObj[j].buyct += 1
-								#print "B:%d %d" %(dataObj[j].buyvol, dataObj[j].buyct)
+						if cmp(state, '卖盘')==0:
+							handle_volumn(intcurvol, dataObj, 2)
+						elif cmp(state, '买盘')==0:
+							handle_volumn(intcurvol, dataObj, 1)
+						elif cmp(state, '中性盘')==0:
+							ret = handle_middle_volumn(intcurvol, dataObj, curtime, fluctuate, key.group(3))
+							if ret==1:
+								state = '买盘'
+							elif ret==2:
+								state = '卖盘'
 
 						if addcsv==1:
-							strline = curtime +","+ price +","+ srange +","+ p_change +","+ curvol +","+ amount_n +","+ state +"\n"
+							strline = curtime +","+ price +","+ srange +","+ fluctuate +","+ curvol +","+ amount_n +","+ state +"\n"
 							fcsv.write(strline)
 
 						totalline += 1
@@ -529,7 +544,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 						cell = 'C' + str(row)
 						ws[cell] = srange
 						cell = 'D' + str(row)
-						ws[cell] = p_change
+						ws[cell] = fluctuate
 						cell = 'E' + str(row)
 						ws[cell] = curvol
 						cell = 'F' + str(row)
@@ -537,6 +552,14 @@ def handle_his_data(addcsv, prepath, url, code, qdate, sarr):
 						cell = 'G' + str(row)
 						s1 = state.decode('gbk')
 						ws[cell] = s1
+
+						if row==2:
+							ascid = 72
+							number = len(stockInfo)
+							for j in range(0,number):
+								cell = chr(ascid+j) + str(row)
+								ws[cell] = stockInfo[j]
+
 					count += 1
 				else:
 					endObj = re.search(r'</td><td>', qdate)
