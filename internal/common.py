@@ -188,13 +188,12 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
 	frameRe = re.compile(r'.*name=\"list_frame\" src=\"(.*)\" frameborder')
 	keyw = '收盘价|涨跌幅|前收价|开盘价|最高价|最低价|成交量|成交额'
-	infoRe = re.compile(r'\D+('+keyw+').*>(\d+\.\d+)')
+	infoRe = re.compile(r'\D+('+keyw+').*>(\+?-?\d+\.\d+)')
 	excecount = 0
 	stockInfo = []
 	for i in range(1,500):
 		urlall = url + "&page=" +str(i)
 		#print "%d, %s" %(i,urlall)
-		loginfo()
 
 		if excecount>10:
 			break
@@ -209,8 +208,6 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			continue
 		else:
 			pass
-		#print "Parse data"
-		loginfo()
 
 		flag = 0
 		count = 0
@@ -227,6 +224,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			else:
 				checkStr = '<script type='
 				break;
+		#从第一页读取：收盘价,涨跌幅,前收价等数据
 		if bhist==1 and i==1:
 			while line:
 				infoObj = infoRe.match(line)
@@ -238,7 +236,6 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 		#找到关键字后，查找新的关键字
 		while line:
-			#print "s='"+ line + "'"
 			index = line.find(checkStr)
 			if (index>=0):
 				#找到之后退出
@@ -274,7 +271,6 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					updatestate = key.group(7)
 					for j in range(0, dataObjLen):
 						state = key.group(7)
-						#filtvol = int(dataObj[j].volumn)
 						filtvol = dataObj[j].volumn
 						if intamount<filtvol:
 							break;

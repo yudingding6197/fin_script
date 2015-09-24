@@ -4,10 +4,10 @@ import urllib2
 import re
 
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php?date=2015-09-18&symbol=sz300001"
-url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php?date=2015-05-06&symbol=sz300001"
-#url = "http://market.finance.sina.com.cn/transHis.php?symbol=sz300001&date=2015-9-11&page=1"
-url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001"
-url = "http://finance.sina.com.cn/realstock/company/sz300001/nc.shtml"
+url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php?date=2015-09-22&symbol=sz300067&page=1"
+#url = "http://market.finance.sina.com.cn/transHis.php?symbol=sz300067&date=2015-9-22&page=1"
+#url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001"
+#url = "http://finance.sina.com.cn/realstock/company/sz300001/nc.shtml"
 
 
 req = urllib2.Request(url)
