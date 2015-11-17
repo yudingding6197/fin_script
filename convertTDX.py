@@ -6,6 +6,7 @@ import string
 import datetime
 import urllib
 import urllib2
+import binascii
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 import internal.common
@@ -97,12 +98,112 @@ if (pindex==3):
 		print sdate
 		print edate
 
+
 path = prepath + code
 print path
+dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(--|\+?\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
 if convAll==0:
 	if convType==0:
 		filename = qdate + "-" + code + ".txt"
+		filepath = path + "\\" + filename
+		countl = 0
+		with open(filepath, 'r') as recFile:
+			for line in recFile:
+				countl += 1
+				if countl>20:
+					break
+
+				recObj = re.match(r'^(\d+\:\d+)[	 ]+(\d+\.\d+)[	 ]+(\d+)[	 ]+(\d+)[	 ]+(\S*)', line)
+				if recObj:
+					#<tr ><th>11:29:36</th><td>14.56</td><td>-3.13%</td><td>+0.01</td><td>9</td><td>13,104</td><th><h6>卖盘</h6></th></tr>
+					print (recObj.groups())
+					newline = " " + recObj.group(1) + ":00<>" + recObj.group(2) + "</td><td>" + "+0%<>" + "+0.02<>321</td><td>" + recObj.group(3) + "</td><th><h1>" + "买盘" + "</h1>"
+					print newline
+					#key = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', newline)
+					key = dtlRe.match(line)
+					if (key is None):
+						print "None"
+						continue
+					else:
+						print key.groups()
+					
+					'''
+					curtime = key.group(1)
+					curvol = int(key.group(5))
+					#记住当前页第一个的时间
+					if (bFtime==0):
+						timeobj = re.search(curtime, pageFtime)
+						if timeobj:
+							break
+						pageFtime = curtime
+						bFtime = 1
+
+					timeobj = re.search(curtime, lasttime)
+					if (timeobj and curvol==lastvol):
+						pass
+					else:
+						curprice = key.group(2)
+						fluctuate = key.group(4)
+						lasttime = curtime
+						lastvol = curvol
+						amount = key.group(6)
+						obj = amount.split(',')
+						amount = ''.join(obj)
+
+						intamount = int(key.group(5))
+						updatestate = key.group(7)
+						state = key.group(7)
+						if cmp(state, '卖盘')==0:
+							handle_volumn(intamount, dataObj, 2)
+						elif cmp(state, '买盘')==0:
+							handle_volumn(intamount, dataObj, 1)
+						elif cmp(state, '中性盘')==0:
+							ret = handle_middle_volumn(intamount, dataObj, curtime, fluctuate, key.group(3))
+							if ret==1:
+								state = '买盘'
+							elif ret==2:
+								state = '卖盘'
+
+						if addcsv==1:
+							strline = curtime +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ amount +","+ key.group(7) + "\n"
+							fcsv.write(strline)
+
+						totalline += 1
+						row = totalline+1
+						cell = 'A' + str(row)
+						ws[cell] = curtime
+						cell = 'B' + str(row)
+						ws[cell] = float(key.group(2))
+						cell = 'C' + str(row)
+						ws[cell] = key.group(3)
+						cell = 'D' + str(row)
+						if (fluctuate=='--'):
+							ws[cell] = key.group(4)
+						else:
+							ftfluct = float(fluctuate)
+							ws[cell] = ftfluct
+						cell = 'E' + str(row)
+						ws[cell] = int(key.group(5))
+						cell = 'F' + str(row)
+						ws[cell] = int(amount)
+						cell = 'G' + str(row)
+						s1 = state.decode('gbk')
+						ws[cell] = s1
+						
+						if (row==2 and bhist==1):
+							ascid = 72
+							number = len(stockInfo)
+							for j in range(0,number):
+								cell = chr(ascid+j) + str(row)
+								ws[cell] = stockInfo[j]
+					'''	
+				#s = binascii.b2a_hex(line)
+				#print s
+				#print "---%d:'%s'" %(countl, line)
+		recFile.close()
+
 	elif convType==1:
+		print "还未实现。。。"
 		pass
 elif convAll==1:
 	for (dirpath, dirnames, filenames) in os.walk(path):  
@@ -119,6 +220,7 @@ elif convAll==1:
 			
 		#仅仅得到父文件夹的文件，忽略子文件夹下文件
 		break;
+	print "还未实现。。。"
 
 
 #internal.common.handle_data(addcsv, prepath, 0, url, code, qdate, sarr)
