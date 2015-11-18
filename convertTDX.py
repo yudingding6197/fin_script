@@ -101,7 +101,9 @@ if (pindex==3):
 
 path = prepath + code
 print path
-dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(--|\+?\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
+dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D+')
+lastPrice = 0
+yesterdayClose = 0
 if convAll==0:
 	if convType==0:
 		filename = qdate + "-" + code + ".txt"
@@ -115,19 +117,21 @@ if convAll==0:
 
 				recObj = re.match(r'^(\d+\:\d+)[	 ]+(\d+\.\d+)[	 ]+(\d+)[	 ]+(\d+)[	 ]+(\S*)', line)
 				if recObj:
-					#<tr ><th>11:29:36</th><td>14.56</td><td>-3.13%</td><td>+0.01</td><td>9</td><td>13,104</td><th><h6>卖盘</h6></th></tr>
-					print (recObj.groups())
-					newline = " " + recObj.group(1) + ":00<>" + recObj.group(2) + "</td><td>" + "+0%<>" + "+0.02<>321</td><td>" + recObj.group(3) + "</td><th><h1>" + "买盘" + "</h1>"
-					print newline
-					#key = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', newline)
-					key = dtlRe.match(line)
+					#print recObj.group(5)
+					amount = int( float(recObj.group(2)) * 100 * int(recObj.group(3)) )
+					dealAttr = '中性盘'
+					if recObj.group(5)=='B':
+						dealAttr = '买盘'
+					elif recObj.group(5)=='S':
+						dealAttr = '卖盘'
+
+					newline = "?%s:00?%s</td><td>1.00%%?+0.02?%s</td><td>%d</td><th><h1>%s</h1>" %(recObj.group(1), recObj.group(2), recObj.group(3), amount, dealAttr)
+					key = dtlRe.match(newline)
 					if (key is None):
-						print "None"
+						print "----None"
 						continue
-					else:
-						print key.groups()
+					print "+++++",key.groups()
 					
-					'''
 					curtime = key.group(1)
 					curvol = int(key.group(5))
 					#记住当前页第一个的时间
@@ -138,6 +142,7 @@ if convAll==0:
 						pageFtime = curtime
 						bFtime = 1
 
+					'''
 					timeobj = re.search(curtime, lasttime)
 					if (timeobj and curvol==lastvol):
 						pass
