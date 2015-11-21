@@ -343,15 +343,15 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					obj = amount.split(',')
 					amount = ''.join(obj)
 
-					intamount = int(key.group(5))
+					volume = int(key.group(5))
 					updatestate = key.group(7)
 					state = key.group(7)
 					if cmp(state, 'ÂôÅÌ')==0:
-						handle_volumn(intamount, dataObj, 2)
+						handle_volumn(volume, dataObj, 2)
 					elif cmp(state, 'ÂòÅÌ')==0:
-						handle_volumn(intamount, dataObj, 1)
+						handle_volumn(volume, dataObj, 1)
 					elif cmp(state, 'ÖÐÐÔÅÌ')==0:
-						ret = handle_middle_volumn(intamount, dataObj, curtime, fluctuate, key.group(3))
+						ret = handle_middle_volumn(volume, dataObj, curtime, fluctuate, key.group(3))
 						if ret==1:
 							state = 'ÂòÅÌ'
 						elif ret==2:

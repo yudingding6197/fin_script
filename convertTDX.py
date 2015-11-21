@@ -13,6 +13,45 @@ import internal.common
 
 #将TDX的数据转换为excel
 
+class fitItem:
+	volumn = 0
+	buyvol = 0
+	buyct = 0
+	buyavg = 0
+	sellvol = 0
+	sellct = 0
+	sellavg = 0
+	def __init__(self, vol):
+		self.volumn = vol
+		self.buyvol = 0
+		self.buyct = 0
+		self.buyavg = 0
+		self.sellvol = 0
+		self.sellct = 0
+		self.sellavg = 0
+
+#type:
+#	1:Buy,	2:Sell
+def handle_volumn(exVolumn, dataObj, type, flag=0):
+	dataObjLen = len(dataObj)
+	chgVolumn = exVolumn
+	if flag==1:
+		chgVolumn = exVolumn/2
+
+	if type==1:
+		for j in range(0, dataObjLen):
+			if exVolumn<dataObj[j].volumn:
+				break;
+			dataObj[j].buyvol += chgVolumn
+			dataObj[j].buyct += 1
+	elif type==2:
+		for j in range(0, dataObjLen):
+			if exVolumn<dataObj[j].volumn:
+				break;
+			dataObj[j].sellvol += chgVolumn
+			dataObj[j].sellct += 1
+
+			
 addcsv = 0
 prepath = "..\\Data\\TDX\\"
 convAll = 0
@@ -104,11 +143,28 @@ print path
 dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D+')
 lastPrice = 0
 yesterdayClose = 0
+addcsv = 0
+bFtime = 0
 if convAll==0:
 	if convType==0:
 		filename = qdate + "-" + code + ".txt"
 		filepath = path + "\\" + filename
 		countl = 0
+		
+		sarr = ''
+		dftsarr = '0,200,300,600,900'
+		dataObj = []
+		if cmp(sarr, '')==0:
+			sarr = dftsarr
+		volObj = sarr.split(',')
+		arrlen = len(volObj)
+		for i in range(0,arrlen):
+			obj = fitItem(int(volObj[i]))
+			dataObj.append(obj)
+		dataObjLen = len(dataObj)
+		
+		totalline = 0
+		bhist = 0
 		with open(filepath, 'r') as recFile:
 			for line in recFile:
 				countl += 1
@@ -136,12 +192,63 @@ if convAll==0:
 					curvol = int(key.group(5))
 					#记住当前页第一个的时间
 					if (bFtime==0):
-						timeobj = re.search(curtime, pageFtime)
-						if timeobj:
-							break
-						pageFtime = curtime
+						print "curtm:",curtime
+						if cmp(curtime, "09:30")==0:
+							curtime = "09:25"
 						bFtime = 1
 
+					curprice = key.group(2)
+					fluctuate = key.group(4)
+					amount = key.group(6)
+					volume = int(key.group(5))
+					updatestate = key.group(7)
+					state = key.group(7)
+					if cmp(state, '卖盘')==0:
+						handle_volumn(volume, dataObj, 2)
+					elif cmp(state, '买盘')==0:
+						handle_volumn(volume, dataObj, 1)
+					elif cmp(state, '中性盘')==0:
+						#ret = handle_middle_volumn(volume, dataObj, curtime, fluctuate, key.group(3))
+						ret = 1
+						if ret==1:
+							state = '买盘'
+						elif ret==2:
+							state = '卖盘'
+
+					if addcsv==1:
+						strline = curtime +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ amount +","+ key.group(7) + "\n"
+						#fcsv.write(strline)
+
+					totalline += 1
+					row = totalline+1
+					cell = 'A' + str(row)
+					#ws[cell] = curtime
+					cell = 'B' + str(row)
+					#ws[cell] = float(key.group(2))
+					cell = 'C' + str(row)
+					#ws[cell] = key.group(3)
+					cell = 'D' + str(row)
+					if (fluctuate=='--'):
+						pass
+						#ws[cell] = key.group(4)
+					else:
+						ftfluct = float(fluctuate)
+						#ws[cell] = ftfluct
+					cell = 'E' + str(row)
+					#ws[cell] = int(key.group(5))
+					cell = 'F' + str(row)
+					#ws[cell] = int(amount)
+					cell = 'G' + str(row)
+					s1 = state.decode('gbk')
+					#ws[cell] = s1
+					
+					if (row==2 and bhist==1):
+						ascid = 72
+						number = len(stockInfo)
+						for j in range(0,number):
+							cell = chr(ascid+j) + str(row)
+					#		ws[cell] = stockInfo[j]						
+						
 					'''
 					timeobj = re.search(curtime, lasttime)
 					if (timeobj and curvol==lastvol):
