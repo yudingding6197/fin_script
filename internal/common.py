@@ -63,11 +63,11 @@ def parseCode(code):
 	return (0, ncode)
 
 def parseDate(qdate, today):
-	dateObj = re.match(r'^(\d{4})-(\d+)-(\d+)', qdate)
+	dateObj = re.match(r'^(\d{4})(\d{2})(\d{2})', qdate)
 	if (dateObj is None):
-		dateObj = re.match(r'^(\d+)-(\d+)', qdate)
+		dateObj = re.match(r'^(\d{2})(\d{2})', qdate)
 		if (dateObj is None):
-			print "非法日期格式：" +qdate+ ",期望格式:YYYY-MM-DD or MM-DD"
+			print "非法日期格式：" +qdate+ ",期望格式:YYYYMMDD or MMDD"
 			return (-1, '')
 		else:
 			year = today.year
@@ -80,8 +80,20 @@ def parseDate(qdate, today):
 	strdate = '%04d-%02d-%02d' %(year, month, day)
 	return (0, strdate)
 
+def parseTime(qtime, today):
+	timeObj = re.match(r'^(\d{2}):(\d{2}):(\d{2})', qtime)
+	if (timeObj is None):
+		print "非法时间格式：" +qtime+ ",期望格式:HH:MM:SS"
+		return (-1, -1, -1, -1)
+
+	hour = int(timeObj.group(1))
+	minute = int(timeObj.group(2))
+	second = int(timeObj.group(3))
+	return (0, hour, minute, second)
+
 #type:
 #	1:Buy,	2:Sell
+#当第4个参数设置为1，进行折半处理
 def handle_volumn(exVolumn, dataObj, type, flag=0):
 	dataObjLen = len(dataObj)
 	chgVolumn = exVolumn
@@ -212,7 +224,6 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		return
 	if HandleMid==0:
 		print "Message: Ignore 中性盘"
-	#print url
 
 	if not os.path.isdir(prepath):
 		os.makedirs(prepath)
@@ -262,31 +273,44 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	infoRe = re.compile(r'\D+('+keyw+').*>(\+?-?\d+\.\d+)')
 	excecount = 0
 	stockInfo = []
-	for i in range(1,500):
+	reloadUrl = 0
+	noDataFlag = 0
+	noDataKey = "该股票没有交易数据"
+	i = 1
+
+	for j in range(1,1000):
 		urlall = url + "&page=" +str(i)
 		#print "%d, %s" %(i,urlall)
 
 		if excecount>10:
+			print "Quit with exception i=", i
 			break
 
+		#创建url链接，获取每一页的数据
 		req = urllib2.Request(urlall)
 		try:
 			res_data = urllib2.urlopen(req)
 		except:
 			print "Get URL except"
-			i -= 1
 			excecount += 1
 			continue
 		else:
+			excecount = 0
 			pass
 
 		flag = 0
 		count = 0
+		bFtime = 0
+		
+		#开始读取每一页返回的内容，首先查找'成交时间'/'收盘价'，过滤大量不需要的内容
 		line = res_data.readline()
 		if bhist==0:
 			checkStr = '成交时间'
 		else:
 			checkStr = '收盘价'
+		#print "==========0000", line
+
+		#查找到'成交时间'/'收盘价'，更新查找内容为'<script type='
 		while line:
 			index = line.find(checkStr)
 			if (index<0):
@@ -295,6 +319,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			else:
 				checkStr = '<script type='
 				break;
+
 		#从第一页读取：收盘价,涨跌幅,前收价等数据
 		if bhist==1 and i==1:
 			infoCount = 0
@@ -310,29 +335,37 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 				line = res_data.readline()
 			#print stockInfo
 
-		#找到关键字后，查找新的关键字
 		while line:
+			#print line
 			index = line.find(checkStr)
 			if (index>=0):
-				#找到之后退出
+				#找到关键字'<script type='，找到则后面的数据不用分析，准备获取下一页的内容了
+				#print "%s found, QUIT line='%s' "%(checkStr, line)
 				break;
 
 			#key = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', line)
 			key = dtlRe.match(line)
 			if key:
-				#print key.groups()
+				#print key.groups(), sys._getframe().f_lineno 
 				curtime = key.group(1)
 				curvol = int(key.group(5))
 				#记住当前页第一个的时间
 				if (bFtime==0):
 					timeobj = re.search(curtime, pageFtime)
 					if timeobj:
+						print "bFtime 0 quit"
 						break
 					pageFtime = curtime
 					bFtime = 1
 
 				timeobj = re.search(curtime, lasttime)
 				if (timeobj and curvol==lastvol):
+					count += 1
+					line = res_data.readline()
+					continue
+
+				if (key.group(2)=="0.00") or (key.group(3)=="-100.00%"):
+					print "page(%d) Price(%s) or range(%s) is invalid value"%(i, key.group(2), key.group(3))
 					pass
 				else:
 					curprice = key.group(2)
@@ -393,21 +426,41 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 				count += 1
 				line = res_data.readline()
 				continue
+			else:
+				index = line.find(noDataKey)
+				if (index>=0):
+					#找到关键字，当前和以后的页面都没有数据
+					#print "KEY word '%s' found, QUIT line='%s' "%(noDataKey, line)
+					noDataFlag = 1
+					break;
 
 			if bhist==1:
 				key = frameRe.match(line)
 				if key:
 					bFindHist = 1
 					hisUrl = key.group(1)
-					#print key.groups()
+					print key.groups()
 					break
 			
 			line = res_data.readline()
 
 		loginfo()
-		bFtime = 0
+		#通过此方法判断是否还有数据
+		if (noDataFlag==1):
+			#print "No data found current page=", i, ", QUIT"
+			break
+
+		#此时还应该有数据，但是得到的数据数量为0，重新获取数据
 		if (count==0):
-			break;
+			print "Warnig: !!! Reload data in page=", i
+			reloadUrl += 1
+			if (reloadUrl>9):
+				print "获取数据可能不完整，建议重新获取"
+				break
+			continue
+
+		#最后i加一，访问下一页
+		i += 1
 
 	if addcsv==1:
 		fcsv.close()
@@ -432,7 +485,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		print qdate+ " Saved OK"
 
 def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
-	#print url
+	print "handle_his_data, url=",url
 	if not os.path.isdir(prepath):
 		os.makedirs(prepath)
 
@@ -469,7 +522,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 	strObj = strline.split(u',')
 	ws.append(strObj)
 	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(--|\+?\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
-	for i in range(1,500):
+	for i in range(1,1000):
 		urlall = url + "&page=" +str(i)
 		#print "%d, %s" %(i,urlall)
 
@@ -478,6 +531,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 
 		flag = 0
 		count = 0
+		bFtime = 0
 		line = res_data.readline()
 		checkStr = '成交时间'
 		while line:
@@ -569,8 +623,9 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 						break;
 			line = res_data.readline()
 
-		bFtime = 0
+		#如果没有任何数据得到，表示该页没有数据，以后页也都没有数据，退出循环
 		if (count==0):
+			print "No data found i=", i, ", QUIT"
 			break;
 
 	if addcsv==1:

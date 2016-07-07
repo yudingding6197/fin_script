@@ -32,6 +32,17 @@ infoObj = infoRe.match(s8)
 if infoObj:
 	print infoObj.group(1), infoObj.group(2)
 
+count = 0
+for i in range(1, 10):
+	print "i=", i
+	if (i==5):
+		count += 1
+		if (count>3):
+			pass
+		else:
+			i = 4;
+	
+
 '''
 s1 = '0.000%'
 obj = re.match(r'(.*)\%', s1)

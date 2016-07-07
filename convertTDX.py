@@ -165,6 +165,11 @@ if convAll==0:
 		
 		totalline = 0
 		bhist = 0
+		if os.path.exists(filepath):
+			pass
+		else:
+			print "没有找到文件:" + filepath
+			exit(1)
 		with open(filepath, 'r') as recFile:
 			for line in recFile:
 				countl += 1
@@ -312,8 +317,7 @@ if convAll==0:
 				#s = binascii.b2a_hex(line)
 				#print s
 				#print "---%d:'%s'" %(countl, line)
-		recFile.close()
-
+			recFile.close()
 	elif convType==1:
 		print "还未实现。。。"
 		pass

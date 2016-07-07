@@ -7,7 +7,7 @@ import urllib
 import urllib2
 from openpyxl import Workbook
 from openpyxl.reader.excel import load_workbook
-from internal.common import handle_data
+from internal.common import *
 
 #如果需要记录到csv文件中，修改addcsv=1
 addcsv = 0
@@ -37,35 +37,20 @@ else:
 		exit(1);
 #print code
 
-qdate = sys.argv[2]
 today = datetime.date.today()
-dateObj = re.match(r'^(\d{4})-(\d+)-(\d+)', qdate)
-if (dateObj is None):
-	dateObj = re.match(r'^(\d+)-(\d+)', qdate)
-	if (dateObj is None):
-		print "非法日期格式：" +qdate+ ",期望格式:YYYY-MM-DD or MM-DD"
-		exit(1);
-	else:
-		year = today.year
-		month = int(dateObj.group(1))
-		day = int(dateObj.group(2))
-else:
-	year = int(dateObj.group(1))
-	month = int(dateObj.group(2))
-	day = int(dateObj.group(3))
-
-qdate = '%04d-%02d-%02d' %(year, month, day)
-#print qdate
+ret,stdate = parseDate(sys.argv[2], today)
+if ret==-1:
+	exit(1)
 
 qarr = ''
 if pindex==4:
 	qarr = sys.argv[3]
 
-edate = datetime.datetime.strptime(qdate, '%Y-%m-%d').date()
+edate = datetime.datetime.strptime(stdate, '%Y-%m-%d').date()
 delta = edate - today
 if (delta.days>=0):
 	print "Warning:日期可能不正确，导致数据错误！"
 
-handle_data(addcsv, prepath, 1, url, code, qdate, qarr)
+handle_data(addcsv, prepath, 1, url, code, stdate, qarr)
 
 

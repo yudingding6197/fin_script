@@ -23,7 +23,7 @@ url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory
 
 pindex = len(sys.argv)
 if pindex<4:
-	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 时间<YYYY-MM-DD or MM-DD> [arr=[number, number...]]\n")
+	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 开始时间<YYYYMMDD or MMDD> 结束时间<YYYYMMDD or MMDD> [arr=[number, number...]]\n")
 	exit(1);
 
 code = sys.argv[1]
