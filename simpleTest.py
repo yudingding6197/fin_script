@@ -25,6 +25,22 @@ s6 = '<tr ><th>14:56:48</th><td>19.66</td><td>0.01</td><td>64</td><td>125,824</t
 s7 = '<tr><td>收盘价:</td><td><h6><span style="color:#008000">8.47</span></h6></td></tr>'
 s8 = '<tr><td>涨跌幅:</td><td><h6><span style="color:#008000">-0.12%</span></h6></td></tr>'
 
+line = '<tr class="medium"><th>09:25:03</th><td>9.12</td><td>+0.11%</td><td>--</td><td>817</td><td>745,104</td><th><h1>中性盘</h1></th></tr>'
+#line = '<tr class="medium"><th>09:25:03</th><td>9.12</td><td>+0.11%</td><td>--</td><td>817</td><td>745,104</td><th>--</th></tr>'
+dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th>(.*)</th>\D')
+key = dtlRe.match(line)
+if key:
+	if key.group(7)=='--':
+		print "OK1:",key.groups()
+	else:
+		bsArray = re.match(r'<h\d+>(卖盘|买盘|中性盘)\D', key.group(7))
+		state = bsArray.group(1)
+		print state
+
+		print "OK2:",key.groups()
+else:
+	print key
+
 infoObj = infoRe.match(s7)
 if infoObj:
 	print infoObj.group(1), infoObj.group(2)

@@ -33,7 +33,7 @@ class fitItem:
 		self.sellavg = 0
 
 dftsarr = "0,200,300,600,900"
-HandleMid = 1
+HandleMid = 0
 
 def loginfo(flag=0):
 	if (flag==1):
@@ -80,7 +80,7 @@ def parseDate(qdate, today):
 	strdate = '%04d-%02d-%02d' %(year, month, day)
 	return (0, strdate)
 
-def parseTime(qtime, today):
+def parseTime(qtime):
 	timeObj = re.match(r'^(\d{2}):(\d{2}):(\d{2})', qtime)
 	if (timeObj is None):
 		print "非法时间格式：" +qtime+ ",期望格式:HH:MM:SS"
@@ -168,15 +168,17 @@ def write_statics(ws, fctime, dataObj, qdate):
 	ascid = 65
 	row = 1
 	if cmp(fctime, '')==0:
-		title = [qdate, 'B', 'S', 'B_vol', 'S_vol', 'B_avg', 'S_avg', ]
+		title = [qdate, 'B', '', 'S', '', 'B_vol', 'S_vol', 'B_avg', 'S_avg', ]
 	else:
-		title = [qdate, 'B', 'S', 'B_vol', 'S_vol', 'B_avg', 'S_avg', fctime]
+		title = [qdate, 'B', '', 'S', '', 'B_vol', 'S_vol', 'B_avg', 'S_avg', fctime]
 	number = len(title)
 	for i in range(0,number):
 		cell = chr(ascid+i) + str(row)
 		ws[cell] = title[i]
 
 	dataObjLen = len(dataObj)
+	totalBVol = 0
+	totalSVol = 0
 	for j in range(0, dataObjLen):
 		list = []
 		list.append(dataObj[j].volumn)
@@ -186,9 +188,21 @@ def write_statics(ws, fctime, dataObj, qdate):
 		
 		sellvol = dataObj[j].sellvol
 		sellct = dataObj[j].sellct
-		
+
+		buyPerc = ''
+		sellPerc = ''
+		if dataObj[j].volumn==0:
+			totalBVol = buyvol
+			totalSVol = sellvol
+		if totalBVol!=0:
+			buyPerc = round(float(buyvol) * 100 / totalBVol, 2)
+		if totalSVol!=0:
+			sellPerc = round(float(sellvol) * 100 / totalSVol, 2)
+
 		list.append(buyvol)
+		list.append(buyPerc)
 		list.append(sellvol)
+		list.append(sellPerc)
 		list.append(buyct)
 		list.append(sellct)
 		if buyct==0:
@@ -201,6 +215,12 @@ def write_statics(ws, fctime, dataObj, qdate):
 			list.append(sellvol/sellct)
 		list.append('')
 		list.append(buyvol + sellvol)
+
+		percBS=''
+		if (totalBVol + totalSVol)!=0:
+			percBS = round(float(buyvol + sellvol) * 100 / (totalBVol + totalSVol), 2)
+		list.append(percBS)
+
 		list.append(buyct + sellct)
 		bsct = buyct + sellct
 		if bsct==0:
@@ -222,8 +242,8 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	else:
 		print "Unknown flag:", bhist
 		return
-	if HandleMid==0:
-		print "Message: Ignore 中性盘"
+	#if HandleMid==0:
+	#	print "Message: Ignore 中性盘"
 
 	if not os.path.isdir(prepath):
 		os.makedirs(prepath)
@@ -268,6 +288,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	strObj = strline.split(u',')
 	ws.append(strObj)
 	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
+	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th>(.*)\D')
 	frameRe = re.compile(r'.*name=\"list_frame\" src=\"(.*)\" frameborder')
 	keyw = '收盘价|涨跌幅|前收价|开盘价|最高价|最低价|成交量|成交额'
 	infoRe = re.compile(r'\D+('+keyw+').*>(\+?-?\d+\.\d+)')
@@ -345,6 +366,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 			#key = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', line)
 			key = dtlRe.match(line)
+			#print key
 			if key:
 				#print key.groups(), sys._getframe().f_lineno 
 				curtime = key.group(1)
@@ -358,9 +380,20 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					pageFtime = curtime
 					bFtime = 1
 
+				ret,hour,minute,second = parseTime(curtime)
+				if (ret==-1):
+					line = res_data.readline()
+					continue
+				if (hour==9 and minute<=20) or (hour==15 and minute>1):
+					count += 1
+					line = res_data.readline()
+					continue
+
 				timeobj = re.search(curtime, lasttime)
 				if (timeobj and curvol==lastvol):
 					count += 1
+					if (hour==9 and minute>20 and minute<=26 and count==1):
+						noDataFlag = 1
 					line = res_data.readline()
 					continue
 
@@ -377,21 +410,39 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					amount = ''.join(obj)
 
 					volume = int(key.group(5))
-					updatestate = key.group(7)
 					state = key.group(7)
+					if state=='--':
+						state = '中性盘'
+					else:
+						bsArray = re.match(r'<h\d+>(卖盘|买盘|中性盘)\D', state)
+						state = bsArray.group(1)
+
+					stateStr = ''
+					bAddVolumn = 1
+					if (hour==9 and minute==25) or (hour==15 and minute==0):
+						bAddVolumn = 0
+
+					stateStr = state
 					if cmp(state, '卖盘')==0:
-						handle_volumn(volume, dataObj, 2)
+						stateStr = 'SELL卖盘'
+						if bAddVolumn==1:
+							handle_volumn(volume, dataObj, 2)
 					elif cmp(state, '买盘')==0:
-						handle_volumn(volume, dataObj, 1)
+						if bAddVolumn==1:
+							handle_volumn(volume, dataObj, 1)
+					#目前中性盘没有处理
 					elif cmp(state, '中性盘')==0:
-						ret = handle_middle_volumn(volume, dataObj, curtime, fluctuate, key.group(3))
+						if bAddVolumn==1:
+							ret = handle_middle_volumn(volume, dataObj, curtime, fluctuate, key.group(3))
+						else:
+							ret = 0
 						if ret==1:
-							state = '买盘'
+							stateStr = '买盘'
 						elif ret==2:
-							state = '卖盘'
+							stateStr = 'SELL卖盘'
 
 					if addcsv==1:
-						strline = curtime +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ amount +","+ key.group(7) + "\n"
+						strline = curtime +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ amount +","+ stateStr + "\n"
 						fcsv.write(strline)
 
 					totalline += 1
@@ -413,7 +464,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					cell = 'F' + str(row)
 					ws[cell] = int(amount)
 					cell = 'G' + str(row)
-					s1 = state.decode('gbk')
+					s1 = stateStr.decode('gbk')
 					ws[cell] = s1
 					
 					if (row==2 and bhist==1):
@@ -480,7 +531,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		if bFindHist==1:
 			handle_his_data(addcsv, prepath, hisUrl, code, qdate, stockInfo, sarr)
 		else:
-			print qdate+ " No Matched Record"
+			print qdate+ " Handle data, No Matched Record"
 	else:
 		print qdate+ " Saved OK"
 
@@ -640,7 +691,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 	filexlsx = prepath +filename+ '.xlsx'
 	wb.save(filexlsx)
 	if (totalline==0):
-		print qdate +" No Matched Record!"
+		print qdate +" History data, No Matched Record!"
 		os.remove(filexlsx)
 	else:
 		print qdate+ " Saved OK!"
