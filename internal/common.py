@@ -162,7 +162,7 @@ def handle_middle_volumn(exVolumn, dataObj, exTime, fluctuate, increaseRange):
 		ret = 2
 	return ret
 
-def write_statics(ws, fctime, dataObj, qdate):
+def write_statics(ws, fctime, dataObj, qdate, savedTrasData):
 	ws.title = 'statistics'
 
 	ascid = 65
@@ -234,6 +234,17 @@ def write_statics(ws, fctime, dataObj, qdate):
 			cell = chr(ascid+i) + str(row)
 			ws[cell] = list[i]
 
+	#再添加交易数据
+	dataObjLen = len(savedTrasData)
+	for j in range(0, dataObjLen):
+		row = row+1
+		list = savedTrasData[j]
+		trasLen = len(list)
+		for i in range(0,trasLen):
+			cell = chr(ascid+i) + str(row)
+			ws[cell] = list[i]
+	
+
 def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	if bhist==0:
 		url = url +"?symbol="+ code
@@ -287,7 +298,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质,收盘价,涨跌幅,前收价,开盘价,最高价,最低价,成交量,成交额'
 	strObj = strline.split(u',')
 	ws.append(strObj)
-	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
+	#dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
 	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th>(.*)\D')
 	frameRe = re.compile(r'.*name=\"list_frame\" src=\"(.*)\" frameborder')
 	keyw = '收盘价|涨跌幅|前收价|开盘价|最高价|最低价|成交量|成交额'
@@ -299,6 +310,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	noDataKey = "该股票没有交易数据"
 	notTrasFlag = 0
 	notTrasKey = "输入的日期为非交易日期"
+	savedTrasData = []
 	i = 1
 
 	for j in range(1,1000):
@@ -449,13 +461,15 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 					totalline += 1
 					row = totalline+1
+					price = float(key.group(2))
 					cell = 'A' + str(row)
 					ws[cell] = curtime
 					cell = 'B' + str(row)
-					ws[cell] = float(key.group(2))
+					ws[cell] = price
 					cell = 'C' + str(row)
 					ws[cell] = key.group(3)
 					cell = 'D' + str(row)
+					ftfluct = fluctuate
 					if (fluctuate=='--'):
 						ws[cell] = key.group(4)
 					else:
@@ -469,6 +483,18 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					s1 = stateStr.decode('gbk')
 					ws[cell] = s1
 					
+					#将最后一笔成交数据保存
+					if (totalline==1 or (hour==9 and minute==25)):
+						rowData = []
+						rowData.append(curtime)
+						rowData.append(price)
+						rowData.append(key.group(3))
+						rowData.append(ftfluct)
+						rowData.append(int(key.group(5)))
+						rowData.append(int(amount))
+						rowData.append(s1)
+						savedTrasData.append(rowData)
+
 					if (row==2 and bhist==1):
 						ascid = 72
 						number = len(stockInfo)
@@ -539,7 +565,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	if totalline>0:
 		loginfo()
 		ws = wb.create_sheet()
-		write_statics(ws, fctime, dataObj, qdate)
+		write_statics(ws, fctime, dataObj, qdate, savedTrasData)
 
 	loginfo()
 	filexlsx = prepath +filename+ '.xlsx'
@@ -593,6 +619,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 	ws.append(strObj)
 	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(--|\+?\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
 	excecount = 0
+	savedTrasData = []
 
 	for i in range(1,1000):
 		urlall = url + "&page=" +str(i)
@@ -649,6 +676,11 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 						pageFtime = curtime
 						bFtime = 1
 
+					ret,hour,minute,second = parseTime(curtime)
+					if (ret==-1):
+						line = res_data.readline()
+						continue
+
 					timeobj = re.search(curtime, lasttime)
 					if (timeobj and intcurvol==lastvol):
 						pass
@@ -699,6 +731,18 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 								cell = chr(ascid+j) + str(row)
 								ws[cell] = stockInfo[j]
 
+						#将最后一笔成交数据保存
+						if (totalline==1 or (hour==9 and minute==25)):
+							rowData = []
+							rowData.append(curtime)
+							rowData.append(float(price))
+							rowData.append(srange)
+							rowData.append(fluctuate)
+							rowData.append(curvol)
+							rowData.append(intamount)
+							rowData.append(s1)
+							savedTrasData.append(rowData)
+
 					count += 1
 				else:
 					endObj = re.search(r'</td><td>', qdate)
@@ -720,7 +764,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 
 	if (totalline>0):
 		ws = wb.create_sheet()
-		write_statics(ws, '', dataObj, qdate)
+		write_statics(ws, '', dataObj, qdate, savedTrasData)
 
 	filexlsx = prepath +filename+ '.xlsx'
 	wb.save(filexlsx)
