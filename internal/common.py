@@ -297,6 +297,8 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	reloadUrl = 0
 	noDataFlag = 0
 	noDataKey = "该股票没有交易数据"
+	notTrasFlag = 0
+	notTrasKey = "输入的日期为非交易日期"
 	i = 1
 
 	for j in range(1,1000):
@@ -329,10 +331,11 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			checkStr = '成交时间'
 		else:
 			checkStr = '收盘价'
-		#print "==========0000", line
 
 		#查找到'成交时间'/'收盘价'，更新查找内容为'<script type='
+		#但是一个月前的历史记录，'<script type='不是找到，需要handle_his_data()处理
 		while line:
+			#print line
 			index = line.find(checkStr)
 			if (index<0):
 				line = res_data.readline()
@@ -366,7 +369,6 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 			#key = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', line)
 			key = dtlRe.match(line)
-			#print key
 			if key:
 				#print key.groups(), sys._getframe().f_lineno 
 				curtime = key.group(1)
@@ -485,19 +487,35 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					noDataFlag = 1
 					break;
 
-			if bhist==1:
-				key = frameRe.match(line)
-				if key:
-					bFindHist = 1
-					hisUrl = key.group(1)
-					print key.groups()
-					break
-			
+				index = line.find(notTrasKey)
+				if (index>=0):
+					#找到关键字，非交易日
+					#print "KEY word '%s' found, QUIT line='%s' "%(notTrasKey, line)
+					notTrasFlag = 1
+					break;
+
+				#针对一个月前的历史记录，找到匹配的关键字
+				if bhist==1:
+					key = frameRe.match(line)
+					if key:
+						bFindHist = 1
+						hisUrl = key.group(1)
+						#print key.groups()
+						break
+			#对应前面启动 while
 			line = res_data.readline()
 
 		loginfo()
+		if bFindHist==1:
+			break
+
 		#通过此方法判断是否还有数据
 		if (noDataFlag==1):
+			#print "No data found current page=", i, ", QUIT"
+			break
+
+		#通过此方法判断是否非交易日
+		if (notTrasFlag==1):
 			#print "No data found current page=", i, ", QUIT"
 			break
 
@@ -510,7 +528,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 				break
 			continue
 
-		#最后i加一，访问下一页
+		#最后i加一，访问下一页，对应 for 循环启动代码
 		i += 1
 
 	if addcsv==1:
@@ -535,8 +553,9 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	else:
 		print qdate+ " Saved OK"
 
+#处理要求跳转页面的历史记录
 def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
-	print "handle_his_data, url=",url
+	#print "handle_his_data, url=",url
 	if not os.path.isdir(prepath):
 		os.makedirs(prepath)
 
@@ -573,12 +592,27 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 	strObj = strline.split(u',')
 	ws.append(strObj)
 	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(--|\+?\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
+	excecount = 0
+
 	for i in range(1,1000):
 		urlall = url + "&page=" +str(i)
 		#print "%d, %s" %(i,urlall)
 
+		if excecount>10:
+			print "Quit with exception i=", i
+			break
+
+		#创建url链接，获取每一页的数据
 		req = urllib2.Request(urlall)
-		res_data = urllib2.urlopen(req)
+		try:
+			res_data = urllib2.urlopen(req)
+		except:
+			print "Get URL except"
+			excecount += 1
+			continue
+		else:
+			excecount = 0
+			pass
 
 		flag = 0
 		count = 0
