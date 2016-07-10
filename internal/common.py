@@ -235,6 +235,7 @@ def write_statics(ws, fctime, dataObj, qdate, savedTrasData):
 			ws[cell] = list[i]
 
 	#再添加交易数据
+	row = row+1
 	dataObjLen = len(savedTrasData)
 	for j in range(0, dataObjLen):
 		row = row+1
@@ -476,21 +477,21 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 						ftfluct = float(fluctuate)
 						ws[cell] = ftfluct
 					cell = 'E' + str(row)
-					ws[cell] = int(key.group(5))
+					ws[cell] = curvol
 					cell = 'F' + str(row)
 					ws[cell] = int(amount)
 					cell = 'G' + str(row)
 					s1 = stateStr.decode('gbk')
 					ws[cell] = s1
 					
-					#将最后一笔成交数据保存
-					if (totalline==1 or (hour==9 and minute==25)):
+					#将开始和最后成交数据保存
+					if (totalline<4 or (hour==9 and minute==30 and curvol>300) or (hour==9 and minute<30)):
 						rowData = []
 						rowData.append(curtime)
 						rowData.append(price)
 						rowData.append(key.group(3))
 						rowData.append(ftfluct)
-						rowData.append(int(key.group(5)))
+						rowData.append(curvol)
 						rowData.append(int(amount))
 						rowData.append(s1)
 						savedTrasData.append(rowData)
@@ -731,8 +732,8 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 								cell = chr(ascid+j) + str(row)
 								ws[cell] = stockInfo[j]
 
-						#将最后一笔成交数据保存
-						if (totalline==1 or (hour==9 and minute==25)):
+						#将开始和最后成交数据保存
+						if (totalline<4 or (hour==9 and minute==30 and curvol>300) or (hour==9 and minute<30)):
 							rowData = []
 							rowData.append(curtime)
 							rowData.append(float(price))
