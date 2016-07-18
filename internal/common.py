@@ -426,7 +426,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 					volume = int(key.group(5))
 					state = key.group(7)
-					if state=='--':
+					if state[0:2]=='--':
 						state = 'ÖÐÐÔÅÌ'
 					else:
 						bsArray = re.match(r'<h\d+>(ÂôÅÌ|ÂòÅÌ|ÖÐÐÔÅÌ)\D', state)
