@@ -78,6 +78,12 @@ def parseDate(qdate, today):
 		month = int(dateObj.group(2))
 		day = int(dateObj.group(3))
 	strdate = '%04d-%02d-%02d' %(year, month, day)
+
+	try:
+		datetime.date(year,month,day)
+	except:
+		print strdate, "is invalid date"
+		return (-1, '')
 	return (0, strdate)
 
 def parseTime(qtime):
@@ -311,12 +317,15 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	noDataKey = "该股票没有交易数据"
 	notTrasFlag = 0
 	notTrasKey = "输入的日期为非交易日期"
+	#每一页的数据，如果找到匹配数据则设置为1；解决有时候页面有数据但是收不到，
+	#count为0，重新加载尝试再次获取；如果解析到数据的页面，如果count为0就不再继续解析数据
+	matchDataFlag = 0
 	savedTrasData = []
 	i = 1
 
 	for j in range(1,1000):
 		urlall = url + "&page=" +str(i)
-		#print "%d, %s" %(i,urlall)
+		#print "URL link(%d):%s" %(i,urlall)
 
 		if excecount>10:
 			print "Quit with exception i=", i
@@ -337,6 +346,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		flag = 0
 		count = 0
 		bFtime = 0
+		matchDataFlag = 0
 		
 		#开始读取每一页返回的内容，首先查找'成交时间'/'收盘价'，过滤大量不需要的内容
 		line = res_data.readline()
@@ -395,8 +405,13 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					pageFtime = curtime
 					bFtime = 1
 
+				matchDataFlag = 1
 				ret,hour,minute,second = parseTime(curtime)
 				if (ret==-1):
+					line = res_data.readline()
+					continue
+				if (key.group(2)=="0.00") or (key.group(3)=="-100.00%"):
+					print "page(%d) Price(%s) or range(%s) is invalid value"%(i, key.group(2), key.group(3))
 					line = res_data.readline()
 					continue
 				if (hour==9 and minute<=20) or (hour==15 and minute>1):
@@ -412,9 +427,9 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					line = res_data.readline()
 					continue
 
+				#此时这个if判断没有意义了，前面代码做了判断
 				if (key.group(2)=="0.00") or (key.group(3)=="-100.00%"):
 					print "page(%d) Price(%s) or range(%s) is invalid value"%(i, key.group(2), key.group(3))
-					pass
 				else:
 					curprice = key.group(2)
 					fluctuate = key.group(4)
@@ -548,6 +563,9 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 		#此时还应该有数据，但是得到的数据数量为0，重新获取数据
 		if (count==0):
+			if (matchDataFlag==1):
+				print "Warnig: All invalid data in page=", i
+				break
 			print "Warnig: !!! Reload data in page=", i
 			reloadUrl += 1
 			if (reloadUrl>9):
@@ -624,7 +642,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 
 	for i in range(1,1000):
 		urlall = url + "&page=" +str(i)
-		#print "%d, %s" %(i,urlall)
+		#print "Get history URL(%d)=%s" %(i,urlall)
 
 		if excecount>10:
 			print "Quit with exception i=", i
