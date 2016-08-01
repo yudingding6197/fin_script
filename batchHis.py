@@ -20,6 +20,7 @@ from internal.common import *
 addcsv = 0
 prepath = "..\\Data\\"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php"
+urlToday = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
 
 pindex = len(sys.argv)
 if pindex<4:
@@ -81,3 +82,9 @@ while (delta.days>=0):
 	handle_data(addcsv, prepath, 1, url, code, qdate, qarr)
 	curdate = curdate + delta1
 	delta = edate - curdate
+
+if cmp(sys.argv[3], '.')==0:
+	t = datetime.datetime.now()
+	if (t.hour>=15 and t.minute>0):
+		qdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
+		handle_data(addcsv, prepath, 2, urlToday, code, qdate, qarr)

@@ -48,16 +48,27 @@ infoObj = infoRe.match(s8)
 if infoObj:
 	print infoObj.group(1), infoObj.group(2)
 
-count = 0
-for i in range(1, 10):
-	print "i=", i
-	if (i==5):
-		count += 1
-		if (count>3):
-			pass
-		else:
-			i = 4;
-	
+
+delta1=datetime.timedelta(days=1)
+today = datetime.date.today()
+t = datetime.datetime.now()
+print t.hour,":",t.minute,":",t.second
+print today
+ret,stdate = parseDate("0721", today)
+if ret==-1:
+	print "QUIT"
+	exit(1)
+sdate = datetime.datetime.strptime(stdate, '%Y-%m-%d').date()
+curdate = sdate
+
+eddate = '.'
+if cmp(eddate, '.')==0:
+	eddate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
+	edate = datetime.datetime.strptime(eddate, '%Y-%m-%d').date()
+	#如果是当日的数据通过history链接目前不能得到，所以暂时得到前一天的数据
+	#今日数据通过getToday获取
+	edate = edate - delta1
+
 
 '''
 s1 = '0.000%'

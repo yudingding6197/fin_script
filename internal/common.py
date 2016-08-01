@@ -257,6 +257,9 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		url = url +"?symbol="+ code
 	elif bhist==1:
 		url = url +"?date="+ qdate +"&symbol="+ code
+	#当天日期按照历史记录处理
+	elif bhist==2:
+		url = url +"?symbol="+ code
 	else:
 		print "Unknown flag:", bhist
 		return
@@ -350,7 +353,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		
 		#开始读取每一页返回的内容，首先查找'成交时间'/'收盘价'，过滤大量不需要的内容
 		line = res_data.readline()
-		if bhist==0:
+		if bhist==0 or bhist==2:
 			checkStr = '成交时间'
 		else:
 			checkStr = '收盘价'
