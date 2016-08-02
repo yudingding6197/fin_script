@@ -174,9 +174,9 @@ def write_statics(ws, fctime, dataObj, qdate, savedTrasData):
 	ascid = 65
 	row = 1
 	if cmp(fctime, '')==0:
-		title = [qdate, 'B', '', 'S', '', 'B_vol', 'S_vol', 'B_avg', 'S_avg', ]
+		title = [qdate, 'B', 'P1', 'S', 'P2', 'B_vol', 'S_vol', 'B_avg', 'S_avg', ]
 	else:
-		title = [qdate, 'B', '', 'S', '', 'B_vol', 'S_vol', 'B_avg', 'S_avg', fctime]
+		title = [qdate, 'B', 'P1', 'S', 'P2', 'B_vol', 'S_vol', 'B_avg', 'S_avg', fctime]
 	number = len(title)
 	for i in range(0,number):
 		cell = chr(ascid+i) + str(row)
@@ -201,9 +201,15 @@ def write_statics(ws, fctime, dataObj, qdate, savedTrasData):
 			totalBVol = buyvol
 			totalSVol = sellvol
 		if totalBVol!=0:
-			buyPerc = round(float(buyvol) * 100 / totalBVol, 2)
+			if dataObj[j].volumn==0:
+				buyPerc = round(float(buyvol) * 100 / (totalBVol+totalSVol), 2);
+			else:
+				buyPerc = round(float(buyvol) * 100 / totalBVol, 2)
 		if totalSVol!=0:
-			sellPerc = round(float(sellvol) * 100 / totalSVol, 2)
+			if dataObj[j].volumn==0:
+				sellPerc = round(float(sellvol) * 100 / (totalBVol+totalSVol), 2)
+			else:
+				sellPerc = round(float(sellvol) * 100 / totalSVol, 2)
 
 		list.append(buyvol)
 		list.append(buyPerc)
@@ -578,6 +584,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 		#最后i加一，访问下一页，对应 for 循环启动代码
 		i += 1
+	ws.auto_filter.ref = "A1:G1"
 
 	if addcsv==1:
 		fcsv.close()
@@ -778,6 +785,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 		if (count==0):
 			print "No data found i=", i, ", QUIT"
 			break;
+	ws.auto_filter.ref = "A1:G1"
 
 	if addcsv==1:
 		fcsv.close()

@@ -10,6 +10,7 @@ from openpyxl.reader.excel  import  load_workbook
 prepath = '../Data/'
 allFileNum = 0
 volumnList = [200, 300, 600, 900]
+volumnList1 = [0,200, 300, 600, 900]
 
 def printPath(level, path,fileList):
 	global allFileNum
@@ -72,7 +73,7 @@ data_dic = []
 
 def parseFile(path, filename):
 	wkfile = path +"/"+ filename
-	print wkfile
+	#print wkfile
 
 	wb = load_workbook(wkfile)
 	#print "Worksheet range(s):", wb.get_named_ranges()
@@ -97,25 +98,87 @@ def parseFile(path, filename):
 		w5 = ws.cell(row = rx, column = 5).value
 		w6 = ws.cell(row = rx, column = 6).value
 		w7 = ws.cell(row = rx, column = 7).value
+		w8 = ws.cell(row = rx, column = 8).value
+		w9 = ws.cell(row = rx, column = 9).value
 		
 		if (w1 is None) and (w2 is None) and (w3 is None) and (w4 is None)\
 			and (w5 is None) and (w6 is None) and (w7 is None):
 			break
 		if (w1 is None) or (w2 is None) or (w3 is None) or (w4 is None)\
 			or (w5 is None) or (w6 is None) or (w7 is None):
-			print "某项记录为None，不正确", w1, w2, w3, w4, w5, w6, w7 
+			print rx,"某项记录为None，不正确", w1, w2, w3, w4, w5, w6, w7 
 			continue
-		temp_list = [w1,w2,w3,w4,w5,w6,w7]
+		temp_list = [w1,w2,w3,w4,w5,w6,w7,w8,w9]
 		if rx==1:
 			pid = w1
 		else:
+			print temp_list
 			data_list.append(temp_list)
 
 	if cmp(pid, '')!=0:
 		day_list = [pid, data_list]
 		data_dic.append(day_list)
 
+def updateFile1(path, filename):
+	wkfile = path +"/"+ filename
+
+	dataObjLen = len(data_dic)
+	if dataObjLen==0:
+		print "没有数据"
+		return
 	
+	wb = Workbook()
+	ws = wb.active
+	ws.title = 'statistics'
+	
+	print "_________"
+	row = 1
+	ascid = 65
+	title = []
+	title.append('')
+	for fltvol in volumnList1:
+		bs = 'B%d'%(fltvol)
+		title.append(bs)
+		bs = 'S%d'%(fltvol)
+		title.append(bs)
+
+		number = len(title)
+		for i in range(0,number):
+			cell = chr(ascid+i) + str(row)
+			ws[cell] = title[i]
+
+	row = 2
+	ascid = 66
+	buy = [0,0,0,0,0]
+	sell = [0,0,0,0,0]
+	index = dataObjLen-1
+	while index>=0:
+		day_list = data_dic[index]
+		index -= 1
+
+		i = 0
+		j = 0
+		for data_list in day_list[1]:
+			#print data_list,day_list[0], data_list[0]
+			
+			buy[j] = buy[j] + data_list[1]
+			cell = chr(ascid+i) + str(row)
+			print j,buy[j]
+			ws[cell] = data_list[1]
+			i += 1
+
+			sell[j] = sell[j] + data_list[3]
+			cell = chr(ascid+i) + str(row)
+			print j,sell[j]
+			ws[cell] = data_list[3]
+			i += 1
+
+			j += 1
+		row += 1
+
+	#写完相同数据然后空一行
+	wb.save(wkfile)
+
 def updateFile(path, filename):
 	wkfile = path +"/"+ filename
 
@@ -131,7 +194,7 @@ def updateFile(path, filename):
 	ascid = 65
 	row = 1
 	for fltvol in volumnList:
-		title = [fltvol, 'B', 'S', 'B_vol', 'S_vol', 'B_avg', 'S_avg', ]
+		title = [fltvol, 'B', 'S', 'B_vol', 'S_vol', 'B_avg', 'S_avg']
 		number = len(title)
 		for i in range(0,number):
 			cell = chr(ascid+i) + str(row)
@@ -157,7 +220,6 @@ def updateFile(path, filename):
 		#写完相同数据然后空一行
 		row += 1
 	wb.save(wkfile)
-
 
 	
 if __name__ == '__main__':
@@ -200,7 +262,7 @@ if __name__ == '__main__':
 			if cmp(filename[0:9], prename[0:9])!=0:
 				continue
 
-			#print filename
+			print filename
 			parseFile(path, filename)
 			i += 1
 			
@@ -208,6 +270,9 @@ if __name__ == '__main__':
 		break;
 
 	if cmp('meg', '')!=0:
-		stfile = 'z_'+ code +'__result.xlsx'
+		cur=datetime.datetime.now()
+		fctime = '%04d%02d%02d_%02d%02d' %(cur.year, cur.month, cur.day, cur.hour, cur.minute)
+		stfile = 'z_'+ code +'_result_'+fctime+'.xlsx'
 		updateFile(path, stfile)
-		
+		stfile = 'z_'+ code +'_result1_'+fctime+'.xlsx'
+		updateFile1(path, stfile)
