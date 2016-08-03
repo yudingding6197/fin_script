@@ -6,8 +6,10 @@ import string
 import datetime
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
+from internal.common import *
 
 prepath = '../Data/'
+sheetName = "statistics"
 allFileNum = 0
 volumnList = [200, 300, 600, 900]
 volumnList1 = [0,200, 300, 600, 900]
@@ -59,17 +61,18 @@ def printPath(level, path,fileList):
 		wb = load_workbook(wkfile)
 		print "Worksheet range(s):", wb.get_named_ranges()
 		print "Worksheet name(s):", wb.get_sheet_names()
-		if "statistics" not in wb.get_sheet_names():
+		if sheetName not in wb.get_sheet_names():
 			print "NONNN"
 			continue
 
-		sheet_ranges_r = wb.get_sheet_by_name(name='statistics')
+		sheet_ranges_r = wb.get_sheet_by_name(name=sheetName)
 		print "YYYY:"
 		print sheet_ranges_r
 	'''	
 
 # 建立存储数据的字典 
-data_dic = [] 
+data_dic = []
+bCheckDate = 0
 
 def parseFile(path, filename):
 	wkfile = path +"/"+ filename
@@ -78,10 +81,10 @@ def parseFile(path, filename):
 	wb = load_workbook(wkfile)
 	#print "Worksheet range(s):", wb.get_named_ranges()
 	#print "Worksheet name(s):", wb.get_sheet_names()
-	if "statistics" not in wb.get_sheet_names():
+	if sheetName not in wb.get_sheet_names():
 		return
 
-	ws = wb.get_sheet_by_name(name='statistics')
+	ws = wb.get_sheet_by_name(name=sheetName)
 	max_column = ws.max_column
 	if max_column<7:
 		print "column(%d) too short, please check" % max_column
@@ -112,14 +115,14 @@ def parseFile(path, filename):
 		if rx==1:
 			pid = w1
 		else:
-			print temp_list
+			#print temp_list
 			data_list.append(temp_list)
 
 	if cmp(pid, '')!=0:
 		day_list = [pid, data_list]
 		data_dic.append(day_list)
 
-def updateFile1(path, filename):
+def statVolume(path, filename):
 	wkfile = path +"/"+ filename
 
 	dataObjLen = len(data_dic)
@@ -129,9 +132,8 @@ def updateFile1(path, filename):
 	
 	wb = Workbook()
 	ws = wb.active
-	ws.title = 'statistics'
+	ws.title = sheetName
 	
-	print "_________"
 	row = 1
 	ascid = 65
 	title = []
@@ -148,7 +150,6 @@ def updateFile1(path, filename):
 			ws[cell] = title[i]
 
 	row = 2
-	ascid = 66
 	buy = [0,0,0,0,0]
 	sell = [0,0,0,0,0]
 	index = dataObjLen-1
@@ -156,30 +157,80 @@ def updateFile1(path, filename):
 		day_list = data_dic[index]
 		index -= 1
 
-		i = 0
+		cell = chr(ascid) + str(row)
+		ws[cell] = day_list[0]
+
+		i = 1
 		j = 0
 		for data_list in day_list[1]:
 			#print data_list,day_list[0], data_list[0]
 			
 			buy[j] = buy[j] + data_list[1]
 			cell = chr(ascid+i) + str(row)
-			print j,buy[j]
 			ws[cell] = data_list[1]
 			i += 1
 
 			sell[j] = sell[j] + data_list[3]
 			cell = chr(ascid+i) + str(row)
-			print j,sell[j]
 			ws[cell] = data_list[3]
 			i += 1
 
 			j += 1
 		row += 1
 
-	#写完相同数据然后空一行
+	cell = chr(ascid) + str(row)
+	ws[cell] = "Total"
+	number = len(buy)
+	#统计买卖成交量总和
+	for i in range(0, number):
+		cell = chr(ascid+1+i*2) + str(row)
+		ws[cell] = buy[i]
+		cell = chr(ascid+1+i*2+1) + str(row)
+		ws[cell] = sell[i]
+	row += 1
+
+	#获取买卖成交量占比对应的买卖总量
+	totalBVol = buy[0]
+	totalSVol = sell[0]
+	for i in range(0, number):
+		cell = chr(ascid+1+i*2) + str(row)
+		if i==0:
+			continue;
+			buyPerc = round(float(totalBVol) * 100 / (totalBVol+totalSVol), 2)
+		else:
+			buyPerc = round(float(buy[i]) * 100 / totalBVol, 2)
+		ws[cell] = buyPerc
+
+		cell = chr(ascid+1+i*2+1) + str(row)
+		if i==0:
+			continue;
+			sellPerc = round(float(totalSVol) * 100 / (totalBVol+totalSVol), 2)
+		else:
+			sellPerc = round(float(sell[i]) * 100 / totalSVol, 2)
+		ws[cell] = sellPerc
+	row += 1
+
+	#获取买卖成交量占比总买卖总量
+	totoalVol = totalBVol+totalSVol
+	for i in range(0, number):
+		cell = chr(ascid+1+i*2) + str(row)
+		if i==0:
+			buyPerc = round(float(totalBVol) * 100 / totoalVol, 2)
+		else:
+			buyPerc = round(float(buy[i]) * 100 / totoalVol, 2)
+		ws[cell] = buyPerc
+
+		cell = chr(ascid+1+i*2+1) + str(row)
+		if i==0:
+			sellPerc = round(float(totalSVol) * 100 / totoalVol, 2)
+		else:
+			sellPerc = round(float(sell[i]) * 100 / totoalVol, 2)
+		ws[cell] = sellPerc
+	row += 1
+
 	wb.save(wkfile)
 
-def updateFile(path, filename):
+def statByVolume(path, filename):
 	wkfile = path +"/"+ filename
 
 	dataObjLen = len(data_dic)
@@ -189,7 +240,7 @@ def updateFile(path, filename):
 	
 	wb = Workbook()
 	ws = wb.active
-	ws.title = 'statistics'
+	ws.title = sheetName
 	
 	ascid = 65
 	row = 1
@@ -224,8 +275,10 @@ def updateFile(path, filename):
 	
 if __name__ == '__main__':
 	pindex = len(sys.argv)
-	if pindex<2:
-		sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码\n")
+	if pindex==2 or pindex==4:
+		pass
+	else:
+		sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 [开始时间<YYYYMMDD or MMDD>] [结束时间<YYYYMMDD or MMDD>]\n")
 		exit(1);
 
 	code = sys.argv[1]
@@ -245,6 +298,33 @@ if __name__ == '__main__':
 			print "非法代码:" +code+ "\n"
 			exit(1);
 
+	bCheckDate = 0
+	styear = 0
+	stmonth = 0
+	stday = 0
+	edyear = 0
+	edmonth = 0
+	edday = 0
+	today = datetime.date.today()
+	if pindex==4:
+		ret,styear,stmonth,stday= parseSeparateDate(sys.argv[2], today)
+		if ret==-1:
+			exit(1)
+
+		eddate = sys.argv[3]
+		if cmp(eddate, '.')==0:
+			edyear = today.year
+			edmonth = today.month
+			edday = today.day
+		else:
+			ret,edyear,edmonth,edday = parseSeparateDate(eddate, today)
+			if ret==-1:
+				exit(1)
+
+		bCheckDate = 1
+		print styear, stmonth, stday
+		print edyear, edmonth, edday
+
 	fileList = []
 	path = prepath + code
 	if not os.path.isdir(path):
@@ -261,18 +341,30 @@ if __name__ == '__main__':
 			prename = code+"_"
 			if cmp(filename[0:9], prename[0:9])!=0:
 				continue
+			if bCheckDate==1:
+				fileDate = filename[9:(len(filename)-5)]
+				if len(fileDate)!=10:
+					continue
+
+				fileDateN = fileDate[0:4] + fileDate[5:7] + fileDate[8:10]
+				ret,curyear,curmonth,curday = parseSeparateDate(fileDateN, today)
+				if ret==-1:
+					continue
+				if ((curyear<styear or curyear>edyear) or (curmonth<stmonth or curmonth>edmonth)\
+					or (curday<stday or curday>edday)) :
+					continue
 
 			print filename
 			parseFile(path, filename)
 			i += 1
 			
 		#仅仅得到父文件夹的文件，忽略子文件夹下文件
-		break;
+		break
 
 	if cmp('meg', '')!=0:
 		cur=datetime.datetime.now()
 		fctime = '%04d%02d%02d_%02d%02d' %(cur.year, cur.month, cur.day, cur.hour, cur.minute)
-		stfile = 'z_'+ code +'_result_'+fctime+'.xlsx'
-		updateFile(path, stfile)
+		#stfile = 'z_'+ code +'_result_'+fctime+'.xlsx'
+		#statByVolume(path, stfile)
 		stfile = 'z_'+ code +'_result1_'+fctime+'.xlsx'
-		updateFile1(path, stfile)
+		statVolume(path, stfile)

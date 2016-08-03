@@ -86,6 +86,30 @@ def parseDate(qdate, today):
 		return (-1, '')
 	return (0, strdate)
 
+def parseSeparateDate(qdate, today):
+	dateObj = re.match(r'^(\d{4})(\d{2})(\d{2})', qdate)
+	if (dateObj is None):
+		dateObj = re.match(r'^(\d{2})(\d{2})', qdate)
+		if (dateObj is None):
+			print "非法日期格式：" +qdate+ ",期望格式:YYYYMMDD or MMDD"
+			return (-1, '')
+		else:
+			year = today.year
+			month = int(dateObj.group(1))
+			day = int(dateObj.group(2))
+	else:
+		year = int(dateObj.group(1))
+		month = int(dateObj.group(2))
+		day = int(dateObj.group(3))
+
+	#验证日期的合法性
+	try:
+		datetime.date(year,month,day)
+	except:
+		print year, month, day, "is invalid date"
+		return (-1, -1,-1,-1)
+	return (0, year,month,day)
+
 def parseTime(qtime):
 	timeObj = re.match(r'^(\d{2}):(\d{2}):(\d{2})', qtime)
 	if (timeObj is None):
