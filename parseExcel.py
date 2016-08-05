@@ -123,7 +123,7 @@ def parseFile(path, filename):
 		day_list = [pid, data_list]
 		data_dic.append(day_list)
 
-def statVolume(path, filename):
+def statVolumn(path, filename):
 	wkfile = path +"/"+ filename
 
 	dataObjLen = len(data_dic)
@@ -134,7 +134,15 @@ def statVolume(path, filename):
 	wb = Workbook()
 	ws = wb.active
 	ws.title = sheetName
-	
+	addStatVolumn(ws, 0)
+
+	#ws = wb.create_sheet()
+	#ws.title = 'detail'
+	#addStatVolumn(ws, 1)
+	wb.save(wkfile)
+
+def addStatVolumn(ws, flag):
+	dataObjLen = len(data_dic)
 	row = 1
 	ascid = 65
 	title = []
@@ -144,6 +152,9 @@ def statVolume(path, filename):
 		title.append(bs)
 		bs = 'S%d'%(fltvol)
 		title.append(bs)
+		if fltvol==200 or fltvol==300 or fltvol==600 or fltvol==900:
+			percent = 'P%d'%(fltvol)
+			title.append(percent)
 
 		number = len(title)
 		for i in range(0,number):
@@ -153,6 +164,7 @@ def statVolume(path, filename):
 	row = 2
 	buy = [0,0,0,0,0]
 	sell = [0,0,0,0,0]
+	stat = [0,0,0,0,0]
 	index = dataObjLen-1
 	while index>=0:
 		day_list = data_dic[index]
@@ -163,9 +175,9 @@ def statVolume(path, filename):
 
 		i = 1
 		j = 0
+		dayBVolumn = 0
+		daySVolumn = 0
 		for data_list in day_list[1]:
-			#print data_list,day_list[0], data_list[0]
-			
 			buy[j] = buy[j] + data_list[1]
 			cell = chr(ascid+i) + str(row)
 			ws[cell] = data_list[1]
@@ -176,20 +188,66 @@ def statVolume(path, filename):
 			ws[cell] = data_list[3]
 			i += 1
 
+			#得到当天买卖总量
+			if data_list[0]==0:
+				dayBVolumn = data_list[1]
+				daySVolumn = data_list[3]
+				#print dayBVolumn, daySVolumn
+
+			#添加百分比
+			if data_list[0]!=0:
+				if stat[0]==0:
+					stat[j] = 1
+				if dayBVolumn==0:
+					buyPerc = 0
+				else:
+					buyPerc = round(float(data_list[1]) * 100 / (dayBVolumn), 2)
+				if daySVolumn==0:
+					sellPerc = 0
+				else:
+					sellPerc = round(float(data_list[3]) * 100 / (daySVolumn), 2)
+				value = '%2.1f-%2.1f'%(buyPerc, sellPerc)
+				cell = chr(ascid+i) + str(row)
+				ws[cell] = value
+				i += 1
 			j += 1
+		#表示已经设置需要添加百分比的列
+		if stat[0]==0:
+			stat[0] = 1
 		row += 1
 
 	cell = chr(ascid) + str(row)
 	ws[cell] = "Total"
 	number = len(buy)
 	#统计买卖成交量总和
+	index = 0
 	for i in range(0, number):
-		cell = chr(ascid+1+i*2) + str(row)
+		index += 1
+		cell = chr(ascid+index) + str(row)
 		ws[cell] = buy[i]
-		cell = chr(ascid+1+i*2+1) + str(row)
+		index += 1
+		cell = chr(ascid+index) + str(row)
 		ws[cell] = sell[i]
-	row += 1
+		if i==0:
+			dayBVolumn = buy[i]
+			daySVolumn = sell[i]
+			continue
+		if stat[i]==1:
+			if dayBVolumn==0:
+				buyPerc = 0
+			else:
+				buyPerc = round(float(buy[i]) * 100 / (dayBVolumn), 2)
+			if daySVolumn==0:
+				sellPerc = 0
+			else:
+				sellPerc = round(float(sell[i]) * 100 / (daySVolumn), 2)
+			value = '%2.1f-%2.1f'%(buyPerc, sellPerc)
 
+			index += 1
+			cell = chr(ascid+index) + str(row)
+			ws[cell] = value
+
+	row += 1
 	#获取买卖成交量占比对应的买卖总量
 	totalBVol = buy[0]
 	totalSVol = sell[0]
@@ -229,9 +287,7 @@ def statVolume(path, filename):
 		ws[cell] = sellPerc
 	row += 1
 
-	wb.save(wkfile)
-
-def statByVolume(path, filename):
+def statByVolumn(path, filename):
 	wkfile = path +"/"+ filename
 
 	dataObjLen = len(data_dic)
@@ -311,7 +367,6 @@ if __name__ == '__main__':
 		ret,stdate= parseDate(sys.argv[2], today)
 		if ret==-1:
 			exit(1)
-		print stdate
 		startObj = time.strptime(stdate, "%Y-%m-%d")
 
 		edstr = sys.argv[3]
@@ -321,7 +376,6 @@ if __name__ == '__main__':
 			ret,eddate = parseDate(edstr, today)
 			if ret==-1:
 				exit(1)
-		print eddate
 		endObj = time.strptime(eddate, "%Y-%m-%d")
 		#设置检查标志位
 		bCheckDate = 1
@@ -336,7 +390,6 @@ if __name__ == '__main__':
 		#print('dirpath = ' + dirpath)
 		i = 0
 		for filename in filenames:
-			#print filename
 			extname = filename.split('.')[-1]
 			if cmp(extname,"xlsx")!=0:
 				continue
@@ -356,11 +409,9 @@ if __name__ == '__main__':
 
 				if curObj<startObj or curObj>endObj:
 					continue
-
-			print filename
+			#print filename
 			parseFile(path, filename)
 			i += 1
-			
 		#仅仅得到父文件夹的文件，忽略子文件夹下文件
 		break
 
@@ -368,6 +419,6 @@ if __name__ == '__main__':
 		cur=datetime.datetime.now()
 		fctime = '%04d%02d%02d_%02d%02d' %(cur.year, cur.month, cur.day, cur.hour, cur.minute)
 		#stfile = 'z_'+ code +'_result_'+fctime+'.xlsx'
-		#statByVolume(path, stfile)
+		#statByVolumn(path, stfile)
 		stfile = 'z_'+ code +'_result1_'+fctime+'.xlsx'
-		statVolume(path, stfile)
+		statVolumn(path, stfile)
