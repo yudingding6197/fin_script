@@ -77,7 +77,7 @@ bCheckDate = 0
 
 def parseFile(path, filename):
 	wkfile = path +"/"+ filename
-	#print wkfile
+	print wkfile
 
 	wb = load_workbook(wkfile)
 	#print "Worksheet range(s):", wb.get_named_ranges()
@@ -125,8 +125,14 @@ def parseFile(path, filename):
 	w2 = ws.cell(row = 2, column = 9).value
 	w3 = ws.cell(row = 2, column = 10).value
 	w4 = ws.cell(row = 2, column = 11).value
-	v1 = '%2.2f%%'%(w2)
-	trade_info = [w3, w4, w1, v1]
+	if w2<0:
+		f1 = '--%02.02f%%'%(w2)
+	else:
+		f1 = '%02.02f%%'%(w2)
+	v3 = '%02.02f'%(w3)
+	v4 = '%02.02f'%(w4)
+	v1 = '%02.02f'%(w1)
+	trade_info = [v3, v4, v1, f1]
 
 	max_column = ws.max_column
 	if cmp(pid, '')!=0:
@@ -241,18 +247,22 @@ def addStatVolumn(ws, flag):
 			stat[0] = 1
 		row += 1
 
-	cell = chr(ascid) + str(row)
+	index = 0
+	cell = chr(ascid+index) + str(row)
 	ws[cell] = "Total"
+	index += 1
+	cell = chr(ascid+index) + str(row)
+	ws[cell] = ""
+	index += 1
 	number = len(buy)
 	#统计买卖成交量总和
-	index = 0
 	for i in range(0, number):
-		index += 1
 		cell = chr(ascid+index) + str(row)
 		ws[cell] = buy[i]
 		index += 1
 		cell = chr(ascid+index) + str(row)
 		ws[cell] = sell[i]
+		index += 1
 		if i==0:
 			dayBVolumn = buy[i]
 			daySVolumn = sell[i]
@@ -267,17 +277,16 @@ def addStatVolumn(ws, flag):
 			else:
 				sellPerc = round(float(sell[i]) * 100 / (daySVolumn), 2)
 			value = '%2.1f-%2.1f'%(buyPerc, sellPerc)
-
-			index += 1
 			cell = chr(ascid+index) + str(row)
 			ws[cell] = value
+			index += 1
 
 	row += 1
 	#获取买卖成交量占比对应的买卖总量
 	totalBVol = buy[0]
 	totalSVol = sell[0]
 	for i in range(0, number):
-		cell = chr(ascid+1+i*2) + str(row)
+		cell = chr(ascid+2+i*2) + str(row)
 		if i==0:
 			continue;
 			buyPerc = round(float(totalBVol) * 100 / (totalBVol+totalSVol), 2)
@@ -285,7 +294,7 @@ def addStatVolumn(ws, flag):
 			buyPerc = round(float(buy[i]) * 100 / totalBVol, 2)
 		ws[cell] = buyPerc
 
-		cell = chr(ascid+1+i*2+1) + str(row)
+		cell = chr(ascid+2+i*2+1) + str(row)
 		if i==0:
 			continue;
 			sellPerc = round(float(totalSVol) * 100 / (totalBVol+totalSVol), 2)
@@ -297,14 +306,14 @@ def addStatVolumn(ws, flag):
 	#获取买卖成交量占比总买卖总量
 	totoalVol = totalBVol+totalSVol
 	for i in range(0, number):
-		cell = chr(ascid+1+i*2) + str(row)
+		cell = chr(ascid+2+i*2) + str(row)
 		if i==0:
 			buyPerc = round(float(totalBVol) * 100 / totoalVol, 2)
 		else:
 			buyPerc = round(float(buy[i]) * 100 / totoalVol, 2)
 		ws[cell] = buyPerc
 
-		cell = chr(ascid+1+i*2+1) + str(row)
+		cell = chr(ascid+2+i*2+1) + str(row)
 		if i==0:
 			sellPerc = round(float(totalSVol) * 100 / totoalVol, 2)
 		else:

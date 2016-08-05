@@ -229,11 +229,15 @@ def write_statics(ws, fctime, dataObj, qdate, savedTrasData):
 				buyPerc = round(float(buyvol) * 100 / (totalBVol+totalSVol), 2);
 			else:
 				buyPerc = round(float(buyvol) * 100 / totalBVol, 2)
+		else:
+			buyPerc = 0
 		if totalSVol!=0:
 			if dataObj[j].volumn==0:
 				sellPerc = round(float(sellvol) * 100 / (totalBVol+totalSVol), 2)
 			else:
 				sellPerc = round(float(sellvol) * 100 / totalSVol, 2)
+		else:
+			sellPerc = 0
 
 		list.append(buyvol)
 		list.append(buyPerc)
