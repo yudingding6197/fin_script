@@ -52,13 +52,16 @@ if infoObj:
 delta1=datetime.timedelta(days=1)
 today = datetime.date.today()
 t = datetime.datetime.now()
-print t.hour,":",t.minute,":",t.second
-print today
+#print t.hour,":",t.minute,":",t.second
+#print today
 ret,stdate = parseDate("0721", today)
 if ret==-1:
 	print "QUIT"
 	exit(1)
+print stdate
 sdate = datetime.datetime.strptime(stdate, '%Y-%m-%d').date()
+t1=time.strptime("20122110", "%Y%m%d")
+print t1
 curdate = sdate
 
 eddate = '.'

@@ -2,6 +2,7 @@
 import sys
 import re
 import os
+import time
 import string
 import datetime
 from openpyxl import Workbook
@@ -307,23 +308,23 @@ if __name__ == '__main__':
 	edday = 0
 	today = datetime.date.today()
 	if pindex==4:
-		ret,styear,stmonth,stday= parseSeparateDate(sys.argv[2], today)
+		ret,stdate= parseDate(sys.argv[2], today)
 		if ret==-1:
 			exit(1)
+		print stdate
+		startObj = time.strptime(stdate, "%Y-%m-%d")
 
-		eddate = sys.argv[3]
-		if cmp(eddate, '.')==0:
-			edyear = today.year
-			edmonth = today.month
-			edday = today.day
+		edstr = sys.argv[3]
+		if cmp(edstr, '.')==0:
+			eddate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
 		else:
-			ret,edyear,edmonth,edday = parseSeparateDate(eddate, today)
+			ret,eddate = parseDate(edstr, today)
 			if ret==-1:
 				exit(1)
-
+		print eddate
+		endObj = time.strptime(eddate, "%Y-%m-%d")
+		#设置检查标志位
 		bCheckDate = 1
-		print styear, stmonth, stday
-		print edyear, edmonth, edday
 
 	fileList = []
 	path = prepath + code
@@ -335,6 +336,7 @@ if __name__ == '__main__':
 		#print('dirpath = ' + dirpath)
 		i = 0
 		for filename in filenames:
+			#print filename
 			extname = filename.split('.')[-1]
 			if cmp(extname,"xlsx")!=0:
 				continue
@@ -346,12 +348,13 @@ if __name__ == '__main__':
 				if len(fileDate)!=10:
 					continue
 
-				fileDateN = fileDate[0:4] + fileDate[5:7] + fileDate[8:10]
-				ret,curyear,curmonth,curday = parseSeparateDate(fileDateN, today)
-				if ret==-1:
+				try:
+					curObj = time.strptime(fileDate, "%Y-%m-%d")
+				except:
+					print "Invalid date:",fileDate
 					continue
-				if ((curyear<styear or curyear>edyear) or (curmonth<stmonth or curmonth>edmonth)\
-					or (curday<stday or curday>edday)) :
+
+				if curObj<startObj or curObj>endObj:
 					continue
 
 			print filename
