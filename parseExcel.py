@@ -104,7 +104,7 @@ def parseFile(path, filename):
 		w7 = ws.cell(row = rx, column = 7).value
 		w8 = ws.cell(row = rx, column = 8).value
 		w9 = ws.cell(row = rx, column = 9).value
-		
+
 		if (w1 is None) and (w2 is None) and (w3 is None) and (w4 is None)\
 			and (w5 is None) and (w6 is None) and (w7 is None):
 			break
@@ -119,8 +119,18 @@ def parseFile(path, filename):
 			#print temp_list
 			data_list.append(temp_list)
 
+	#得到交易信息，开盘价，收盘价等
+	ws = wb.get_sheet_by_name(name='Sheet')
+	w1 = ws.cell(row = 2, column = 8).value
+	w2 = ws.cell(row = 2, column = 9).value
+	w3 = ws.cell(row = 2, column = 10).value
+	w4 = ws.cell(row = 2, column = 11).value
+	v1 = '%2.2f%%'%(w2)
+	trade_info = [w3, w4, w1, v1]
+
+	max_column = ws.max_column
 	if cmp(pid, '')!=0:
-		day_list = [pid, data_list]
+		day_list = [pid, data_list, trade_info]
 		data_dic.append(day_list)
 
 def statVolumn(path, filename):
@@ -136,9 +146,9 @@ def statVolumn(path, filename):
 	ws.title = sheetName
 	addStatVolumn(ws, 0)
 
-	#ws = wb.create_sheet()
-	#ws.title = 'detail'
-	#addStatVolumn(ws, 1)
+	ws = wb.create_sheet()
+	ws.title = 'detail'
+	addStatVolumn(ws, 1)
 	wb.save(wkfile)
 
 def addStatVolumn(ws, flag):
@@ -146,13 +156,14 @@ def addStatVolumn(ws, flag):
 	row = 1
 	ascid = 65
 	title = []
-	title.append('')
+	title.append('Date')
+	title.append('FLUC')
 	for fltvol in volumnList1:
 		bs = 'B%d'%(fltvol)
 		title.append(bs)
 		bs = 'S%d'%(fltvol)
 		title.append(bs)
-		if fltvol==200 or fltvol==300 or fltvol==600 or fltvol==900:
+		if fltvol==200 or fltvol==300 or (flag==1 and fltvol!=0):
 			percent = 'P%d'%(fltvol)
 			title.append(percent)
 
@@ -167,13 +178,20 @@ def addStatVolumn(ws, flag):
 	stat = [0,0,0,0,0]
 	index = dataObjLen-1
 	while index>=0:
+		i = 0
 		day_list = data_dic[index]
 		index -= 1
 
-		cell = chr(ascid) + str(row)
+		cell = chr(ascid+i) + str(row)
 		ws[cell] = day_list[0]
+		i += 1
 
-		i = 1
+		#添加当天交易涨跌幅
+		trade_info = day_list[2]
+		cell = chr(ascid+i) + str(row)
+		ws[cell] = trade_info[3]
+		i += 1
+
 		j = 0
 		dayBVolumn = 0
 		daySVolumn = 0
@@ -195,7 +213,7 @@ def addStatVolumn(ws, flag):
 				#print dayBVolumn, daySVolumn
 
 			#添加百分比
-			if data_list[0]!=0:
+			if data_list[0]==200 or data_list[0]==300 or (flag==1 and data_list[0]!=0):
 				if stat[0]==0:
 					stat[j] = 1
 				if dayBVolumn==0:
@@ -211,6 +229,13 @@ def addStatVolumn(ws, flag):
 				ws[cell] = value
 				i += 1
 			j += 1
+		#添加当天交易信息
+		trade_info = day_list[2]
+		for j in range(0, len(trade_info)):
+			cell = chr(ascid+i) + str(row)
+			ws[cell] = trade_info[j]
+			i += 1
+
 		#表示已经设置需要添加百分比的列
 		if stat[0]==0:
 			stat[0] = 1
@@ -416,9 +441,9 @@ if __name__ == '__main__':
 		break
 
 	if cmp('meg', '')!=0:
-		cur=datetime.datetime.now()
-		fctime = '%04d%02d%02d_%02d%02d' %(cur.year, cur.month, cur.day, cur.hour, cur.minute)
+		#cur=datetime.datetime.now()
+		fctime = '_%02d%02d_%02d%02d'%(startObj.tm_mon, startObj.tm_mday, endObj.tm_mon, endObj.tm_mday)
+		stfile = 'z_'+ code + fctime + '.xlsx'
+		statVolumn(path, stfile)
 		#stfile = 'z_'+ code +'_result_'+fctime+'.xlsx'
 		#statByVolumn(path, stfile)
-		stfile = 'z_'+ code +'_result1_'+fctime+'.xlsx'
-		statVolumn(path, stfile)
