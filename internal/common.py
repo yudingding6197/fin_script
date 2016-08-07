@@ -362,15 +362,15 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 	for j in range(1,1000):
 		urlall = url + "&page=" +str(i)
-		#print "URL link(%d):%s" %(i,urlall)
+		print "URL link(%d):%s" %(i,urlall)
 
 		if excecount>10:
 			print "Quit with exception i=", i
 			break
 
 		#创建url链接，获取每一页的数据
-		req = urllib2.Request(urlall)
 		try:
+			req = urllib2.Request(urlall)
 			res_data = urllib2.urlopen(req)
 		except:
 			print "Get URL except"
@@ -380,6 +380,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			excecount = 0
 			pass
 
+		print "URL link(%d):%s OKKKK" %(i,urlall)
 		flag = 0
 		count = 0
 		bFtime = 0
@@ -680,15 +681,15 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 
 	for i in range(1,1000):
 		urlall = url + "&page=" +str(i)
-		#print "Get history URL(%d)=%s" %(i,urlall)
+		print "Get history URL(%d)=%s" %(i,urlall)
 
 		if excecount>10:
 			print "Quit with exception i=", i
 			break
 
 		#创建url链接，获取每一页的数据
-		req = urllib2.Request(urlall)
 		try:
+			req = urllib2.Request(urlall)
 			res_data = urllib2.urlopen(req)
 		except:
 			print "Get URL except"
@@ -697,6 +698,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 		else:
 			excecount = 0
 			pass
+		print "Get history URL(%d)=%s OKKKK" %(i,urlall)
 
 		flag = 0
 		count = 0
