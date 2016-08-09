@@ -220,8 +220,7 @@ def addStatVolumn(ws, flag):
 
 			#添加百分比
 			if data_list[0]==200 or data_list[0]==300 or (flag==1 and data_list[0]!=0):
-				if stat[0]==0:
-					stat[j] = 1
+				stat[j] = 1
 				if dayBVolumn==0:
 					buyPerc = 0
 				else:
@@ -242,9 +241,6 @@ def addStatVolumn(ws, flag):
 			ws[cell] = trade_info[j]
 			i += 1
 
-		#表示已经设置需要添加百分比的列
-		if stat[0]==0:
-			stat[0] = 1
 		row += 1
 
 	index = 0
@@ -255,7 +251,8 @@ def addStatVolumn(ws, flag):
 	ws[cell] = ""
 	index += 1
 	number = len(buy)
-	#统计买卖成交量总和
+	#各自统计买入成交量总量和卖出成交量总量，
+	#有些列还包括：分量买入(卖出)/总共买入(卖出)的占比
 	for i in range(0, number):
 		cell = chr(ascid+index) + str(row)
 		ws[cell] = buy[i]
@@ -280,45 +277,64 @@ def addStatVolumn(ws, flag):
 			cell = chr(ascid+index) + str(row)
 			ws[cell] = value
 			index += 1
-
 	row += 1
-	#获取买卖成交量占比对应的买卖总量
+
+	#分量买入(卖出)/总共买入(卖出) 的占比
 	totalBVol = buy[0]
 	totalSVol = sell[0]
+	column = 4
 	for i in range(0, number):
-		cell = chr(ascid+2+i*2) + str(row)
 		if i==0:
 			continue;
-			buyPerc = round(float(totalBVol) * 100 / (totalBVol+totalSVol), 2)
+
+		if totalBVol==0:
+			buyPerc = 0
 		else:
 			buyPerc = round(float(buy[i]) * 100 / totalBVol, 2)
+		cell = chr(ascid+column) + str(row)
 		ws[cell] = buyPerc
+		column += 1
 
-		cell = chr(ascid+2+i*2+1) + str(row)
-		if i==0:
-			continue;
-			sellPerc = round(float(totalSVol) * 100 / (totalBVol+totalSVol), 2)
+		if totalSVol==0:
+			sellPerc = 0
 		else:
 			sellPerc = round(float(sell[i]) * 100 / totalSVol, 2)
+		cell = chr(ascid+column) + str(row)
 		ws[cell] = sellPerc
+		column += 1
+
+		if stat[i]==1:
+			column += 1
 	row += 1
 
-	#获取买卖成交量占比总买卖总量
+	#分量买入(卖出)/买入卖出总量 的占比
+	column = 2
 	totoalVol = totalBVol+totalSVol
 	for i in range(0, number):
-		cell = chr(ascid+2+i*2) + str(row)
-		if i==0:
-			buyPerc = round(float(totalBVol) * 100 / totoalVol, 2)
+		if totoalVol==0:
+			buyPerc = 0
 		else:
-			buyPerc = round(float(buy[i]) * 100 / totoalVol, 2)
+			if i==0:
+				buyPerc = round(float(totalBVol) * 100 / totoalVol, 2)
+			else:
+				buyPerc = round(float(buy[i]) * 100 / totoalVol, 2)
+		cell = chr(ascid+column) + str(row)
 		ws[cell] = buyPerc
+		column += 1
 
-		cell = chr(ascid+2+i*2+1) + str(row)
-		if i==0:
-			sellPerc = round(float(totalSVol) * 100 / totoalVol, 2)
+		if totoalVol==0:
+			sellPerc = 0
 		else:
-			sellPerc = round(float(sell[i]) * 100 / totoalVol, 2)
+			if i==0:
+				sellPerc = round(float(totalSVol) * 100 / totoalVol, 2)
+			else:
+				sellPerc = round(float(sell[i]) * 100 / totoalVol, 2)
+		cell = chr(ascid+column) + str(row)
 		ws[cell] = sellPerc
+		column += 1
+
+		if stat[i]==1:
+			column += 1
 	row += 1
 
 def statByVolumn(path, filename):
@@ -452,7 +468,7 @@ if __name__ == '__main__':
 	if cmp('meg', '')!=0:
 		#cur=datetime.datetime.now()
 		fctime = '_%02d%02d_%02d%02d'%(startObj.tm_mon, startObj.tm_mday, endObj.tm_mon, endObj.tm_mday)
-		stfile = 'z_'+ code + fctime + '.xlsx'
+		stfile = 'e_'+ code + fctime + '.xlsx'
 		statVolumn(path, stfile)
 		#stfile = 'z_'+ code +'_result_'+fctime+'.xlsx'
 		#statByVolumn(path, stfile)
