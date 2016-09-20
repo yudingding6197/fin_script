@@ -309,6 +309,7 @@ def write_statics(ws, fctime, dataObj, qdate, savedTrasData, largeTrasData):
 def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	if bhist==0:
 		url = url +"?symbol="+ code
+		todayUrl = "http://hq.sinajs.cn/list=" + code
 	elif bhist==1:
 		url = url +"?date="+ qdate +"&symbol="+ code
 	#当天日期按照历史记录处理
@@ -348,10 +349,41 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	hisUrl = ''
 	filename = code+ '_' + qdate
 	fctime = ''
+	todayData = []
+	todayDataLen = 0
 	if bhist==0:
 		cur=datetime.datetime.now()
 		fctime = '%02d:%02d' %(cur.hour, cur.minute)
 		filename = '%s_%02d-%02d' %(filename, cur.hour, cur.minute)
+		try:
+			req = urllib2.Request(todayUrl)
+			stockData = urllib2.urlopen(req, timeout=10).read()
+		except:
+			loginfo(1)
+			print "URL timeout"
+		else:
+			stockObj = stockData.split(',')
+			closePrice = float(stockObj[3])
+			lastClsPrice = float(stockObj[2])
+			openPrice = float(stockObj[1])
+			highPrice = float(stockObj[4])
+			lowPrice = float(stockObj[5])
+			exVolume = int(stockObj[8])/100
+			exAmount = float(stockObj[9])
+			f1 = '%02.02f'%( ((closePrice-lastClsPrice)/lastClsPrice)*100 )
+			exFluc = float(f1)
+			
+			todayData.append(closePrice)
+			todayData.append(exFluc)
+			todayData.append(lastClsPrice)
+			todayData.append(openPrice)
+			todayData.append(highPrice)
+			todayData.append(lowPrice)
+			todayData.append(exVolume)
+			todayData.append(exAmount)
+			todayDataLen = len(todayData)
+			print todayData
+
 	if addcsv==1:
 		filecsv = prepath + filename + '.csv'
 		fcsv = open(filecsv, 'w')
@@ -393,7 +425,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		#创建url链接，获取每一页的数据
 		try:
 			req = urllib2.Request(urlall)
-			res_data = urllib2.urlopen(req).readlines()
+			res_data = urllib2.urlopen(req, timeout=10).readlines()
 			lineCount = len(res_data)
 		except:
 			print "Get URL except"
@@ -402,6 +434,8 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		else:
 			excecount = 0
 			pass
+		if lineCount==0:
+			break
 
 		print "(%d):%s FIN" %(i,url)
 		flag = 0
@@ -559,6 +593,13 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					s1 = stateStr.decode('gbk')
 					ws[cell] = s1
 
+					#将当天的数据在Sheet页面更新
+					if (row==2 and bhist==0 and todayDataLen>0):
+						ascid = 72
+						for k in range(0, todayDataLen):
+							cell = chr(ascid+k) + str(row)
+							ws[cell] = todayData[k]
+
 					#将开始和最后成交数据保存
 					if (totalline<4 or (hour==9 and minute==30 and curvol>300) or (hour==9 and minute<30)):
 						rowData = []
@@ -655,7 +696,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		write_statics(ws, fctime, dataObj, qdate, savedTrasData, largeTrasData)
 
 	filexlsx = prepath +filename+ '.xlsx'
-	if os.path.exists(filexlsx):
+	if (os.path.exists(filexlsx) and bhist==0):
 		j = 1
 		while True:
 			filexlsx = prepath + filename + '_' + str(j) + '.xlsx'
@@ -729,7 +770,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 		#创建url链接，获取每一页的数据
 		try:
 			req = urllib2.Request(urlall)
-			res_data = urllib2.urlopen(req).readlines()
+			res_data = urllib2.urlopen(req, timeout=10).readlines()
 			lineCount = len(res_data)
 		except:
 			print "Get URL except"
@@ -881,13 +922,6 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 		write_statics(ws, '', dataObj, qdate, savedTrasData, largeTrasData)
 
 	filexlsx = prepath +filename+ '.xlsx'
-	if os.path.exists(filexlsx):
-		j = 1
-		while True:
-			filexlsx = prepath + filename + '_' + str(j) + '.xlsx'
-			j += 1
-			if not os.path.exists(filexlsx):
-				break;
 	wb.save(filexlsx)
 
 	if (totalline==0):
@@ -976,7 +1010,7 @@ def handle_living(addcsv, prepath, url, code, qdate, sarr):
 		#创建url链接，获取每一页的数据
 		try:
 			req = urllib2.Request(urlall)
-			res_data = urllib2.urlopen(req)
+			res_data = urllib2.urlopen(req, timeout=10)
 		except:
 			print "Get URL except"
 			excecount += 1
