@@ -33,8 +33,10 @@ class fitItem:
 		self.sellavg = 0
 
 dftsarr = "0,200,300,600,900"
-HandleMid = 0
+Handle_Mid = 0
+Large_Volume = 2000
 
+# _____ debug print log
 def loginfo(flag=0):
 	if (flag==1):
 		frame = None
@@ -43,6 +45,10 @@ def loginfo(flag=0):
 		except  ZeroDivisionError:
 			frame = sys.exc_info()[2].tb_frame.f_back
 		print "%s in line %d" %(str(datetime.datetime.now()), frame.f_lineno)
+
+#未来对部分全局参数进行设置
+def initParam():
+	pass
 
 def parseCode(code):
 	if (len(code) != 6):
@@ -144,7 +150,7 @@ def handle_volumn(exVolumn, dataObj, type, flag=0):
 			dataObj[j].sellct += 1
 			
 def handle_middle_volumn(exVolumn, dataObj, exTime, fluctuate, increaseRange):
-	if HandleMid!=1:
+	if Handle_Mid!=1:
 		return 0
 
 	ret = 0
@@ -192,7 +198,7 @@ def handle_middle_volumn(exVolumn, dataObj, exTime, fluctuate, increaseRange):
 		ret = 2
 	return ret
 
-def write_statics(ws, fctime, dataObj, qdate, savedTrasData):
+def write_statics(ws, fctime, dataObj, qdate, savedTrasData, largeTrasData):
 	ws.title = 'statistics'
 
 	ascid = 65
@@ -284,6 +290,20 @@ def write_statics(ws, fctime, dataObj, qdate, savedTrasData):
 		for i in range(0,trasLen):
 			cell = chr(ascid+i) + str(row)
 			ws[cell] = list[i]
+
+	#再添加大单数据
+	dataObjLen = len(largeTrasData)
+	if dataObjLen>0:
+		row = row+3
+		cell = chr(ascid) + str(row)
+		ws[cell] = u'大单记录'
+		for j in range(0, dataObjLen):
+			row = row+1
+			list = largeTrasData[j]
+			trasLen = len(list)
+			for i in range(0,trasLen):
+				cell = chr(ascid+i) + str(row)
+				ws[cell] = list[i]
 	
 
 def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
@@ -297,7 +317,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	else:
 		print "Unknown flag:", bhist
 		return
-	#if HandleMid==0:
+	#if Handle_Mid==0:
 	#	print "Message: Ignore 中性盘"
 
 	if not os.path.isdir(prepath):
@@ -358,12 +378,13 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	#count为0，重新加载尝试再次获取；如果解析到数据的页面，如果count为0就不再继续解析数据
 	matchDataFlag = 0
 	savedTrasData = []
+	largeTrasData = []
 	i = 1
 	lineCount = 0
 
 	for j in range(1,1000):
 		urlall = url + "&page=" +str(i)
-		print "URL link(%d):%s" %(i,urlall)
+		print "(%d):%s" %(i,url)
 
 		if excecount>10:
 			print "Quit with exception i=", i
@@ -382,7 +403,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			excecount = 0
 			pass
 
-		print "URL link(%d):%s OKKKK" %(i,urlall)
+		print "(%d):%s FIN" %(i,url)
 		flag = 0
 		count = 0
 		bFtime = 0
@@ -423,7 +444,6 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 				idx += 1
 			#print stockInfo
 
-		loginfo(1)
 		while True:
 			line = res_data[idx]
 			idx += 1
@@ -538,7 +558,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					cell = 'G' + str(row)
 					s1 = stateStr.decode('gbk')
 					ws[cell] = s1
-					
+
 					#将开始和最后成交数据保存
 					if (totalline<4 or (hour==9 and minute==30 and curvol>300) or (hour==9 and minute<30)):
 						rowData = []
@@ -550,6 +570,18 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 						rowData.append(int(amount))
 						rowData.append(s1)
 						savedTrasData.append(rowData)
+
+					#增加大单成交记录
+					if (curvol>=Large_Volume):
+						rowData = []
+						rowData.append(curtime)
+						rowData.append(price)
+						rowData.append(key.group(3))
+						rowData.append(ftfluct)
+						rowData.append(curvol)
+						rowData.append(int(amount))
+						rowData.append(s1)
+						largeTrasData.append(rowData)
 
 					if (row==2 and bhist==1):
 						ascid = 72
@@ -619,13 +651,19 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			os.remove(filecsv)
 
 	if totalline>0:
-		loginfo()
 		ws = wb.create_sheet()
-		write_statics(ws, fctime, dataObj, qdate, savedTrasData)
+		write_statics(ws, fctime, dataObj, qdate, savedTrasData, largeTrasData)
 
-	loginfo()
 	filexlsx = prepath +filename+ '.xlsx'
+	if os.path.exists(filexlsx):
+		j = 1
+		while True:
+			filexlsx = prepath + filename + '_' + str(j) + '.xlsx'
+			j += 1
+			if not os.path.exists(filexlsx):
+				break;
 	wb.save(filexlsx)
+
 	if (totalline==0):
 		os.remove(filexlsx)
 		if bFindHist==1:
@@ -633,6 +671,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		else:
 			print qdate+ " Handle data, No Matched Record"
 	else:
+		loginfo(1)
 		print qdate+ " Saved OK"
 
 #处理要求跳转页面的历史记录
@@ -676,11 +715,12 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(--|\+?\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
 	excecount = 0
 	savedTrasData = []
+	largeTrasData = []
 	lineCount = 0
 
 	for i in range(1,1000):
 		urlall = url + "&page=" +str(i)
-		print "Get history URL(%d)=%s" %(i,urlall)
+		print "HIS(%d):%s" %(i,url)
 
 		if excecount>10:
 			print "Quit with exception i=", i
@@ -698,7 +738,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 		else:
 			excecount = 0
 			pass
-		print "Get history URL(%d)=%s OKKKK" %(i,urlall)
+		print "HIS(%d):%s FIN" %(i,url)
 
 		flag = 0
 		count = 0
@@ -805,6 +845,18 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 							rowData.append(s1)
 							savedTrasData.append(rowData)
 
+						#增加大单成交记录
+						if (curvol>=Large_Volume):
+							rowData = []
+							rowData.append(curtime)
+							rowData.append(price)
+							rowData.append(key.group(3))
+							rowData.append(fluctuate)
+							rowData.append(curvol)
+							rowData.append(intamount)
+							rowData.append(s1)
+							largeTrasData.append(rowData)
+
 					count += 1
 				else:
 					endObj = re.search(r'</td><td>', qdate)
@@ -826,14 +878,23 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 
 	if (totalline>0):
 		ws = wb.create_sheet()
-		write_statics(ws, '', dataObj, qdate, savedTrasData)
+		write_statics(ws, '', dataObj, qdate, savedTrasData, largeTrasData)
 
 	filexlsx = prepath +filename+ '.xlsx'
+	if os.path.exists(filexlsx):
+		j = 1
+		while True:
+			filexlsx = prepath + filename + '_' + str(j) + '.xlsx'
+			j += 1
+			if not os.path.exists(filexlsx):
+				break;
 	wb.save(filexlsx)
+
 	if (totalline==0):
 		print qdate +" History data, No Matched Record!"
 		os.remove(filexlsx)
 	else:
+		loginfo(1)
 		print qdate+ " Saved OK!"
 
 def handle_living(addcsv, prepath, url, code, qdate, sarr):
@@ -901,11 +962,12 @@ def handle_living(addcsv, prepath, url, code, qdate, sarr):
 	#count为0，重新加载尝试再次获取；如果解析到数据的页面，如果count为0就不再继续解析数据
 	matchDataFlag = 0
 	savedTrasData = []
+	largeTrasData = []
 	i = 1
 
 	for j in range(1,1000):
 		urlall = url + "&page=" +str(i)
-		print "URL link(%d):%s" %(i,urlall)
+		print "LIV(%d):%s" %(i,url)
 
 		if excecount>10:
 			print "Quit with exception i=", i
@@ -923,7 +985,7 @@ def handle_living(addcsv, prepath, url, code, qdate, sarr):
 			excecount = 0
 			pass
 
-		print "URL link(%d):%s OKKKK" %(i,urlall)
+		print "LIV(%d):%s FIN" %(i,url)
 		flag = 0
 		count = 0
 		bFtime = 0
@@ -1164,11 +1226,9 @@ def handle_living(addcsv, prepath, url, code, qdate, sarr):
 			os.remove(filecsv)
 
 	if totalline>0:
-		loginfo()
 		ws = wb.create_sheet()
-		write_statics(ws, fctime, dataObj, qdate, savedTrasData)
+		write_statics(ws, fctime, dataObj, qdate, savedTrasData, largeTrasData)
 
-	loginfo()
 	filexlsx = prepath +filename+ '.xlsx'
 	wb.save(filexlsx)
 	if (totalline==0):
@@ -1178,4 +1238,5 @@ def handle_living(addcsv, prepath, url, code, qdate, sarr):
 		else:
 			print qdate+ " Handle data, No Matched Record"
 	else:
+		loginfo(1)
 		print qdate+ " Saved OK"

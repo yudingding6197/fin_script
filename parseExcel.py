@@ -12,8 +12,8 @@ from internal.common import *
 prepath = '../Data/'
 sheetName = "statistics"
 allFileNum = 0
-volumnList = [200, 300, 600, 900]
-volumnList1 = [0,200, 300, 600, 900]
+volumeList = [200, 300, 600, 900]
+volumeList1 = [0,200, 300, 600, 900]
 
 def printPath(level, path,fileList):
 	global allFileNum
@@ -121,25 +121,36 @@ def parseFile(path, filename):
 
 	#得到交易信息，开盘价，收盘价等
 	ws = wb.get_sheet_by_name(name='Sheet')
+	max_column = ws.max_row
 	w1 = ws.cell(row = 2, column = 8).value
 	w2 = ws.cell(row = 2, column = 9).value
 	w3 = ws.cell(row = 2, column = 10).value
 	w4 = ws.cell(row = 2, column = 11).value
+	#开盘收盘成交量
+	w5 = ws.cell(row = max_column, column = 5).value
+	w6 = ws.cell(row = 2, column = 5).value
+	#成交量
+	w7 = ws.cell(row = 2, column = 14).value
+	w7 = int(w7)
+	'''
 	if w2<0:
-		f1 = '--%02.02f%%'%(w2)
+		f1 = '%02.02f'%(w2)
 	else:
-		f1 = '%02.02f%%'%(w2)
+		f1 = '%02.02f'%(w2)
 	v3 = '%02.02f'%(w3)
 	v4 = '%02.02f'%(w4)
 	v1 = '%02.02f'%(w1)
-	trade_info = [v3, v4, v1, f1]
+	'''
+	#分别是：昨收价,开盘价,收盘价,涨幅,开盘成交,收盘成交,成交量
+	#trade_info = [v3, v4, v1, f1]
+	trade_info = [w3, w4, w1, w2, w5, w6, w7]
 
 	max_column = ws.max_column
 	if cmp(pid, '')!=0:
 		day_list = [pid, data_list, trade_info]
 		data_dic.append(day_list)
 
-def statVolumn(path, filename):
+def createResultFile(path, filename):
 	wkfile = path +"/"+ filename
 
 	dataObjLen = len(data_dic)
@@ -150,21 +161,36 @@ def statVolumn(path, filename):
 	wb = Workbook()
 	ws = wb.active
 	ws.title = sheetName
-	addStatVolumn(ws, 0)
+	addStatVolume(ws, 0)
 
 	ws = wb.create_sheet()
 	ws.title = 'detail'
-	addStatVolumn(ws, 1)
+	addStatVolume(ws, 1)
 	wb.save(wkfile)
-
-def addStatVolumn(ws, flag):
+	
+def addStatVolume(ws, flag):
 	dataObjLen = len(data_dic)
 	row = 1
 	ascid = 65
 	title = []
+
+	i = 0
+	bsIndex = 0
+	strline = u'前收价,开盘价,收盘价,涨跌幅,开盘成交,收盘成交,成交量'
+	strObj = strline.split(u',')
+	strObjLen = len(strObj)
 	title.append('Date')
-	title.append('FLUC')
-	for fltvol in volumnList1:
+	if flag==0:
+		title.append('FLUC')
+	#在detail页面现在加入
+	elif flag==1:
+		for j in range(0,strObjLen):
+			title.append(strObj[j])
+	#得到B/S列的起始index
+	bsIndex = len(title)
+
+	#添加B200,S200等title
+	for fltvol in volumeList1:
 		bs = 'B%d'%(fltvol)
 		title.append(bs)
 		bs = 'S%d'%(fltvol)
@@ -173,16 +199,21 @@ def addStatVolumn(ws, flag):
 			percent = 'P%d'%(fltvol)
 			title.append(percent)
 
-		number = len(title)
-		for i in range(0,number):
-			cell = chr(ascid+i) + str(row)
-			ws[cell] = title[i]
+	#在统计页面现在加入
+	if flag==0:
+		for j in range(0,strObjLen):
+			title.append(strObj[j])
 
-	row = 2
+	number = len(title)
+	for i in range(0,number):
+		cell = chr(ascid+i) + str(row)
+		ws[cell] = title[i]
+
 	buy = [0,0,0,0,0]
 	sell = [0,0,0,0,0]
 	stat = [0,0,0,0,0]
 	index = dataObjLen-1
+	row += 1
 	while index>=0:
 		i = 0
 		day_list = data_dic[index]
@@ -192,15 +223,23 @@ def addStatVolumn(ws, flag):
 		ws[cell] = day_list[0]
 		i += 1
 
-		#添加当天交易涨跌幅
-		trade_info = day_list[2]
-		cell = chr(ascid+i) + str(row)
-		ws[cell] = trade_info[3]
-		i += 1
+		if flag==0:
+			#添加当天交易涨跌幅
+			trade_info = day_list[2]
+			cell = chr(ascid+i) + str(row)
+			ws[cell] = trade_info[3]
+			i += 1
+		elif flag==1:
+			#添加当天交易信息
+			trade_info = day_list[2]
+			for j in range(0, len(trade_info)):
+				cell = chr(ascid+i) + str(row)
+				ws[cell] = trade_info[j]
+				i += 1
 
 		j = 0
-		dayBVolumn = 0
-		daySVolumn = 0
+		dayBVolume = 0
+		daySVolume = 0
 		for data_list in day_list[1]:
 			buy[j] = buy[j] + data_list[1]
 			cell = chr(ascid+i) + str(row)
@@ -214,42 +253,41 @@ def addStatVolumn(ws, flag):
 
 			#得到当天买卖总量
 			if data_list[0]==0:
-				dayBVolumn = data_list[1]
-				daySVolumn = data_list[3]
-				#print dayBVolumn, daySVolumn
+				dayBVolume = data_list[1]
+				daySVolume = data_list[3]
+				#print dayBVolume, daySVolume
 
 			#添加百分比
 			if data_list[0]==200 or data_list[0]==300 or (flag==1 and data_list[0]!=0):
 				stat[j] = 1
-				if dayBVolumn==0:
+				if dayBVolume==0:
 					buyPerc = 0
 				else:
-					buyPerc = round(float(data_list[1]) * 100 / (dayBVolumn), 2)
-				if daySVolumn==0:
+					buyPerc = round(float(data_list[1]) * 100 / (dayBVolume), 2)
+				if daySVolume==0:
 					sellPerc = 0
 				else:
-					sellPerc = round(float(data_list[3]) * 100 / (daySVolumn), 2)
+					sellPerc = round(float(data_list[3]) * 100 / (daySVolume), 2)
 				value = '%2.1f-%2.1f'%(buyPerc, sellPerc)
 				cell = chr(ascid+i) + str(row)
 				ws[cell] = value
 				i += 1
 			j += 1
-		#添加当天交易信息
-		trade_info = day_list[2]
-		for j in range(0, len(trade_info)):
-			cell = chr(ascid+i) + str(row)
-			ws[cell] = trade_info[j]
-			i += 1
+
+		if flag==0:
+			#添加当天交易信息
+			trade_info = day_list[2]
+			for j in range(0, len(trade_info)):
+				cell = chr(ascid+i) + str(row)
+				ws[cell] = trade_info[j]
+				i += 1
 
 		row += 1
 
 	index = 0
 	cell = chr(ascid+index) + str(row)
 	ws[cell] = "Total"
-	index += 1
-	cell = chr(ascid+index) + str(row)
-	ws[cell] = ""
-	index += 1
+	index += bsIndex
 	number = len(buy)
 	#各自统计买入成交量总量和卖出成交量总量，
 	#有些列还包括：分量买入(卖出)/总共买入(卖出)的占比
@@ -261,18 +299,18 @@ def addStatVolumn(ws, flag):
 		ws[cell] = sell[i]
 		index += 1
 		if i==0:
-			dayBVolumn = buy[i]
-			daySVolumn = sell[i]
+			dayBVolume = buy[i]
+			daySVolume = sell[i]
 			continue
 		if stat[i]==1:
-			if dayBVolumn==0:
+			if dayBVolume==0:
 				buyPerc = 0
 			else:
-				buyPerc = round(float(buy[i]) * 100 / (dayBVolumn), 2)
-			if daySVolumn==0:
+				buyPerc = round(float(buy[i]) * 100 / (dayBVolume), 2)
+			if daySVolume==0:
 				sellPerc = 0
 			else:
-				sellPerc = round(float(sell[i]) * 100 / (daySVolumn), 2)
+				sellPerc = round(float(sell[i]) * 100 / (daySVolume), 2)
 			value = '%2.1f-%2.1f'%(buyPerc, sellPerc)
 			cell = chr(ascid+index) + str(row)
 			ws[cell] = value
@@ -282,7 +320,7 @@ def addStatVolumn(ws, flag):
 	#分量买入(卖出)/总共买入(卖出) 的占比
 	totalBVol = buy[0]
 	totalSVol = sell[0]
-	column = 4
+	column = bsIndex+2
 	for i in range(0, number):
 		if i==0:
 			continue;
@@ -308,7 +346,7 @@ def addStatVolumn(ws, flag):
 	row += 1
 
 	#分量买入(卖出)/买入卖出总量 的占比
-	column = 2
+	column = bsIndex
 	totoalVol = totalBVol+totalSVol
 	for i in range(0, number):
 		if totoalVol==0:
@@ -337,7 +375,12 @@ def addStatVolumn(ws, flag):
 			column += 1
 	row += 1
 
-def statByVolumn(path, filename):
+	if flag==0:
+		ws.auto_filter.ref = "A1:B1"
+	elif flag==1:
+		ws.auto_filter.ref = "A1:H1"
+
+def statByVolume(path, filename):
 	wkfile = path +"/"+ filename
 
 	dataObjLen = len(data_dic)
@@ -351,7 +394,7 @@ def statByVolumn(path, filename):
 	
 	ascid = 65
 	row = 1
-	for fltvol in volumnList:
+	for fltvol in volumeList:
 		title = [fltvol, 'B', 'S', 'B_vol', 'S_vol', 'B_avg', 'S_avg']
 		number = len(title)
 		for i in range(0,number):
@@ -436,6 +479,10 @@ if __name__ == '__main__':
 		print "'"+ path +"' not a dir"
 		exit(1)
 
+	resPath = prepath + code + "_parse"
+	if not os.path.isdir(resPath):
+		os.makedirs(resPath)
+
 	for (dirpath, dirnames, filenames) in os.walk(path):  
 		#print('dirpath = ' + dirpath)
 		i = 0
@@ -465,10 +512,8 @@ if __name__ == '__main__':
 		#仅仅得到父文件夹的文件，忽略子文件夹下文件
 		break
 
-	if cmp('meg', '')!=0:
-		#cur=datetime.datetime.now()
-		fctime = '_%02d%02d_%02d%02d'%(startObj.tm_mon, startObj.tm_mday, endObj.tm_mon, endObj.tm_mday)
-		stfile = 'e_'+ code + fctime + '.xlsx'
-		statVolumn(path, stfile)
-		#stfile = 'z_'+ code +'_result_'+fctime+'.xlsx'
-		#statByVolumn(path, stfile)
+	fctime = '_%02d%02d_%02d%02d'%(startObj.tm_mon, startObj.tm_mday, endObj.tm_mon, endObj.tm_mday)
+	stfile = 'z_'+ code + fctime + '.xlsx'
+	createResultFile(resPath, stfile)
+	#stfile = 'z_'+ code +'_result_'+fctime+'.xlsx'
+	#statByVolume(path, stfile)
