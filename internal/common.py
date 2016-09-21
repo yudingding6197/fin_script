@@ -14,6 +14,7 @@ from openpyxl.reader.excel  import  load_workbook
 #	<tr ><th>11:29:48</th><td>14.57</td><td>-3.06%</td><td>+0.01</td><td>16</td><td>23,312</td><th><h1>中性盘</h1></th></tr>
 #<tr ><th>11:29:36</th><td>14.56</td><td>-3.13%</td><td>--</td><td>9</td><td>13,104</td><th><h6>卖盘</h6></th></tr>
 #<tr ><th>11:29:21</th><td>14.56</td><td>-3.13%</td><td>-0.02</td><td>10</td><td>14,560</td><th><h6>卖盘</h6></th></tr>
+#os.system('msg "*" "aaa"')
 
 class fitItem:
 	volumn = 0
@@ -307,9 +308,9 @@ def write_statics(ws, fctime, dataObj, qdate, savedTrasData, largeTrasData):
 	
 
 def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
+	todayUrl = "http://hq.sinajs.cn/list=" + code
 	if bhist==0:
 		url = url +"?symbol="+ code
-		todayUrl = "http://hq.sinajs.cn/list=" + code
 	elif bhist==1:
 		url = url +"?date="+ qdate +"&symbol="+ code
 	#当天日期按照历史记录处理
@@ -351,10 +352,16 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	fctime = ''
 	todayData = []
 	todayDataLen = 0
+	bGetToday = 0
+
+	cur=datetime.datetime.now()
 	if bhist==0:
-		cur=datetime.datetime.now()
 		fctime = '%02d:%02d' %(cur.hour, cur.minute)
 		filename = '%s_%02d-%02d' %(filename, cur.hour, cur.minute)
+		bGetToday = 1
+	if (bhist==2 and cur.hour>=15 and cur.minute>0):
+		bGetToday = 1
+	if (bGetToday==1):
 		try:
 			req = urllib2.Request(todayUrl)
 			stockData = urllib2.urlopen(req, timeout=10).read()
@@ -454,6 +461,8 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		#查找到'成交时间'/'收盘价'，更新查找内容为'<script type='
 		#但是一个月前的历史记录，'<script type='不是找到，需要handle_his_data()处理
 		while True:
+			if idx>=lineCount:
+				break
 			line = res_data[idx]
 			idx += 1
 			#print line
@@ -461,6 +470,8 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			if (index>=0):
 				checkStr = '<script type='
 				break;
+		if idx>=lineCount:
+			break
 
 		#从第一页读取：收盘价,涨跌幅,前收价等数据
 		if bhist==1 and i==1:
@@ -502,6 +513,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 						break
 					pageFtime = curtime
 					bFtime = 1
+					print bFtime, pageFtime
 
 				matchDataFlag = 1
 				ret,hour,minute,second = parseTime(curtime)
@@ -594,7 +606,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					ws[cell] = s1
 
 					#将当天的数据在Sheet页面更新
-					if (row==2 and bhist==0 and todayDataLen>0):
+					if (row==2 and (bhist==0 or (bhist==2 and cur.hour>=15)) and todayDataLen>0):
 						ascid = 72
 						for k in range(0, todayDataLen):
 							cell = chr(ascid+k) + str(row)
@@ -672,6 +684,9 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 		#此时还应该有数据，但是得到的数据数量为0，重新获取数据
 		if (count==0):
+			if totalline==1:
+				print "Warning: Only one line data"
+				break
 			if (matchDataFlag==1):
 				print "Warnig: All invalid data in page=", i
 				break
@@ -685,6 +700,8 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		#最后i加一，访问下一页，对应 for 循环启动代码
 		i += 1
 	ws.auto_filter.ref = "A1:G1"
+	#ws.auto_filter.add_filter_column(4, ['300'])
+	#ws.auto_filter.filter_columns()
 
 	if addcsv==1:
 		fcsv.close()
