@@ -851,19 +851,21 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 						amount_n = ''.join(obj)
 						intamount = int(amount_n)
 
+						stateStr = state
 						if cmp(state, 'ÂôÅÌ')==0:
+							stateStr = 'SELLÂôÅÌ'
 							handle_volumn(intcurvol, dataObj, 2)
 						elif cmp(state, 'ÂòÅÌ')==0:
 							handle_volumn(intcurvol, dataObj, 1)
 						elif cmp(state, 'ÖÐÐÔÅÌ')==0:
 							ret = handle_middle_volumn(intcurvol, dataObj, curtime, fluctuate, key.group(3))
 							if ret==1:
-								state = 'ÂòÅÌ'
+								stateStr = 'ÂòÅÌ'
 							elif ret==2:
-								state = 'ÂôÅÌ'
+								stateStr = 'SELLÂôÅÌ'
 
 						if addcsv==1:
-							strline = curtime +","+ price +","+ srange +","+ fluctuate +","+ curvol +","+ amount_n +","+ state +"\n"
+							strline = curtime +","+ price +","+ srange +","+ fluctuate +","+ curvol +","+ amount_n +","+ stateStr +"\n"
 							fcsv.write(strline)
 
 						totalline += 1
@@ -881,7 +883,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 						cell = 'F' + str(row)
 						ws[cell] = intamount
 						cell = 'G' + str(row)
-						s1 = state.decode('gbk')
+						s1 = stateStr.decode('gbk')
 						ws[cell] = s1
 
 						if row==2:
