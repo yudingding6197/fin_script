@@ -11,6 +11,9 @@ from openpyxl.reader.excel  import  load_workbook
 import internal.common
 import time
 
+condCount = 0
+slpTime=1
+
 def currentIndexData(url, code):
 	urllink = url + code
 	try:
@@ -26,7 +29,7 @@ def currentIndexData(url, code):
 		idxVal = "%.02f"%(float(stockObj[1]))
 		print "%10s	%s%%(%s)" % (idxVal, stockObj[3], stockObj[2])
 
-def currentSinaData(url, code):
+def currentSinaData(url, code, sleepTime):
 	urllink = url + code
 	buy = []
 	buyVol = []
@@ -49,8 +52,8 @@ def currentSinaData(url, code):
 		lowPrice = stockObj[5]
 		lastPrice = stockObj[2]
 		#variation = stockObj[43]
-		#zhangdiejia = stockObj[31]
-		#zhangdiefu = stockObj[32]
+		zhangdiejia = float(curPrice) - float(lastPrice)
+		zhangdiefu = zhangdiejia*100/float(lastPrice)
 		volume = stockObj[8]
 		amount = stockObj[9]
 		
@@ -72,17 +75,32 @@ def currentSinaData(url, code):
 		for i in range(0, 5):
 			print "%s	%8s" %(sell[index], sellVol[index])
 			index -= 1
-		print "===%s" %(curPrice)
+		print "===%s (%.02f%%)" %(curPrice,zhangdiefu)
 		index = 0
 		for i in range(0, 5):
 			print "%s	%8s" %(buy[index], buyVol[index])
 			index += 1
-		print "~~~~~~~~~~~~~~~~~~~~~"
-		print "	"
 		
+		highIntP = int(float(highPrice)*1000)
+		curIntP = int(float(curPrice)*1000)
+		if (highIntP-curIntP)<15:
+			#可能涨停了
+			if (buyVol[1]==0 and buyVol[2]==0 and buyVol[3]==0):
+				pass
+			#可能一字跌停
+			elif (sellVol[1]==0 and sellVol[2]==0 and sellVol[3]==0):
+				pass
+			else:
+				print highIntP, curIntP
+				os.system('msg "*" "High! Have a rest"')
+				if condCount<=0:
+					condCount = 60
+				else:
+					condCount -= sleepTime
+
 pindex = len(sys.argv)
 if pindex<2:
-	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 \n")
+	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 [最大最小值之差 触发消息门限值]\n")
 	exit(1);
 
 code = sys.argv[1]
@@ -102,19 +120,46 @@ else:
 		print "非法代码:" +code+ "\n"
 		exit(1);
 
+deltaV = 0
+deltaTg = 0
+if pindex==4:
+	deltaV = int(sys.argv[2])
+	deltaTg = int(sys.argv[3])
+else:
+	deltaV = 6
+	deltaTg = 2
+	
 #os.system('msg "*" "aaa"')
+idxCount=0
+exgCount=0
+sarr = ''
 url = "http://hq.sinajs.cn/list="
+exUrl = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
 while True:
 	print "---------------------"
 	currentIndexData(url, "s_sh000001")
+	if idxCount>=2:
+		currentIndexData(url, "s_sz399001")
+		currentIndexData(url, "s_sz399005")
+		idxCount = 0
+	else:
+		idxCount += slpTime
 	currentIndexData(url, "s_sz399006")
-	currentSinaData(url, code)
+	currentSinaData(url, code, slpTime)
+
+	if exgCount==0:
+		print ""
+		internal.common.analyze_data(exUrl, code, deltaV, deltaTg, sarr)
+		exgCount += slpTime
+	elif exgCount>40:
+		exgCount = 0
+	print "~~~~~~~~~~~~~~~~~~~~~\n"
+
 	now = datetime.datetime.now()
 	hour = now.hour
 	minute = now.minute
 	if (hour<9 or hour>=15):
-		break;
+		break
 	elif (hour==9 and minute<15):
-		break;
-	time.sleep(3)
-	#os.system('msg "*" "aaa"')
+		break
+	time.sleep(slpTime)

@@ -513,7 +513,6 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 						break
 					pageFtime = curtime
 					bFtime = 1
-					print bFtime, pageFtime
 
 				matchDataFlag = 1
 				ret,hour,minute,second = parseTime(curtime)
@@ -679,7 +678,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 		#通过此方法判断是否非交易日
 		if (notTrasFlag==1):
-			#print "No data found current page=", i, ", QUIT"
+			#print "No Tras found current page=", i, ", QUIT"
 			break
 
 		#此时还应该有数据，但是得到的数据数量为0，重新获取数据
@@ -720,15 +719,17 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			j += 1
 			if not os.path.exists(filexlsx):
 				break;
-	wb.save(filexlsx)
 
 	if (totalline==0):
+		filexlsx = prepath +filename+ '_tmp0.xlsx'
+		wb.save(filexlsx)
 		os.remove(filexlsx)
 		if bFindHist==1:
 			handle_his_data(addcsv, prepath, hisUrl, code, qdate, stockInfo, sarr)
 		else:
 			print qdate+ " Handle data, No Matched Record"
 	else:
+		wb.save(filexlsx)
 		loginfo(1)
 		print qdate+ " Saved OK"
 
@@ -940,13 +941,14 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 		ws = wb.create_sheet()
 		write_statics(ws, '', dataObj, qdate, savedTrasData, largeTrasData)
 
-	filexlsx = prepath +filename+ '.xlsx'
-	wb.save(filexlsx)
-
 	if (totalline==0):
 		print qdate +" History data, No Matched Record!"
+		filexlsx = prepath +filename+ '_tmp.xlsx'
+		wb.save(filexlsx)
 		os.remove(filexlsx)
 	else:
+		filexlsx = prepath +filename+ '.xlsx'
+		wb.save(filexlsx)
 		loginfo(1)
 		print qdate+ " Saved OK!"
 
@@ -1293,3 +1295,285 @@ def handle_living(addcsv, prepath, url, code, qdate, sarr):
 	else:
 		loginfo(1)
 		print qdate+ " Saved OK"
+
+
+def analyze_data(url, code, deltaVal, deltaTriggle, sarr):
+	url = url +"?symbol="+ code
+	dataObj = []
+	if cmp(sarr, '')==0:
+		sarr = dftsarr
+	volObj = sarr.split(',')
+	arrlen = len(volObj)
+	for i in range(0,arrlen):
+		obj = fitItem(int(volObj[i]))
+		dataObj.append(obj)
+	dataObjLen = len(dataObj)
+
+	totalline = 0
+	#可能数据在不同的页面，同时存在，这是重复数据需要过滤重复结果
+	#还可能相同时间，产生多个成交量，需要都保留
+	lasttime = ''
+	lastvol = 0
+	pageFtime = ''
+	bFtime = 0
+	hisUrl = ''
+	fctime = ''
+	todayData = []
+	todayDataLen = 0
+	bGetToday = 0
+
+	cur=datetime.datetime.now()
+
+	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质,收盘价,涨跌幅,前收价,开盘价,最高价,最低价,成交量,成交额'
+	strObj = strline.split(u',')
+	#dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
+	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th>(.*)\D')
+	frameRe = re.compile(r'.*name=\"list_frame\" src=\"(.*)\" frameborder')
+	keyw = '收盘价|涨跌幅|前收价|开盘价|最高价|最低价|成交量|成交额'
+	infoRe = re.compile(r'\D+('+keyw+').*>(\+?-?\d+\.\d+)')
+	excecount = 0
+	stockInfo = []
+	reloadUrl = 0
+	noDataFlag = 0
+	noDataKey = "该股票没有交易数据"
+	notTrasFlag = 0
+	notTrasKey = "输入的日期为非交易日期"
+	#每一页的数据，如果找到匹配数据则设置为1；解决有时候页面有数据但是收不到，
+	#count为0，重新加载尝试再次获取；如果解析到数据的页面，如果count为0就不再继续解析数据
+	matchDataFlag = 0
+	i = 1
+	lineCount = 0
+	firstHour = 0
+	firstMinute = 0
+	firstSecond = 0
+	minValue = 0
+	maxValue = 0
+	curValue = 0
+
+	for j in range(1,1000):
+		urlall = url + "&page=" +str(i)
+
+		#print "(%d):%s" %(i,urlall)
+		if excecount>10:
+			print "Quit with exception i=", i
+			break
+
+		#创建url链接，获取每一页的数据
+		try:
+			req = urllib2.Request(urlall)
+			res_data = urllib2.urlopen(req, timeout=2).readlines()
+			lineCount = len(res_data)
+		except:
+			print "Get URL except"
+			excecount += 1
+			continue
+		else:
+			excecount = 0
+			pass
+		if lineCount==0:
+			break
+		#print "(%d):%s FIN" %(i,url)
+
+		flag = 0
+		count = 0
+		bFtime = 0
+		matchDataFlag = 0
+		idx = 0
+		line = ''
+		
+		#开始读取每一页返回的内容，首先查找'成交时间'/'收盘价'，过滤大量不需要的内容
+		checkStr = '成交时间'
+
+		#查找到'成交时间'/'收盘价'，更新查找内容为'<script type='
+		#但是一个月前的历史记录，'<script type='不是找到，需要handle_his_data()处理
+		while True:
+			if idx>=lineCount:
+				break
+			line = res_data[idx]
+			idx += 1
+			#print line
+			index = line.find(checkStr)
+			if (index>=0):
+				checkStr = '<script type='
+				break;
+		if idx>=lineCount:
+			break
+
+		while True:
+			line = res_data[idx]
+			idx += 1
+			#print line
+			index = line.find(checkStr)
+			if (index>=0):
+				#找到关键字'<script type='，找到则后面的数据不用分析，准备获取下一页的内容了
+				#print "%s found, QUIT line='%s' "%(checkStr, line)
+				break;
+
+			#key = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', line)
+			key = dtlRe.match(line)
+			if key:
+				#print key.groups(), sys._getframe().f_lineno 
+				curtime = key.group(1)
+				curvol = int(key.group(5))
+				#记住当前页第一个的时间
+				if (bFtime==0):
+					timeobj = re.search(curtime, pageFtime)
+					if timeobj:
+						print "bFtime 0 quit"
+						break
+					pageFtime = curtime
+					bFtime = 1
+					#第一条记录
+					if j==1:
+						ret,firstHour,firstMinute,firstSecond = parseTime(pageFtime)
+						if (ret==-1):
+							print "Error：Get First Time Fail"
+							break
+						#print "First=",pageFtime
+						curValue = float(key.group(2))
+						minValue = int(curValue*100)
+						maxValue = minValue
+
+				matchDataFlag = 1
+				ret,hour,minute,second = parseTime(curtime)
+				if (ret==-1):
+					continue
+				if (key.group(2)=="0.00") or (key.group(3)=="-100.00%"):
+					print "page(%d) Price(%s) or range(%s) is invalid value"%(i, key.group(2), key.group(3))
+					continue
+				if (hour==9 and minute<=20) or (hour==15 and minute>1):
+					count += 1
+					continue
+
+				timeobj = re.search(curtime, lasttime)
+				if (timeobj and curvol==lastvol):
+					count += 1
+					if (hour==9 and minute>20 and minute<=26 and count==1):
+						noDataFlag = 1
+					continue
+
+				#此时这个if判断没有意义了，前面代码做了判断
+				if (key.group(2)=="0.00") or (key.group(3)=="-100.00%"):
+					print "page(%d) Price(%s) or range(%s) is invalid value"%(i, key.group(2), key.group(3))
+				else:
+					curprice = key.group(2)
+					fluctuate = key.group(4)
+					lasttime = curtime
+					lastvol = curvol
+					amount = key.group(6)
+					obj = amount.split(',')
+					amount = ''.join(obj)
+
+					volume = int(key.group(5))
+					state = key.group(7)
+					if state[0:2]=='--':
+						state = '中性盘'
+					else:
+						bsArray = re.match(r'<h\d+>(卖盘|买盘|中性盘)\D', state)
+						state = bsArray.group(1)
+
+					stateStr = ''
+					bAddVolumn = 1
+					if (hour==9 and minute==25) or (hour==15 and minute==0):
+						bAddVolumn = 0
+
+					stateStr = state
+					if cmp(state, '卖盘')==0:
+						stateStr = 'SELL卖盘'
+						if bAddVolumn==1:
+							handle_volumn(volume, dataObj, 2)
+					elif cmp(state, '买盘')==0:
+						if bAddVolumn==1:
+							handle_volumn(volume, dataObj, 1)
+					#目前中性盘没有处理
+					elif cmp(state, '中性盘')==0:
+						if bAddVolumn==1:
+							ret = handle_middle_volumn(volume, dataObj, curtime, fluctuate, key.group(3))
+						else:
+							ret = 0
+						if ret==1:
+							stateStr = '买盘'
+						elif ret==2:
+							stateStr = 'SELL卖盘'
+
+					totalline += 1
+					price = float(key.group(2))
+					ftfluct = fluctuate
+					if (fluctuate=='--'):
+						pass
+					else:
+						ftfluct = float(fluctuate)
+
+					#针对前5分钟的数据，检查得到最大和最小值
+					bMatch = 0
+					interval = 5
+					if firstMinute<interval:
+						if (minute>=(60-interval+firstMinute) and (firstHour-hour==1)):
+							bMatch = 1
+					else:
+						if (hour==firstHour and firstMinute-minute<=5):
+							bMatch = 1
+					if bMatch==1:
+						curIntP = int(float(price)*100)
+						if curIntP<minValue:
+							minValue = curIntP
+						elif curIntP>maxValue:
+							maxValue = curIntP
+					else:
+						break
+
+				count += 1
+				continue
+			else:
+				index = line.find(noDataKey)
+				if (index>=0):
+					#找到关键字，当前和以后的页面都没有数据
+					#print "KEY word '%s' found, QUIT line='%s' "%(noDataKey, line)
+					noDataFlag = 1
+					break;
+
+				index = line.find(notTrasKey)
+				if (index>=0):
+					#找到关键字，非交易日
+					#print "KEY word '%s' found, QUIT line='%s' "%(notTrasKey, line)
+					notTrasFlag = 1
+					break;
+
+		#通过此方法判断是否还有数据
+		if (noDataFlag==1):
+			#print "No data found current page=", i, ", QUIT"
+			break
+
+		#通过此方法判断是否非交易日
+		if (notTrasFlag==1):
+			#print "No data found current page=", i, ", QUIT"
+			break
+
+		#此时还应该有数据，但是得到的数据数量为0，重新获取数据
+		if (count==0):
+			if totalline==1:
+				print "Warning: Only one line data"
+				break
+			if (matchDataFlag==1):
+				#print "Warnig: All invalid data in page=", i
+				break
+			print "Warnig: !!! Reload data in page=", i
+			reloadUrl += 1
+			if (reloadUrl>9):
+				print "获取数据可能不完整，建议重新获取"
+				break
+			continue
+
+		#最后i加一，访问下一页，对应 for 循环启动代码
+		i += 1
+
+	#循环得到数据后，判断条件是否满足
+	if ((maxValue-minValue) >= deltaVal):
+		#print maxValue-int(curValue*100)
+		#print int(curValue*100)-minValue
+		if (maxValue-int(curValue*100))<=deltaTriggle:
+			print "Increase: %.02f (%d	%d)"%(curValue, maxValue, minValue)
+			os.system('msg "*" "High value"')
+		elif (int(curValue*100)-minValue)<=deltaTriggle:
+			print "Decrease: %.02f (%d	%d)"%(curValue, maxValue, minValue)
+			os.system('msg "*" "Low value"')
