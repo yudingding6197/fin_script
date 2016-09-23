@@ -168,8 +168,10 @@ while True:
 	now = datetime.datetime.now()
 	hour = now.hour
 	minute = now.minute
-	if (hour<9 or hour>=15):
+	if (hour<9 or hour>=15 or hour==12):
 		break
 	elif (hour==9 and minute<15):
+		break
+	elif (hour==11 and minute>30):
 		break
 	time.sleep(slpTime)

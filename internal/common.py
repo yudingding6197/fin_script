@@ -389,7 +389,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			todayData.append(exVolume)
 			todayData.append(exAmount)
 			todayDataLen = len(todayData)
-			print todayData
+			#print todayData
 
 	if addcsv==1:
 		filecsv = prepath + filename + '.csv'
@@ -730,8 +730,8 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			print qdate+ " Handle data, No Matched Record"
 	else:
 		wb.save(filexlsx)
-		loginfo(1)
-		print qdate+ " Saved OK"
+		#loginfo()
+		#print qdate+ " Saved OK"
 
 #处理要求跳转页面的历史记录
 def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
@@ -949,8 +949,8 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 	else:
 		filexlsx = prepath +filename+ '.xlsx'
 		wb.save(filexlsx)
-		loginfo(1)
-		print qdate+ " Saved OK!"
+		#loginfo(1)
+		#print qdate+ " Saved OK!"
 
 def handle_living(addcsv, prepath, url, code, qdate, sarr):
 	if bhist==0:
@@ -1292,9 +1292,6 @@ def handle_living(addcsv, prepath, url, code, qdate, sarr):
 			handle_his_data(addcsv, prepath, hisUrl, code, qdate, stockInfo, sarr)
 		else:
 			print qdate+ " Handle data, No Matched Record"
-	else:
-		loginfo(1)
-		print qdate+ " Saved OK"
 
 
 def analyze_data(url, code, deltaVal, deltaTriggle, sarr):
