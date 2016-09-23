@@ -423,7 +423,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 	for j in range(1,1000):
 		urlall = url + "&page=" +str(i)
-		print "(%d):%s" %(i,url)
+		print "(%d):%s " %(i,url)
 
 		if excecount>10:
 			print "Quit with exception i=", i
@@ -444,7 +444,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		if lineCount==0:
 			break
 
-		print "(%d):%s FIN" %(i,url)
+		print "(%d):%s  FIN" %(i,url)
 		flag = 0
 		count = 0
 		bFtime = 0
