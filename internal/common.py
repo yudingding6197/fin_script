@@ -423,7 +423,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 	for j in range(1,1000):
 		urlall = url + "&page=" +str(i)
-		print "(%d):%s" %(i,url)
+		#print "(%d):%s" %(i,url)
 
 		if excecount>10:
 			print "Quit with exception i=", i
@@ -444,7 +444,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		if lineCount==0:
 			break
 
-		print "(%d):%s FIN" %(i,url)
+		#print "(%d):%s FIN" %(i,url)
 		flag = 0
 		count = 0
 		bFtime = 0
@@ -779,7 +779,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 
 	for i in range(1,1000):
 		urlall = url + "&page=" +str(i)
-		print "HIS(%d):%s" %(i,url)
+		#print "HIS(%d):%s" %(i,url)
 
 		if excecount>10:
 			print "Quit with exception i=", i
@@ -797,7 +797,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 		else:
 			excecount = 0
 			pass
-		print "HIS(%d):%s FIN" %(i,url)
+		#print "HIS(%d):%s FIN" %(i,url)
 
 		flag = 0
 		count = 0
@@ -1022,7 +1022,7 @@ def handle_living(addcsv, prepath, url, code, qdate, sarr):
 
 	for j in range(1,1000):
 		urlall = url + "&page=" +str(i)
-		print "LIV(%d):%s" %(i,url)
+		#print "LIV(%d):%s" %(i,url)
 
 		if excecount>10:
 			print "Quit with exception i=", i
@@ -1040,7 +1040,7 @@ def handle_living(addcsv, prepath, url, code, qdate, sarr):
 			excecount = 0
 			pass
 
-		print "LIV(%d):%s FIN" %(i,url)
+		#print "LIV(%d):%s FIN" %(i,url)
 		flag = 0
 		count = 0
 		bFtime = 0
