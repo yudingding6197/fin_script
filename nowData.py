@@ -11,7 +11,7 @@ from openpyxl.reader.excel  import  load_workbook
 import internal.common
 import time
 
-condCount = 0
+COND_COUNT = 0
 slpTime=1
 
 def currentIndexData(url, code):
@@ -20,7 +20,6 @@ def currentIndexData(url, code):
 		req = urllib2.Request(urllink)
 		stockData = urllib2.urlopen(req, timeout=2).read()
 	except:
-		loginfo(1)
 		print "URL timeout"
 	else:
 		stockObj = stockData.split(',')
@@ -30,6 +29,7 @@ def currentIndexData(url, code):
 		print "%10s	%s%%(%s)" % (idxVal, stockObj[3], stockObj[2])
 
 def currentSinaData(url, code, sleepTime):
+	global COND_COUNT
 	urllink = url + code
 	buy = []
 	buyVol = []
@@ -51,8 +51,13 @@ def currentSinaData(url, code, sleepTime):
 		highPrice = stockObj[4]
 		lowPrice = stockObj[5]
 		lastPrice = stockObj[2]
+		jingmaijia = stockObj[6]
 		#variation = stockObj[43]
-		zhangdiejia = float(curPrice) - float(lastPrice)
+		zhangdiejia = 0.0
+		if float(curPrice)==0:
+			zhangdiejia = float(jingmaijia) - float(lastPrice)
+		else:
+			zhangdiejia = float(curPrice) - float(lastPrice)
 		zhangdiefu = zhangdiejia*100/float(lastPrice)
 		volume = stockObj[8]
 		amount = stockObj[9]
@@ -80,10 +85,16 @@ def currentSinaData(url, code, sleepTime):
 		for i in range(0, 5):
 			print "%s	%8s" %(buy[index], buyVol[index])
 			index += 1
-		
+
 		highIntP = int(float(highPrice)*1000)
+		lowIntP = int(float(lowPrice)*1000)
 		curIntP = int(float(curPrice)*1000)
-		if (highIntP-curIntP)<15:
+		lastIntP = int(float(lastPrice)*1000)
+		highPercent = (highIntP-lastIntP)*10000/lastIntP
+		lowPercent = (lowIntP-lastIntP)*10000/lastIntP
+
+		#最高涨幅百分比期望超过最低涨幅百分比 0.5%(转为整数位50)
+		if (highIntP-curIntP)<15 and (highPercent-lowPercent)>50:
 			#可能涨停了
 			if (buyVol[1]==0 and buyVol[2]==0 and buyVol[3]==0):
 				pass
@@ -93,10 +104,10 @@ def currentSinaData(url, code, sleepTime):
 			else:
 				print highIntP, curIntP
 				os.system('msg "*" "High! Have a rest"')
-				if condCount<=0:
-					condCount = 60
+				if COND_COUNT<=0:
+					COND_COUNT = 60
 				else:
-					condCount -= sleepTime
+					COND_COUNT -= sleepTime
 
 pindex = len(sys.argv)
 if pindex<2:
@@ -129,7 +140,6 @@ else:
 	deltaV = 6
 	deltaTg = 2
 	
-#os.system('msg "*" "aaa"')
 idxCount=0
 exgCount=0
 sarr = ''
