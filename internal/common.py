@@ -36,6 +36,7 @@ class fitItem:
 dftsarr = "0,200,300,600,900"
 Handle_Mid = 0
 Large_Volume = 2000
+Tras_Count = 5
 
 # _____ debug print log
 def loginfo(flag=0):
@@ -295,7 +296,7 @@ def write_statics(ws, fctime, dataObj, qdate, savedTrasData, largeTrasData):
 	#再添加大单数据
 	dataObjLen = len(largeTrasData)
 	if dataObjLen>0:
-		row = row+3
+		row = row+2
 		cell = chr(ascid) + str(row)
 		ws[cell] = u'大单记录'
 		for j in range(0, dataObjLen):
@@ -506,6 +507,9 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 				#print key.groups(), sys._getframe().f_lineno 
 				curtime = key.group(1)
 				curvol = int(key.group(5))
+				if curvol==0:
+					continue
+
 				#记住当前页第一个的时间
 				if (bFtime==0):
 					timeobj = re.search(curtime, pageFtime)
@@ -537,6 +541,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 				if (key.group(2)=="0.00") or (key.group(3)=="-100.00%"):
 					print "page(%d) Price(%s) or range(%s) is invalid value"%(i, key.group(2), key.group(3))
 				else:
+					volume = int(key.group(5))
 					curprice = key.group(2)
 					fluctuate = key.group(4)
 					lasttime = curtime
@@ -545,7 +550,6 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					obj = amount.split(',')
 					amount = ''.join(obj)
 
-					volume = int(key.group(5))
 					state = key.group(7)
 					if state[0:2]=='--':
 						state = '中性盘'
@@ -719,14 +723,11 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 	if totalline>0:
 		startIdx = 0
-		TrasCount = 15
 		savedTrasLen = len(savedTrasData2)
-		if savedTrasLen>TrasCount:
-			startIdx = savedTrasLen-TrasCount
 		if savedTrasLen>0:
-			print startIdx, savedTrasLen
+			if savedTrasLen>Tras_Count:
+				startIdx = savedTrasLen-Tras_Count
 			for j in range(startIdx, savedTrasLen):
-				print j
 				savedTrasData.append(savedTrasData2[j])
 		ws = wb.create_sheet()
 		write_statics(ws, fctime, dataObj, qdate, savedTrasData, largeTrasData)
@@ -851,6 +852,9 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 					state = key.group(6)
 					srange = ''
 
+					if intcurvol==0:
+						continue
+
 					#记住当前页第一个的时间
 					if (bFtime==0):
 						timeobj = re.search(curtime, pageFtime)
@@ -968,11 +972,10 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 
 	if totalline>0:
 		startIdx = 0
-		TrasCount = 5
 		savedTrasLen = len(savedTrasData2)
-		if savedTrasLen>TrasCount:
-			startIdx = savedTrasLen-TrasCount
 		if savedTrasLen>0:
+			if savedTrasLen>Tras_Count:
+				startIdx = savedTrasLen-Tras_Count
 			for j in range(startIdx, savedTrasLen):
 				savedTrasData.append(savedTrasData2[j])
 		ws = wb.create_sheet()
