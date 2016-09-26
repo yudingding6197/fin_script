@@ -364,7 +364,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	if (bGetToday==1):
 		try:
 			req = urllib2.Request(todayUrl)
-			stockData = urllib2.urlopen(req, timeout=10).read()
+			stockData = urllib2.urlopen(req, timeout=5).read()
 		except:
 			loginfo(1)
 			print "URL timeout"
@@ -417,6 +417,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	#count为0，重新加载尝试再次获取；如果解析到数据的页面，如果count为0就不再继续解析数据
 	matchDataFlag = 0
 	savedTrasData = []
+	savedTrasData2 = []
 	largeTrasData = []
 	i = 1
 	lineCount = 0
@@ -432,7 +433,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		#创建url链接，获取每一页的数据
 		try:
 			req = urllib2.Request(urlall)
-			res_data = urllib2.urlopen(req, timeout=10).readlines()
+			res_data = urllib2.urlopen(req, timeout=5).readlines()
 			lineCount = len(res_data)
 		except:
 			print "Get URL except"
@@ -612,7 +613,12 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 							ws[cell] = todayData[k]
 
 					#将开始和最后成交数据保存
-					if (totalline<4 or (hour==9 and minute==30 and curvol>300) or (hour==9 and minute<30)):
+					bSaveFlag = 0
+					if (totalline==1 or (totalline<4 and curvol>100)):
+						bSaveFlag = 1
+					elif (hour==9 and minute==30 and curvol>300) or (hour==9 and minute<30):
+						bSaveFlag = 2
+					if bSaveFlag==1 or bSaveFlag==2:
 						rowData = []
 						rowData.append(curtime)
 						rowData.append(price)
@@ -621,7 +627,10 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 						rowData.append(curvol)
 						rowData.append(int(amount))
 						rowData.append(s1)
+					if bSaveFlag==1:
 						savedTrasData.append(rowData)
+					elif bSaveFlag==2:
+						savedTrasData2.append(rowData)
 
 					#增加大单成交记录
 					if (curvol>=Large_Volume):
@@ -709,6 +718,16 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			os.remove(filecsv)
 
 	if totalline>0:
+		startIdx = 0
+		TrasCount = 15
+		savedTrasLen = len(savedTrasData2)
+		if savedTrasLen>TrasCount:
+			startIdx = savedTrasLen-TrasCount
+		if savedTrasLen>0:
+			print startIdx, savedTrasLen
+			for j in range(startIdx, savedTrasLen):
+				print j
+				savedTrasData.append(savedTrasData2[j])
 		ws = wb.create_sheet()
 		write_statics(ws, fctime, dataObj, qdate, savedTrasData, largeTrasData)
 
@@ -775,6 +794,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(--|\+?\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
 	excecount = 0
 	savedTrasData = []
+	savedTrasData2 = []
 	largeTrasData = []
 	lineCount = 0
 
@@ -789,7 +809,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 		#创建url链接，获取每一页的数据
 		try:
 			req = urllib2.Request(urlall)
-			res_data = urllib2.urlopen(req, timeout=10).readlines()
+			res_data = urllib2.urlopen(req, timeout=5).readlines()
 			lineCount = len(res_data)
 		except:
 			print "Get URL except"
@@ -896,7 +916,12 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 								ws[cell] = stockInfo[j]
 
 						#将开始和最后成交数据保存
-						if (totalline<4 or (hour==9 and minute==30 and curvol>300) or (hour==9 and minute<30)):
+						bSaveFlag = 0
+						if (totalline==1 or (totalline<4 and curvol>100)):
+							bSaveFlag = 1
+						elif (hour==9 and minute==30 and curvol>300) or (hour==9 and minute<30):
+							bSaveFlag = 2
+						if bSaveFlag==1 or bSaveFlag==2:
 							rowData = []
 							rowData.append(curtime)
 							rowData.append(float(price))
@@ -905,7 +930,10 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 							rowData.append(curvol)
 							rowData.append(intamount)
 							rowData.append(s1)
+						if bSaveFlag==1:
 							savedTrasData.append(rowData)
+						elif bSaveFlag==2:
+							savedTrasData2.append(rowData)
 
 						#增加大单成交记录
 						if (curvol>=Large_Volume):
@@ -938,7 +966,15 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 		if (totalline==0):
 			os.remove(filecsv)
 
-	if (totalline>0):
+	if totalline>0:
+		startIdx = 0
+		TrasCount = 5
+		savedTrasLen = len(savedTrasData2)
+		if savedTrasLen>TrasCount:
+			startIdx = savedTrasLen-TrasCount
+		if savedTrasLen>0:
+			for j in range(startIdx, savedTrasLen):
+				savedTrasData.append(savedTrasData2[j])
 		ws = wb.create_sheet()
 		write_statics(ws, '', dataObj, qdate, savedTrasData, largeTrasData)
 
@@ -950,350 +986,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 	else:
 		filexlsx = prepath +filename+ '.xlsx'
 		wb.save(filexlsx)
-		#loginfo(1)
 		#print qdate+ " Saved OK!"
-
-def handle_living(addcsv, prepath, url, code, qdate, sarr):
-	if bhist==0:
-		url = url +"?symbol="+ code
-	else:
-		print "Unknown flag:", bhist
-		return -1
-
-	if not os.path.isdir(prepath):
-		os.makedirs(prepath)
-
-	dataObj = []
-	if cmp(sarr, '')==0:
-		sarr = dftsarr
-	volObj = sarr.split(',')
-	arrlen = len(volObj)
-	for i in range(0,arrlen):
-		obj = fitItem(int(volObj[i]))
-		dataObj.append(obj)
-	dataObjLen = len(dataObj)
-
-	wb = Workbook()
-	# grab the active worksheet
-	ws = wb.active
-
-	totalline = 0
-	#可能数据在不同的页面，同时存在，这是重复数据需要过滤重复结果
-	#还可能相同时间，产生多个成交量，需要都保留
-	lasttime = ''
-	lastvol = 0
-	pageFtime = ''
-	bFtime = 0
-	bFindHist = 0
-	hisUrl = ''
-	filename = code+ '_' + qdate
-	fctime = ''
-	if bhist==0:
-		cur=datetime.datetime.now()
-		fctime = '%02d:%02d' %(cur.hour, cur.minute)
-		filename = '%s_%02d-%02d' %(filename, cur.hour, cur.minute)
-	if addcsv==1:
-		filecsv = prepath + filename + '.csv'
-		fcsv = open(filecsv, 'w')
-		strline = '成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
-		fcsv.write(strline)
-		fcsv.write("\n")
-
-	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质,收盘价,涨跌幅,前收价,开盘价,最高价,最低价,成交量,成交额'
-	strObj = strline.split(u',')
-	ws.append(strObj)
-	#dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
-	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th>(.*)\D')
-	frameRe = re.compile(r'.*name=\"list_frame\" src=\"(.*)\" frameborder')
-	keyw = '收盘价|涨跌幅|前收价|开盘价|最高价|最低价|成交量|成交额'
-	infoRe = re.compile(r'\D+('+keyw+').*>(\+?-?\d+\.\d+)')
-	excecount = 0
-	stockInfo = []
-	reloadUrl = 0
-	noDataFlag = 0
-	noDataKey = "该股票没有交易数据"
-	notTrasFlag = 0
-	notTrasKey = "输入的日期为非交易日期"
-	#每一页的数据，如果找到匹配数据则设置为1；解决有时候页面有数据但是收不到，
-	#count为0，重新加载尝试再次获取；如果解析到数据的页面，如果count为0就不再继续解析数据
-	matchDataFlag = 0
-	savedTrasData = []
-	largeTrasData = []
-	i = 1
-
-	for j in range(1,1000):
-		urlall = url + "&page=" +str(i)
-		#print "LIV(%d):%s" %(i,url)
-
-		if excecount>10:
-			print "Quit with exception i=", i
-			break
-
-		#创建url链接，获取每一页的数据
-		try:
-			req = urllib2.Request(urlall)
-			res_data = urllib2.urlopen(req, timeout=10)
-		except:
-			print "Get URL except"
-			excecount += 1
-			continue
-		else:
-			excecount = 0
-			pass
-
-		#print "LIV(%d):%s FIN" %(i,url)
-		flag = 0
-		count = 0
-		bFtime = 0
-		matchDataFlag = 0
-		
-		#开始读取每一页返回的内容，首先查找'成交时间'/'收盘价'，过滤大量不需要的内容
-		line = res_data.readline()
-		if bhist==0 or bhist==2:
-			checkStr = '成交时间'
-		else:
-			checkStr = '收盘价'
-
-		#查找到'成交时间'/'收盘价'，更新查找内容为'<script type='
-		#但是一个月前的历史记录，'<script type='不是找到，需要handle_his_data()处理
-		while line:
-			#print line
-			index = line.find(checkStr)
-			if (index<0):
-				line = res_data.readline()
-				continue
-			else:
-				checkStr = '<script type='
-				break;
-
-		#从第一页读取：收盘价,涨跌幅,前收价等数据
-		if bhist==1 and i==1:
-			infoCount = 0
-			while line:
-				infoObj = infoRe.match(line)
-				if infoObj:
-					stockInfo.append(float(infoObj.group(2)))
-				else:
-					if infoCount<8:
-						print "Parse fail", line
-					break;
-				infoCount += 1
-				line = res_data.readline()
-			#print stockInfo
-
-		while line:
-			#print line
-			index = line.find(checkStr)
-			if (index>=0):
-				#找到关键字'<script type='，找到则后面的数据不用分析，准备获取下一页的内容了
-				#print "%s found, QUIT line='%s' "%(checkStr, line)
-				break;
-
-			#key = re.match(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D', line)
-			key = dtlRe.match(line)
-			if key:
-				#print key.groups(), sys._getframe().f_lineno 
-				curtime = key.group(1)
-				curvol = int(key.group(5))
-				#记住当前页第一个的时间
-				if (bFtime==0):
-					timeobj = re.search(curtime, pageFtime)
-					if timeobj:
-						print "bFtime 0 quit"
-						break
-					pageFtime = curtime
-					bFtime = 1
-
-				matchDataFlag = 1
-				ret,hour,minute,second = parseTime(curtime)
-				if (ret==-1):
-					line = res_data.readline()
-					continue
-				if (key.group(2)=="0.00") or (key.group(3)=="-100.00%"):
-					print "page(%d) Price(%s) or range(%s) is invalid value"%(i, key.group(2), key.group(3))
-					line = res_data.readline()
-					continue
-				if (hour==9 and minute<=20) or (hour==15 and minute>1):
-					count += 1
-					line = res_data.readline()
-					continue
-
-				timeobj = re.search(curtime, lasttime)
-				if (timeobj and curvol==lastvol):
-					count += 1
-					if (hour==9 and minute>20 and minute<=26 and count==1):
-						noDataFlag = 1
-					line = res_data.readline()
-					continue
-
-				#此时这个if判断没有意义了，前面代码做了判断
-				if (key.group(2)=="0.00") or (key.group(3)=="-100.00%"):
-					print "page(%d) Price(%s) or range(%s) is invalid value"%(i, key.group(2), key.group(3))
-				else:
-					curprice = key.group(2)
-					fluctuate = key.group(4)
-					lasttime = curtime
-					lastvol = curvol
-					amount = key.group(6)
-					obj = amount.split(',')
-					amount = ''.join(obj)
-
-					volume = int(key.group(5))
-					state = key.group(7)
-					if state[0:2]=='--':
-						state = '中性盘'
-					else:
-						bsArray = re.match(r'<h\d+>(卖盘|买盘|中性盘)\D', state)
-						state = bsArray.group(1)
-
-					stateStr = ''
-					bAddVolumn = 1
-					if (hour==9 and minute==25) or (hour==15 and minute==0):
-						bAddVolumn = 0
-
-					stateStr = state
-					if cmp(state, '卖盘')==0:
-						stateStr = 'SELL卖盘'
-						if bAddVolumn==1:
-							handle_volumn(volume, dataObj, 2)
-					elif cmp(state, '买盘')==0:
-						if bAddVolumn==1:
-							handle_volumn(volume, dataObj, 1)
-					#目前中性盘没有处理
-					elif cmp(state, '中性盘')==0:
-						if bAddVolumn==1:
-							ret = handle_middle_volumn(volume, dataObj, curtime, fluctuate, key.group(3))
-						else:
-							ret = 0
-						if ret==1:
-							stateStr = '买盘'
-						elif ret==2:
-							stateStr = 'SELL卖盘'
-
-					if addcsv==1:
-						strline = curtime +","+ key.group(2) +","+ key.group(3) +","+ key.group(4) +","+ key.group(5) +","+ amount +","+ stateStr + "\n"
-						fcsv.write(strline)
-
-					totalline += 1
-					row = totalline+1
-					price = float(key.group(2))
-					cell = 'A' + str(row)
-					ws[cell] = curtime
-					cell = 'B' + str(row)
-					ws[cell] = price
-					cell = 'C' + str(row)
-					ws[cell] = key.group(3)
-					cell = 'D' + str(row)
-					ftfluct = fluctuate
-					if (fluctuate=='--'):
-						ws[cell] = key.group(4)
-					else:
-						ftfluct = float(fluctuate)
-						ws[cell] = ftfluct
-					cell = 'E' + str(row)
-					ws[cell] = curvol
-					cell = 'F' + str(row)
-					ws[cell] = int(amount)
-					cell = 'G' + str(row)
-					s1 = stateStr.decode('gbk')
-					ws[cell] = s1
-					
-					#将开始和最后成交数据保存
-					if (totalline<4 or (hour==9 and minute==30 and curvol>300) or (hour==9 and minute<30)):
-						rowData = []
-						rowData.append(curtime)
-						rowData.append(price)
-						rowData.append(key.group(3))
-						rowData.append(ftfluct)
-						rowData.append(curvol)
-						rowData.append(int(amount))
-						rowData.append(s1)
-						savedTrasData.append(rowData)
-
-					if (row==2 and bhist==1):
-						ascid = 72
-						number = len(stockInfo)
-						for j in range(0,number):
-							cell = chr(ascid+j) + str(row)
-							ws[cell] = stockInfo[j]
-
-				count += 1
-				line = res_data.readline()
-				continue
-			else:
-				index = line.find(noDataKey)
-				if (index>=0):
-					#找到关键字，当前和以后的页面都没有数据
-					#print "KEY word '%s' found, QUIT line='%s' "%(noDataKey, line)
-					noDataFlag = 1
-					break;
-
-				index = line.find(notTrasKey)
-				if (index>=0):
-					#找到关键字，非交易日
-					#print "KEY word '%s' found, QUIT line='%s' "%(notTrasKey, line)
-					notTrasFlag = 1
-					break;
-
-				#针对一个月前的历史记录，找到匹配的关键字
-				if bhist==1:
-					key = frameRe.match(line)
-					if key:
-						bFindHist = 1
-						hisUrl = key.group(1)
-						#print key.groups()
-						break
-			#对应前面启动 while
-			line = res_data.readline()
-
-		loginfo()
-		if bFindHist==1:
-			break
-
-		#通过此方法判断是否还有数据
-		if (noDataFlag==1):
-			#print "No data found current page=", i, ", QUIT"
-			break
-
-		#通过此方法判断是否非交易日
-		if (notTrasFlag==1):
-			#print "No data found current page=", i, ", QUIT"
-			break
-
-		#此时还应该有数据，但是得到的数据数量为0，重新获取数据
-		if (count==0):
-			if (matchDataFlag==1):
-				print "Warnig: All invalid data in page=", i
-				break
-			print "Warnig: !!! Reload data in page=", i
-			reloadUrl += 1
-			if (reloadUrl>9):
-				print "获取数据可能不完整，建议重新获取"
-				break
-			continue
-
-		#最后i加一，访问下一页，对应 for 循环启动代码
-		i += 1
-	ws.auto_filter.ref = "A1:G1"
-
-	if addcsv==1:
-		fcsv.close()
-		if (totalline==0):
-			os.remove(filecsv)
-
-	if totalline>0:
-		ws = wb.create_sheet()
-		write_statics(ws, fctime, dataObj, qdate, savedTrasData, largeTrasData)
-
-	filexlsx = prepath +filename+ '.xlsx'
-	wb.save(filexlsx)
-	if (totalline==0):
-		os.remove(filexlsx)
-		if bFindHist==1:
-			handle_his_data(addcsv, prepath, hisUrl, code, qdate, stockInfo, sarr)
-		else:
-			print qdate+ " Handle data, No Matched Record"
-
 
 def analyze_data(url, code, deltaVal, deltaTriggle, sarr):
 	url = url +"?symbol="+ code
