@@ -39,7 +39,6 @@ def currentSinaData(url, code, sleepTime):
 		req = urllib2.Request(urllink)
 		stockData = urllib2.urlopen(req, timeout=2).read()
 	except:
-		loginfo(1)
 		print "URL timeout"
 	else:
 		stockObj = stockData.split(',')

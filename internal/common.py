@@ -685,6 +685,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		if (count==0):
 			if totalline==1:
 				print "Warning: Only one line data"
+				print urlall
 				break
 			if (matchDataFlag==1):
 				print "Warnig: All invalid data in page=", i
@@ -1550,6 +1551,7 @@ def analyze_data(url, code, deltaVal, deltaTriggle, sarr):
 		if (count==0):
 			if totalline==1:
 				print "Warning: Only one line data"
+				print urlall
 				break
 			if (matchDataFlag==1):
 				#print "Warnig: All invalid data in page=", i
