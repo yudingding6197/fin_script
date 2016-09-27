@@ -7,30 +7,29 @@ wb = Workbook()
 # grab the active worksheet
 ws = wb.active
 
-# Data can be assigned directly to cells
-ws['A1'] = 42
+data = [
+    ["Fruit", "Quantity"],
+    ["Kiwi", 3],
+    ["Grape", 15],
+    ["Apple", 3],
+    ["Peach", 3],
+    ["Pomegranate", 3],
+    ["Pear", 3],
+    ["Tangerine", 3],
+    ["Blueberry", 3],
+    ["Mango", 3],
+    ["Watermelon", 3],
+    ["Blackberry", 3],
+    ["Orange", 3],
+    ["Raspberry", 3],
+    ["Banana", 3]
+]
 
-# Rows can also be appended
-ws.append([1, 2, 3])
+for r in data:
+    ws.append(r)
 
-# Python types will automatically be converted
-ws['A2'] = datetime.datetime.now()
+ws.auto_filter.ref = "A1:B15"
+ws.auto_filter.add_filter_column(0, ["Kiwi", "Apple", "Mango"])
+ws.auto_filter.add_sort_condition("B2:B15")
 
-str = u'中文'
-ws['A3'] = str.encode('utf8')
-
-str = '汉子'
-s1 = str.decode('gbk')
-ws['A4'] = s1.encode('utf8') 
-
-
-strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质'
-strObj = strline.split(',')
-print strObj
-ws.append(strObj)
-
-ws = wb.create_sheet()
-ws.title = 'A2'
-
-# Save the file
-wb.save("z_excel.xlsx")
+wb.save("filtered.xlsx")

@@ -37,6 +37,7 @@ dftsarr = "0,200,300,600,900"
 Handle_Mid = 0
 Large_Volume = 2000
 Tras_Count = 5
+Large_Vol_Time = []
 
 # _____ debug print log
 def loginfo(flag=0):
@@ -150,7 +151,7 @@ def handle_volumn(exVolumn, dataObj, type, flag=0):
 				break;
 			dataObj[j].sellvol += chgVolumn
 			dataObj[j].sellct += 1
-			
+
 def handle_middle_volumn(exVolumn, dataObj, exTime, fluctuate, increaseRange):
 	if Handle_Mid!=1:
 		return 0
@@ -319,7 +320,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		url = url +"?symbol="+ code
 	else:
 		print "Unknown flag:", bhist
-		return
+		return -1
 	#if Handle_Mid==0:
 	#	print "Message: Ignore 中性盘"
 
@@ -752,7 +753,8 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	else:
 		wb.save(filexlsx)
 		#loginfo()
-		#print qdate+ " Saved OK"
+		return 0
+	return -1
 
 #处理要求跳转页面的历史记录
 def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
@@ -1109,6 +1111,16 @@ def analyze_data(url, code, deltaVal, deltaTriggle, sarr):
 				#print key.groups(), sys._getframe().f_lineno 
 				curtime = key.group(1)
 				curvol = int(key.group(5))
+				if curvol>Large_Volume:
+					bFind = 0
+					for k in range(0, len(Large_Vol_Time)):
+						if (curtime==Large_Vol_Time[k]):
+							bFind=1
+							break
+					if bFind==0:
+						Large_Vol_Time.append(curtime)
+						msgstr = 'msg "*" "Hello Big_DT (%s:%d)"'%(curtime, curvol)
+						os.system(msgstr)
 				#记住当前页第一个的时间
 				if (bFtime==0):
 					timeobj = re.search(curtime, pageFtime)

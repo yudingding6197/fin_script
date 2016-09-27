@@ -55,6 +55,8 @@ if pindex==3:
 			print "Invalide parameter:" + sarr
 			exit(1)
 
-internal.common.handle_data(addcsv, prepath, 0, url, code, qdate, sarr)
+ret = internal.common.handle_data(addcsv, prepath, 0, url, code, qdate, sarr)
+if ret==0:
+	print "Get %s:%s OK!"%(code, qdate)
 
 

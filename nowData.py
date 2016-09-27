@@ -11,6 +11,7 @@ from openpyxl.reader.excel  import  load_workbook
 import internal.common
 import time
 
+ALERT_HIGH = 0
 COND_COUNT = 0
 slpTime=1
 
@@ -30,6 +31,7 @@ def currentIndexData(url, code):
 
 def currentSinaData(url, code, sleepTime):
 	global COND_COUNT
+	global ALERT_HIGH
 	urllink = url + code
 	buy = []
 	buyVol = []
@@ -94,15 +96,17 @@ def currentSinaData(url, code, sleepTime):
 
 		#最高涨幅百分比期望超过最低涨幅百分比 0.5%(转为整数位50)
 		if (highIntP-curIntP)<15 and (highPercent-lowPercent)>50:
-			#可能涨停了
+			#可能ZT
 			if (buyVol[1]==0 and buyVol[2]==0 and buyVol[3]==0):
 				pass
-			#可能一字跌停
+			#可能DT
 			elif (sellVol[1]==0 and sellVol[2]==0 and sellVol[3]==0):
 				pass
 			else:
 				print highIntP, curIntP
-				os.system('msg "*" "High! Have a rest"')
+				if ALERT_HIGH<curIntP:
+					ALERT_HIGH = curIntP
+					os.system('msg "*" "High! Have a rest"')
 				if COND_COUNT<=0:
 					COND_COUNT = 60
 				else:
@@ -138,7 +142,7 @@ if pindex==4:
 else:
 	deltaV = 6
 	deltaTg = 2
-	
+
 idxCount=0
 exgCount=0
 sarr = ''
