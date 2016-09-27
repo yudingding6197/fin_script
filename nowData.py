@@ -114,7 +114,7 @@ def currentSinaData(url, code, sleepTime):
 
 pindex = len(sys.argv)
 if pindex<2:
-	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 [最大最小值之差 触发消息门限值]\n")
+	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 [睡眠时间] [最大最小值之差 触发消息门限值]\n")
 	exit(1);
 
 code = sys.argv[1]
@@ -136,7 +136,10 @@ else:
 
 deltaV = 0
 deltaTg = 0
-if pindex==4:
+if pindex==3:
+	slpTime = int(sys.argv[2])
+
+if pindex==5:
 	deltaV = int(sys.argv[2])
 	deltaTg = int(sys.argv[3])
 else:
@@ -149,6 +152,10 @@ sarr = ''
 url = "http://hq.sinajs.cn/list="
 exUrl = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
 while True:
+	now = datetime.datetime.now()
+	hour = now.hour
+	minute = now.minute
+
 	print "---------------------"
 	currentIndexData(url, "s_sh000001")
 	if idxCount>=2:
@@ -160,21 +167,20 @@ while True:
 	currentIndexData(url, "s_sz399006")
 	currentSinaData(url, code, slpTime)
 
-	if exgCount==0:
-		print ""
-		internal.common.analyze_data(exUrl, code, deltaV, deltaTg, sarr)
-		exgCount += slpTime
-	elif exgCount>40:
-		exgCount = 0
+	if not (hour==9 and minute>=15 and minute<30):
+		if exgCount==0:
+			print ""
+			internal.common.analyze_data(exUrl, code, deltaV, deltaTg, sarr)
+			exgCount += slpTime
+		elif exgCount>40:
+			exgCount = 0
 	print "~~~~~~~~~~~~~~~~~~~~~\n"
 
-	now = datetime.datetime.now()
-	hour = now.hour
-	minute = now.minute
 	if (hour<9 or hour>=15 or hour==12):
 		break
 	elif (hour==9 and minute<15):
 		break
 	elif (hour==11 and minute>30):
 		break
+
 	time.sleep(slpTime)

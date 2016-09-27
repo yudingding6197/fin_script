@@ -48,42 +48,24 @@ infoObj = infoRe.match(s8)
 if infoObj:
 	print infoObj.group(1), infoObj.group(2)
 
-
-delta1=datetime.timedelta(days=1)
-today = datetime.date.today()
-t = datetime.datetime.now()
-#print t.hour,":",t.minute,":",t.second
-#print today
-ret,stdate = parseDate("0721", today)
-if ret==-1:
-	print "QUIT"
-	exit(1)
-print stdate
-sdate = datetime.datetime.strptime(stdate, '%Y-%m-%d').date()
-t1=time.strptime("20122110", "%Y%m%d")
-print t1
-curdate = sdate
-
-eddate = '.'
-if cmp(eddate, '.')==0:
-	eddate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
-	edate = datetime.datetime.strptime(eddate, '%Y-%m-%d').date()
-	#如果是当日的数据通过history链接目前不能得到，所以暂时得到前一天的数据
-	#今日数据通过getToday获取
-	edate = edate - delta1
-
-
-'''
-s1 = '0.000%'
-obj = re.match(r'(.*)\%', s1)
-print obj
-if obj:
-	val = obj.group(1)
-	print float(val)
-
-if (s0=='2012-12-13'):
-	print "==="
-else:
-	print "!!!!==="
-'''
+Large_Vol_Time = []
+curvol = 900
+curtime='aaa'
+if curvol>500:
+	bFind = 0
+	for k in range(0, len(Large_Vol_Time)):
+		if (curtime==Large_Vol_Time[k]):
+			bFind=1
+			break
+	if bFind==0:
+		Large_Vol_Time.append(curtime)
+		sv = ''
+		if cmp(state, '卖盘')==0:
+			sv = 'S:'
+		elif cmp(state, '买盘')==0:
+			sv = 'B:'
+		elif cmp(state, '中性盘')==0:
+			sv = 'M:'
+		msgstr = 'msg "*" "Hello Big_DT (%s	%s:%d)"'%(curtime, sv, curvol)
+		os.system(msgstr)
 

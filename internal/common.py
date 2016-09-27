@@ -1111,16 +1111,6 @@ def analyze_data(url, code, deltaVal, deltaTriggle, sarr):
 				#print key.groups(), sys._getframe().f_lineno 
 				curtime = key.group(1)
 				curvol = int(key.group(5))
-				if curvol>Large_Volume:
-					bFind = 0
-					for k in range(0, len(Large_Vol_Time)):
-						if (curtime==Large_Vol_Time[k]):
-							bFind=1
-							break
-					if bFind==0:
-						Large_Vol_Time.append(curtime)
-						msgstr = 'msg "*" "Hello Big_DT (%s:%d)"'%(curtime, curvol)
-						os.system(msgstr)
 				#记住当前页第一个的时间
 				if (bFtime==0):
 					timeobj = re.search(curtime, pageFtime)
@@ -1182,6 +1172,24 @@ def analyze_data(url, code, deltaVal, deltaTriggle, sarr):
 					bAddVolumn = 1
 					if (hour==9 and minute==25) or (hour==15 and minute==0):
 						bAddVolumn = 0
+
+					if curvol>Large_Volume:
+						bFind = 0
+						for k in range(0, len(Large_Vol_Time)):
+							if (curtime==Large_Vol_Time[k]):
+								bFind=1
+								break
+						if bFind==0:
+							Large_Vol_Time.append(curtime)
+							sv = ''
+							if cmp(state, '卖盘')==0:
+								sv = 'S'
+							elif cmp(state, '买盘')==0:
+								sv = 'B'
+							elif cmp(state, '中性盘')==0:
+								sv = 'M'
+							msgstr = 'msg "*" "Hello Big_DT (%s	%s:%d)"'%(curtime, sv, curvol)
+							os.system(msgstr)
 
 					stateStr = state
 					if cmp(state, '卖盘')==0:
