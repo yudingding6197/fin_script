@@ -180,6 +180,8 @@ exgCount=0
 sarr = ''
 url = "http://hq.sinajs.cn/list="
 exUrl = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
+#exUrl = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php"
+
 priceList = [0, 0, 0, 0]
 alertPrice = []
 while True:
@@ -203,7 +205,7 @@ while True:
 		bAnalyze = 1
 	elif (hour==13 or hour==14):
 		bAnalyze = 1
-	bAnalyze = 1
+	#bAnalyze = 1
 
 	if bAnalyze==1:
 		if exgCount==0:

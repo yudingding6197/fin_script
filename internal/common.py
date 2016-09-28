@@ -1057,8 +1057,12 @@ def analyze_data(url, code, sarr, priceList):
 	minValue = 0
 	maxValue = 0
 	curValue = 0
-
-	for j in range(1,1000):
+	stateValue = ''
+	stateCount = 0
+	stateList = []
+	stateMatch = 0
+	pageIdx = 1
+	for j in range(pageIdx,1000):
 		urlall = url + "&page=" +str(i)
 
 		#print "(%d):%s" %(i,urlall)
@@ -1131,7 +1135,7 @@ def analyze_data(url, code, sarr, priceList):
 					pageFtime = curtime
 					bFtime = 1
 					#第一条记录
-					if j==1:
+					if j==pageIdx:
 						ret,firstHour,firstMinute,firstSecond = parseTime(pageFtime)
 						if (ret==-1):
 							print "Error：Get First Time Fail"
@@ -1199,6 +1203,31 @@ def analyze_data(url, code, sarr, priceList):
 							if bMatch==1:
 								msgstr = 'msg "*" "Hello Big_DT (%s	%s:%d)"'%(curtime, sv, curvol)
 								os.system(msgstr)
+					if curvol>=300:
+						if cmp(stateValue, state)==0:
+							stateCount += 1
+							stateList.append(curvol)
+						else:
+							if cmp(state, '卖盘')==0:
+								stateValue = state
+								stateCount = 1
+								stateList = []
+								stateList.append(curvol)
+							elif cmp(state, '买盘')==0:
+								stateValue = state
+								stateCount = 1
+								stateList = []
+								stateList.append(curvol)
+							elif cmp(state, '中性盘')==0:
+								stateCount += 1
+								if cmp(stateValue, '')!=0:
+									stateList.append(curvol)
+						if stateCount==7:
+							if stateMatch==0:
+								print stateList
+								msgstr = 'msg "*" "Hello Continue value:%d"'%(stateCount)
+								os.system(msgstr)
+								stateMatch = 1
 
 					totalline += 1
 					price = float(key.group(2))
