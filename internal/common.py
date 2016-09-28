@@ -130,6 +130,18 @@ def parseTime(qtime):
 	second = int(timeObj.group(3))
 	return (0, hour, minute, second)
 
+def time_range(firstHour, firstMinute, hour, minute, interval):
+	bMatch = 0
+	if firstMinute<interval:
+		if (hour==firstHour and minute<=firstMinute):
+			bMatch = 1
+		elif ((firstHour-hour==1) and minute>=(60-interval+firstMinute)):
+			bMatch = 1
+	else:
+		if (hour==firstHour and firstMinute-minute<=5):
+			bMatch = 1
+	return bMatch
+
 #type:
 #	1:Buy,	2:Sell
 #当第4个参数设置为1，进行折半处理
@@ -993,7 +1005,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 		wb.save(filexlsx)
 		#print qdate+ " Saved OK!"
 
-def analyze_data(url, code, deltaVal, deltaTriggle, sarr):
+def analyze_data(url, code, sarr, priceList):
 	url = url +"?symbol="+ code
 	dataObj = []
 	if cmp(sarr, '')==0:
@@ -1081,7 +1093,6 @@ def analyze_data(url, code, deltaVal, deltaTriggle, sarr):
 		checkStr = '成交时间'
 
 		#查找到'成交时间'/'收盘价'，更新查找内容为'<script type='
-		#但是一个月前的历史记录，'<script type='不是找到，需要handle_his_data()处理
 		while True:
 			if idx>=lineCount:
 				break
@@ -1168,12 +1179,7 @@ def analyze_data(url, code, deltaVal, deltaTriggle, sarr):
 						bsArray = re.match(r'<h\d+>(卖盘|买盘|中性盘)\D', state)
 						state = bsArray.group(1)
 
-					stateStr = ''
-					bAddVolumn = 1
-					if (hour==9 and minute==25) or (hour==15 and minute==0):
-						bAddVolumn = 0
-
-					if curvol>Large_Volume:
+					if curvol>1500:
 						bFind = 0
 						for k in range(0, len(Large_Vol_Time)):
 							if (curtime==Large_Vol_Time[k]):
@@ -1188,27 +1194,11 @@ def analyze_data(url, code, deltaVal, deltaTriggle, sarr):
 								sv = 'B'
 							elif cmp(state, '中性盘')==0:
 								sv = 'M'
-							msgstr = 'msg "*" "Hello Big_DT (%s	%s:%d)"'%(curtime, sv, curvol)
-							os.system(msgstr)
-
-					stateStr = state
-					if cmp(state, '卖盘')==0:
-						stateStr = 'SELL卖盘'
-						if bAddVolumn==1:
-							handle_volumn(volume, dataObj, 2)
-					elif cmp(state, '买盘')==0:
-						if bAddVolumn==1:
-							handle_volumn(volume, dataObj, 1)
-					#目前中性盘没有处理
-					elif cmp(state, '中性盘')==0:
-						if bAddVolumn==1:
-							ret = handle_middle_volumn(volume, dataObj, curtime, fluctuate, key.group(3))
-						else:
-							ret = 0
-						if ret==1:
-							stateStr = '买盘'
-						elif ret==2:
-							stateStr = 'SELL卖盘'
+							#20分钟内的大单
+							bMatch = time_range(firstHour, firstMinute, hour, minute, 20)
+							if bMatch==1:
+								msgstr = 'msg "*" "Hello Big_DT (%s	%s:%d)"'%(curtime, sv, curvol)
+								os.system(msgstr)
 
 					totalline += 1
 					price = float(key.group(2))
@@ -1219,22 +1209,16 @@ def analyze_data(url, code, deltaVal, deltaTriggle, sarr):
 						ftfluct = float(fluctuate)
 
 					#针对前5分钟的数据，检查得到最大和最小值
-					bMatch = 0
 					interval = 5
-					if firstMinute<interval:
-						if (minute>=(60-interval+firstMinute) and (firstHour-hour==1)):
-							bMatch = 1
-					else:
-						if (hour==firstHour and firstMinute-minute<=5):
-							bMatch = 1
+					bMatch = time_range(firstHour, firstMinute, hour, minute, interval)
 					if bMatch==1:
 						curIntP = int(float(price)*100)
 						if curIntP<minValue:
 							minValue = curIntP
 						elif curIntP>maxValue:
 							maxValue = curIntP
-					else:
-						break
+					#else:
+					#	break
 
 				count += 1
 				continue
@@ -1267,7 +1251,6 @@ def analyze_data(url, code, deltaVal, deltaTriggle, sarr):
 		if (count==0):
 			if totalline==1:
 				print "Warning: Only one line data"
-				print urlall
 				break
 			if (matchDataFlag==1):
 				#print "Warnig: All invalid data in page=", i
@@ -1282,13 +1265,9 @@ def analyze_data(url, code, deltaVal, deltaTriggle, sarr):
 		#最后i加一，访问下一页，对应 for 循环启动代码
 		i += 1
 
-	#循环得到数据后，判断条件是否满足
-	if ((maxValue-minValue) >= deltaVal):
-		#print maxValue-int(curValue*100)
-		#print int(curValue*100)-minValue
-		if (maxValue-int(curValue*100))<=deltaTriggle:
-			print "Increase: %.02f (%d	%d)"%(curValue, maxValue, minValue)
-			os.system('msg "*" "High value"')
-		elif (int(curValue*100)-minValue)<=deltaTriggle:
-			print "Decrease: %.02f (%d	%d)"%(curValue, maxValue, minValue)
-			os.system('msg "*" "Low value"')
+	#5分钟之内的大小值
+	priceList[0] = curValue
+	priceList[1] = int(curValue*100)
+	priceList[2] = minValue
+	priceList[3] = maxValue
+	#print priceList

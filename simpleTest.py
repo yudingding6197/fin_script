@@ -48,24 +48,4 @@ infoObj = infoRe.match(s8)
 if infoObj:
 	print infoObj.group(1), infoObj.group(2)
 
-Large_Vol_Time = []
-curvol = 900
-curtime='aaa'
-if curvol>500:
-	bFind = 0
-	for k in range(0, len(Large_Vol_Time)):
-		if (curtime==Large_Vol_Time[k]):
-			bFind=1
-			break
-	if bFind==0:
-		Large_Vol_Time.append(curtime)
-		sv = ''
-		if cmp(state, '¬Ù≈Ã')==0:
-			sv = 'S:'
-		elif cmp(state, '¬Ú≈Ã')==0:
-			sv = 'B:'
-		elif cmp(state, '÷––‘≈Ã')==0:
-			sv = 'M:'
-		msgstr = 'msg "*" "Hello Big_DT (%s	%s:%d)"'%(curtime, sv, curvol)
-		os.system(msgstr)
-
+import getToday

@@ -112,6 +112,35 @@ def currentSinaData(url, code, sleepTime):
 				else:
 					COND_COUNT -= sleepTime
 
+def handle_price(priceList):
+	#循环得到数据后，判断条件是否满足
+	maxValue = priceList[3]
+	minValue = priceList[2]
+	curValue = priceList[1]
+	curValue0 = priceList[0]
+	if ((maxValue-minValue) >= deltaV):
+		#print maxValue-int(curValue*100)
+		#print int(curValue*100)-minValue
+		bMatched = 0
+		if (maxValue-curValue)<=deltaTg:
+			print "Increase: %.02f (%d	%d)"%(curValue0, maxValue, minValue)
+			for j in range(0, len(alertPrice)):
+				if curValue==alertPrice[j]:
+					bMatched = 1
+					break
+			if bMatched==0:
+				alertPrice.append(curValue)
+				os.system('msg "*" "High value"')
+		elif (curValue-minValue)<=deltaTg:
+			print "Decrease: %.02f (%d	%d)"%(curValue0, maxValue, minValue)
+			for j in range(0, len(alertPrice)):
+				if curValue==alertPrice[j]:
+					bMatched = 1
+					break
+			if bMatched==0:
+				alertPrice.append(curValue)
+				os.system('msg "*" "Low value"')
+
 pindex = len(sys.argv)
 if pindex<2:
 	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 [睡眠时间] [最大最小值之差 触发消息门限值]\n")
@@ -151,12 +180,14 @@ exgCount=0
 sarr = ''
 url = "http://hq.sinajs.cn/list="
 exUrl = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
+priceList = [0, 0, 0, 0]
+alertPrice = []
 while True:
 	now = datetime.datetime.now()
 	hour = now.hour
 	minute = now.minute
 
-	print "---------------------"
+	print "---------------------[%d:%d:%d]"%(hour, minute,now.second)
 	currentIndexData(url, "s_sh000001")
 	if idxCount>=2:
 		currentIndexData(url, "s_sz399001")
@@ -167,13 +198,22 @@ while True:
 	currentIndexData(url, "s_sz399006")
 	currentSinaData(url, code, slpTime)
 
-	if not (hour==9 and minute>=15 and minute<30):
+	bAnalyze = 0
+	if ((hour==9 and minute>=30) or hour==10 or (hour==11 and minute<=30)):
+		bAnalyze = 1
+	elif (hour==13 or hour==14):
+		bAnalyze = 1
+	bAnalyze = 1
+
+	if bAnalyze==1:
 		if exgCount==0:
-			print ""
-			internal.common.analyze_data(exUrl, code, deltaV, deltaTg, sarr)
+			internal.common.analyze_data(exUrl, code, sarr, priceList)
 			exgCount += slpTime
-		elif exgCount>40:
+			handle_price(priceList)
+		elif exgCount>=30:
 			exgCount = 0
+		else:
+			exgCount += slpTime
 	print "~~~~~~~~~~~~~~~~~~~~~\n"
 
 	if (hour<9 or hour>=15 or hour==12):
