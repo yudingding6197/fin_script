@@ -183,13 +183,17 @@ exUrl = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetai
 #exUrl = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php"
 
 priceList = [0, 0, 0, 0]
+#当价格快速上拉的时候提醒
 alertPrice = []
+#当连续大单出现时报警
+contPrice = []
+
 while True:
 	now = datetime.datetime.now()
 	hour = now.hour
 	minute = now.minute
 
-	print "---------------------[%d:%d:%d]"%(hour, minute,now.second)
+	print "---------------------[%02d:%02d:%02d]"%(hour, minute,now.second)
 	currentIndexData(url, "s_sh000001")
 	if idxCount>=2:
 		currentIndexData(url, "s_sz399001")
@@ -205,11 +209,10 @@ while True:
 		bAnalyze = 1
 	elif (hour==13 or hour==14):
 		bAnalyze = 1
-	#bAnalyze = 1
 
 	if bAnalyze==1:
 		if exgCount==0:
-			internal.common.analyze_data(exUrl, code, sarr, priceList)
+			internal.common.analyze_data(exUrl, code, sarr, priceList, contPrice)
 			exgCount += slpTime
 			handle_price(priceList)
 		elif exgCount>=30:

@@ -319,7 +319,59 @@ def write_statics(ws, fctime, dataObj, qdate, savedTrasData, largeTrasData):
 			for i in range(0,trasLen):
 				cell = chr(ascid+i) + str(row)
 				ws[cell] = list[i]
-	
+
+
+def	handle_last_price(tmpContPrice, contPrice):
+	tmpPriceLen = len(tmpContPrice)
+	contPriceLen = len(contPrice)
+	bChange = 0
+	#逻辑处理，两个数组，新的数组没有数据就忽略
+	#tmpLst=['买盘', 1, 23, 789, ...]
+	#临时数组前两个值含义: tmlLst[0] = '买盘/卖盘', tmlLst[1] = '0/1'  允许添加，还是不能再添加了
+	#大单顺序 '买','买','买','卖','卖','买','买'
+	#'卖'后面的'买单'不能再添加到数组，一共3笔连续大买单
+	if tmpPriceLen>0:
+		#原来数组没有数据，直接替换
+		if contPriceLen==0:
+			for k in range(2,tmpPriceLen):
+				contPrice.append(tmpContPrice[k])
+		else:
+			#对比原来数组和临时数组，临时数组变小，则意味数据一定改变了
+			if (tmpPriceLen-2)<contPriceLen:
+				#tmpLst=['B', 1, 23, 789]
+				#conLst=[12, 122, 32]
+				del contPrice[:]
+				for k in range(2,tmpPriceLen):
+					contPrice.append(tmpContPrice[k])
+				bChange = 1
+			else:
+				#原来数组小于或者等于临时数组，对比每一个数据
+				bAllMatch = 1
+				for k in range(0, contPriceLen):
+					if (tmpContPrice[k+2]!=contPrice[k]):
+						bAllMatch = 0
+				if bAllMatch==0:
+					#如果数据不完全一致，重新替换
+					#tmpLst=['B', 1, 12, 111, 55, 343, 455]
+					#conLst=[12, 122, 32]
+					del contPrice[:]
+					for k in range(2,tmpPriceLen):
+						contPrice.append(tmpContPrice[k])
+					bChange = 1
+				else:
+					#数据完全一致，意味着在原来数组基础上增加新值
+					#tmpLst=['B', 1, 12, 122, 32, 343, 455]
+					#conLst=[12, 122, 32]
+					if (tmpPriceLen-2)>contPriceLen:
+						for k in range(contPriceLen+2,tmpPriceLen):
+							contPrice.append(tmpContPrice[k])
+						bChange = 1
+		#如果数据发生了改变，增加或者重新替换，但是对长度有要求：超过5
+		if (len(contPrice)>=6 and bChange==1):
+			print "Price:::",contPrice
+			msgstr = 'msg "*" "Continued value:%d"'%(contPriceLen)
+			os.system(msgstr)
+
 
 def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	todayUrl = "http://hq.sinajs.cn/list=" + code
@@ -1005,7 +1057,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 		wb.save(filexlsx)
 		#print qdate+ " Saved OK!"
 
-def analyze_data(url, code, sarr, priceList):
+def analyze_data(url, code, sarr, priceList, contPrice):
 	url = url +"?symbol="+ code
 	dataObj = []
 	if cmp(sarr, '')==0:
@@ -1057,10 +1109,7 @@ def analyze_data(url, code, sarr, priceList):
 	minValue = 0
 	maxValue = 0
 	curValue = 0
-	stateValue = ''
-	stateCount = 0
-	stateList = []
-	stateMatch = 0
+	tmpContPrice = []
 	pageIdx = 1
 	for j in range(pageIdx,1000):
 		urlall = url + "&page=" +str(i)
@@ -1198,36 +1247,31 @@ def analyze_data(url, code, sarr, priceList):
 								sv = 'B'
 							elif cmp(state, '中性盘')==0:
 								sv = 'M'
-							#20分钟内的大单
-							bMatch = time_range(firstHour, firstMinute, hour, minute, 20)
+							#15分钟内的大单
+							bMatch = time_range(firstHour, firstMinute, hour, minute, 15)
 							if bMatch==1:
 								msgstr = 'msg "*" "Hello Big_DT (%s	%s:%d)"'%(curtime, sv, curvol)
 								os.system(msgstr)
 					if curvol>=300:
-						if cmp(stateValue, state)==0:
-							stateCount += 1
-							stateList.append(curvol)
+						if (len(tmpContPrice)==0):
+							if (state=='卖盘' or state=='买盘'):
+								tmpContPrice.append(state)
+								tmpContPrice.append(1)
+								tmpContPrice.append(curvol)
 						else:
-							if cmp(state, '卖盘')==0:
-								stateValue = state
-								stateCount = 1
-								stateList = []
-								stateList.append(curvol)
-							elif cmp(state, '买盘')==0:
-								stateValue = state
-								stateCount = 1
-								stateList = []
-								stateList.append(curvol)
-							elif cmp(state, '中性盘')==0:
-								stateCount += 1
-								if cmp(stateValue, '')!=0:
-									stateList.append(curvol)
-						if stateCount==7:
-							if stateMatch==0:
-								print stateList
-								msgstr = 'msg "*" "Hello Continue value:%d"'%(stateCount)
-								os.system(msgstr)
-								stateMatch = 1
+							stateValue = tmpContPrice[0]
+							allowAdd = tmpContPrice[1]
+							if (allowAdd==1):
+								if cmp(stateValue, state)==0:
+									tmpContPrice.append(curvol)
+								else:
+									if cmp(state, '卖盘')==0:
+										tmpContPrice[1] = 0
+									elif cmp(state, '买盘')==0:
+										tmpContPrice[1] = 0
+									elif cmp(state, '中性盘')==0:
+										tmpContPrice.append(curvol)
+						handle_last_price(tmpContPrice, contPrice)
 
 					totalline += 1
 					price = float(key.group(2))
