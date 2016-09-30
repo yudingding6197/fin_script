@@ -330,7 +330,7 @@ def	handle_last_price(tmpContPrice, contPrice):
 	#临时数组前两个值含义: tmlLst[0] = '买盘/卖盘', tmlLst[1] = '0/1'  允许添加，还是不能再添加了
 	#大单顺序 '买','买','买','卖','卖','买','买'
 	#'卖'后面的'买单'不能再添加到数组，一共3笔连续大买单
-	if tmpPriceLen>0:
+	if tmpPriceLen>2:
 		#原来数组没有数据，直接替换
 		if contPriceLen==0:
 			for k in range(2,tmpPriceLen):
@@ -340,10 +340,16 @@ def	handle_last_price(tmpContPrice, contPrice):
 			if (tmpPriceLen-2)<contPriceLen:
 				#tmpLst=['B', 1, 23, 789]
 				#conLst=[12, 122, 32]
-				del contPrice[:]
+				bAllMatch = 1
 				for k in range(2,tmpPriceLen):
+					if (tmpContPrice[k]!=contPrice[k-2]):
+						bAllMatch = 0
+				if bAllMatch==0:
 					contPrice.append(tmpContPrice[k])
-				bChange = 1
+					del contPrice[:]
+					for k in range(2,tmpPriceLen):
+						contPrice.append(tmpContPrice[k])
+					bChange = 1
 			else:
 				#原来数组小于或者等于临时数组，对比每一个数据
 				bAllMatch = 1
@@ -367,6 +373,7 @@ def	handle_last_price(tmpContPrice, contPrice):
 							contPrice.append(tmpContPrice[k])
 						bChange = 1
 		#如果数据发生了改变，增加或者重新替换，但是对长度有要求：超过5
+		contPriceLen = len(contPrice)
 		if (len(contPrice)>=6 and bChange==1):
 			print "Price:::",contPrice
 			msgstr = 'msg "*" "Continued value:%d"'%(contPriceLen)
@@ -1232,7 +1239,7 @@ def analyze_data(url, code, sarr, priceList, contPrice):
 						bsArray = re.match(r'<h\d+>(卖盘|买盘|中性盘)\D', state)
 						state = bsArray.group(1)
 
-					if curvol>1500:
+					if curvol>Large_Volume:
 						bFind = 0
 						for k in range(0, len(Large_Vol_Time)):
 							if (curtime==Large_Vol_Time[k]):
