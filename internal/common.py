@@ -8,13 +8,13 @@ import urllib
 import urllib2
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
+import ctypes
 
 #url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001&date=2015-09-10&page=48"
 #成交时间	成交价	涨跌幅	价格变动	成交量(手)		成交额(元)	性质
 #	<tr ><th>11:29:48</th><td>14.57</td><td>-3.06%</td><td>+0.01</td><td>16</td><td>23,312</td><th><h1>中性盘</h1></th></tr>
 #<tr ><th>11:29:36</th><td>14.56</td><td>-3.13%</td><td>--</td><td>9</td><td>13,104</td><th><h6>卖盘</h6></th></tr>
 #<tr ><th>11:29:21</th><td>14.56</td><td>-3.13%</td><td>-0.02</td><td>10</td><td>14,560</td><th><h6>卖盘</h6></th></tr>
-#os.system('msg "*" "aaa"')
 
 class fitItem:
 	volumn = 0
@@ -376,9 +376,8 @@ def	handle_last_price(tmpContPrice, contPrice):
 		contPriceLen = len(contPrice)
 		if (len(contPrice)>=6 and bChange==1):
 			print "Price:::",contPrice
-			msgstr = 'msg "*" "Continued value:%d"'%(contPriceLen)
-			os.system(msgstr)
-
+			msgstr = u'Continued value:%d'%(contPriceLen)
+			ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
 
 def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	todayUrl = "http://hq.sinajs.cn/list=" + code
@@ -475,7 +474,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	strObj = strline.split(u',')
 	ws.append(strObj)
 	#dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
-	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th>(.*)\D')
+	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+|\+?\d+|\-\d+)\D+(\d+)</td><td>([\d,]+)</td><th>(.*)\D')
 	frameRe = re.compile(r'.*name=\"list_frame\" src=\"(.*)\" frameborder')
 	keyw = '收盘价|涨跌幅|前收价|开盘价|最高价|最低价|成交量|成交额'
 	infoRe = re.compile(r'\D+('+keyw+').*>(\+?-?\d+\.\d+)')
@@ -497,7 +496,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 	for j in range(1,1000):
 		urlall = url + "&page=" +str(i)
-		#print "(%d):%s" %(i,url)
+		#print "(%d):%s" %(i,urlall)
 
 		if excecount>10:
 			print "Quit with exception i=", i
@@ -509,7 +508,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			res_data = urllib2.urlopen(req, timeout=5).readlines()
 			lineCount = len(res_data)
 		except:
-			print "Get URL except"
+			print "URL1 except:",urlall
 			excecount += 1
 			continue
 		else:
@@ -723,9 +722,9 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					if (row==2 and bhist==1):
 						ascid = 72
 						number = len(stockInfo)
-						for j in range(0,number):
-							cell = chr(ascid+j) + str(row)
-							ws[cell] = stockInfo[j]
+						for k in range(0,number):
+							cell = chr(ascid+k) + str(row)
+							ws[cell] = stockInfo[k]
 
 				count += 1
 				continue
@@ -865,16 +864,16 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质,收盘价,涨跌幅,前收价,开盘价,最高价,最低价,成交量,成交额'
 	strObj = strline.split(u',')
 	ws.append(strObj)
-	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(--|\+?\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
+	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(--|\+?\d+.\d+|-\d+.\d+|\+?\d+|\-\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
 	excecount = 0
 	savedTrasData = []
 	savedTrasData2 = []
 	largeTrasData = []
 	lineCount = 0
-
-	for i in range(1,1000):
+	i = 1
+	for j in range(1,1000):
 		urlall = url + "&page=" +str(i)
-		#print "HIS(%d):%s" %(i,url)
+		#print "HIS(%d):%s" %(i,urlall)
 
 		if excecount>10:
 			print "Quit with exception i=", i
@@ -886,7 +885,7 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 			res_data = urllib2.urlopen(req, timeout=5).readlines()
 			lineCount = len(res_data)
 		except:
-			print "Get URL except"
+			print "URL2 except=",urlall
 			excecount += 1
 			continue
 		else:
@@ -988,9 +987,9 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 						if row==2:
 							ascid = 72
 							number = len(stockInfo)
-							for j in range(0,number):
-								cell = chr(ascid+j) + str(row)
-								ws[cell] = stockInfo[j]
+							for k in range(0,number):
+								cell = chr(ascid+k) + str(row)
+								ws[cell] = stockInfo[k]
 
 						#将开始和最后成交数据保存
 						bSaveFlag = 0
@@ -1036,6 +1035,9 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 		if (count==0):
 			print "No data found i=", i, ", QUIT"
 			break;
+		#最后i加一，访问下一页，对应 for 循环启动代码
+		i += 1
+
 	ws.auto_filter.ref = "A1:G1"
 
 	if addcsv==1:
@@ -1132,7 +1134,7 @@ def analyze_data(url, code, sarr, priceList, contPrice):
 			res_data = urllib2.urlopen(req, timeout=2).readlines()
 			lineCount = len(res_data)
 		except:
-			print "Get URL except"
+			print "URL3 except:",urlall
 			excecount += 1
 			continue
 		else:
@@ -1257,8 +1259,8 @@ def analyze_data(url, code, sarr, priceList, contPrice):
 							#15分钟内的大单
 							bMatch = time_range(firstHour, firstMinute, hour, minute, 15)
 							if bMatch==1:
-								msgstr = 'msg "*" "Hello Big_DT (%s	%s:%d)"'%(curtime, sv, curvol)
-								os.system(msgstr)
+								msgstr = u'Hello Big_DT (%s	%s:%d)'%(curtime, sv, curvol)
+								ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
 					if curvol>=300:
 						if (len(tmpContPrice)==0):
 							if (state=='卖盘' or state=='买盘'):

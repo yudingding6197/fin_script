@@ -10,6 +10,7 @@ from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 import internal.common
 import time
+import ctypes
 
 ALERT_HIGH = 0
 COND_COUNT = 0
@@ -106,7 +107,7 @@ def currentSinaData(url, code, sleepTime):
 				print highIntP, curIntP
 				if ALERT_HIGH<curIntP:
 					ALERT_HIGH = curIntP
-					os.system('msg "*" "High! Have a rest"')
+					ctypes.windll.user32.MessageBoxW(0, u'High! Have a rest', '', 0)
 				if COND_COUNT<=0:
 					COND_COUNT = 60
 				else:
@@ -130,7 +131,7 @@ def handle_price(priceList):
 					break
 			if bMatched==0:
 				alertPrice.append(curValue)
-				os.system('msg "*" "High value"')
+				ctypes.windll.user32.MessageBoxW(0, u'High value', '', 0)
 		elif (curValue-minValue)<=deltaTg:
 			print "Decrease: %.02f (%d	%d)"%(curValue0, maxValue, minValue)
 			for j in range(0, len(alertPrice)):
@@ -139,7 +140,7 @@ def handle_price(priceList):
 					break
 			if bMatched==0:
 				alertPrice.append(curValue)
-				os.system('msg "*" "Low value"')
+				ctypes.windll.user32.MessageBoxW(0, u'Low value', '', 0)
 
 pindex = len(sys.argv)
 if pindex<2:

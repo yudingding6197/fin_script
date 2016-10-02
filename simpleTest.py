@@ -6,6 +6,7 @@ import re
 import os
 import time
 import datetime
+import ctypes
 
 from internal.common import *
 
@@ -19,6 +20,8 @@ tmpPriceLen = len(tmpContPrice)
 contPriceLen = len(contPrice)
 bChange = 0
 
+msgstr = u"Continued value:%d"%(contPriceLen)
+ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
 print tmpPriceLen, contPriceLen
 if tmpPriceLen>0:
 	if contPriceLen==0:
@@ -47,6 +50,7 @@ if tmpPriceLen>0:
 					bChange = 1
 	print "CCCCCCCCCCCC", contPrice
 	if (len(contPrice)>=6 and bChange==1):
-		msgstr = 'msg "*" "Continued value:%d"'%(contPriceLen)
+		msgstr = "Continued value:%d"%(contPriceLen)
+		#ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
 		#os.system(msgstr)
 
