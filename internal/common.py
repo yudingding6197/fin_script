@@ -326,8 +326,8 @@ def	handle_last_price(tmpContPrice, contPrice):
 	contPriceLen = len(contPrice)
 	bChange = 0
 	#逻辑处理，两个数组，新的数组没有数据就忽略
-	#tmpLst=['买盘', 1, 23, 789, ...]
-	#临时数组前两个值含义: tmlLst[0] = '买盘/卖盘', tmlLst[1] = '0/1'  允许添加，还是不能再添加了
+	#tmpContPrice=['买盘', 1, 23, 789, ...]
+	#临时数组前两个值含义: tmpContPrice[0] = '买盘/卖盘', tmpContPrice[1] = '0/1'  允许添加，还是不能再添加了
 	#大单顺序 '买','买','买','卖','卖','买','买'
 	#'卖'后面的'买单'不能再添加到数组，一共3笔连续大买单
 	if tmpPriceLen>2:
@@ -374,10 +374,12 @@ def	handle_last_price(tmpContPrice, contPrice):
 						bChange = 1
 		#如果数据发生了改变，增加或者重新替换，但是对长度有要求：超过5
 		contPriceLen = len(contPrice)
-		if (len(contPrice)>=6 and bChange==1):
-			print "Price:::",contPrice
-			msgstr = u'Continued value:%d'%(contPriceLen)
-			ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
+		if (contPriceLen>=6 and bChange==1):
+			#print "Price:::",contPrice
+			#msgstr = u'Continued value:%d'%(contPriceLen)
+			#ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
+			return 1
+	return 0
 
 def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	todayUrl = "http://hq.sinajs.cn/list=" + code
@@ -1120,6 +1122,8 @@ def analyze_data(url, code, sarr, priceList, contPrice):
 	curValue = 0
 	tmpContPrice = []
 	pageIdx = 1
+	bAlert = 0
+	bLastAlert = 0
 	for j in range(pageIdx,1000):
 		urlall = url + "&page=" +str(i)
 
@@ -1280,7 +1284,21 @@ def analyze_data(url, code, sarr, priceList, contPrice):
 										tmpContPrice[1] = 0
 									elif cmp(state, '中性盘')==0:
 										tmpContPrice.append(curvol)
-						handle_last_price(tmpContPrice, contPrice)
+						bAlert = handle_last_price(tmpContPrice, contPrice)
+						if bLastAlert==1 and bAlert==0:
+							print "Price=", contPrice
+							totalVol = 0
+							contPriceLen = len(contPrice)
+							for k in range(0, contPriceLen):
+								totalVol += contPrice[k]
+							sv = 'BB'
+							if tmpContPrice[0]=='卖盘':
+								sv = 'SS'
+							msgstr = u'Continued(%s) %d: %d'%(sv, contPriceLen, totalVol/contPriceLen)
+							ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
+							bLastAlert = bAlert
+						elif bAlert==1 and bLastAlert==0:
+							bLastAlert = bAlert
 
 					totalline += 1
 					price = float(key.group(2))

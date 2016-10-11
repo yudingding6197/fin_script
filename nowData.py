@@ -15,6 +15,8 @@ import ctypes
 ALERT_HIGH = 0
 COND_COUNT = 0
 slpTime=1
+ZT_BUY_VOL = 0
+DT_SELL_VOL = 0
 
 def currentIndexData(url, code):
 	urllink = url + code
@@ -33,6 +35,9 @@ def currentIndexData(url, code):
 def currentSinaData(url, code, sleepTime):
 	global COND_COUNT
 	global ALERT_HIGH
+	global ZT_BUY_VOL
+	global DT_SELL_VOL
+
 	urllink = url + code
 	buy = []
 	buyVol = []
@@ -95,13 +100,32 @@ def currentSinaData(url, code, sleepTime):
 		highPercent = (highIntP-lastIntP)*10000/lastIntP
 		lowPercent = (lowIntP-lastIntP)*10000/lastIntP
 
+		#可能ZT
+		if (sellVol[0]==0 and sellVol[1]==0 and sellVol[2]==0 and sellVol[3]==0):
+			dltVol = ZT_BUY_VOL - buyVol[0]
+			if dltVol<0:
+				ZT_BUY_VOL = buyVol[0]
+			elif dltVol>=100000:
+				msgstr = u'ZZ Quickly Change %d,%d'%(ZT_BUY_VOL, buyVol[0])
+				ZT_BUY_VOL = buyVol[0]
+				ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
+		#可能DT
+		elif (buyVol[0]==0 and buyVol[1]==0 and buyVol[2]==0 and buyVol[3]==0):
+			dltVol = DT_SELL_VOL - sellVol[0]
+			if dltVol<0:
+				DT_SELL_VOL = sellVol[0]
+			elif dltVol>=100000:
+				msgstr = u'DD Quickly Change %d,%d'%(DT_SELL_VOL, sellVol[0])
+				DT_SELL_VOL = sellVol[0]
+				ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
+
 		#最高涨幅百分比期望超过最低涨幅百分比 0.5%(转为整数位50)
 		if (highIntP-curIntP)<15 and (highPercent-lowPercent)>50:
-			#可能ZT
-			if (buyVol[1]==0 and buyVol[2]==0 and buyVol[3]==0):
-				pass
 			#可能DT
-			elif (sellVol[1]==0 and sellVol[2]==0 and sellVol[3]==0):
+			if (buyVol[0]==0 and buyVol[1]==0 and buyVol[2]==0 and buyVol[3]==0):
+				pass
+			#可能ZT
+			elif (sellVol[0]==0 and sellVol[1]==0 and sellVol[2]==0 and sellVol[3]==0):
 				pass
 			else:
 				print highIntP, curIntP
