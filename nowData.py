@@ -51,6 +51,8 @@ def currentSinaData(url, code, sleepTime):
 	else:
 		stockObj = stockData.split(',')
 		stockLen = len(stockObj)
+		if stockLen<10:
+			return
 		#for i in range(0, stockLen):
 		#	print "%02d:	%s" % (i, stockObj[i])
 
