@@ -76,11 +76,11 @@ if (len(code) != 6):
 	exit(1);
 
 head3 = code[0:3]
-result = (cmp(head3, "000")==0) or (cmp(head3, "002")==0) or (cmp(head3, "300")==0)
+result = (cmp(head3, "000")==0) or (cmp(head3, "002")==0) or (cmp(head3, "300")==0) or (cmp(head3, "131")==0)
 if result is True:
 	code = "sz" + code
 else:
-	result = (cmp(head3, "600")==0) or (cmp(head3, "601")==0) or (cmp(head3, "603")==0)
+	result = (cmp(head3, "600")==0) or (cmp(head3, "601")==0) or (cmp(head3, "603")==0) or (cmp(head3, "204")==0)
 	if result is True:
 		code = "sh" + code
 	else:

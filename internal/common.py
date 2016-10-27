@@ -495,6 +495,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	largeTrasData = []
 	i = 1
 	lineCount = 0
+	firstRec = 0
 
 	for j in range(1,1000):
 		urlall = url + "&page=" +str(i)
@@ -526,6 +527,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		matchDataFlag = 0
 		idx = 0
 		line = ''
+		firstRec = 0
 		
 		#开始读取每一页返回的内容，首先查找'成交时间'/'收盘价'，过滤大量不需要的内容
 		if bhist==0 or bhist==2:
@@ -583,19 +585,22 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 				if curvol==0:
 					continue
 
+				ret,hour,minute,second = parseTime(curtime)
+				if (ret==-1):
+					continue
+
 				#记住当前页第一个的时间
 				if (bFtime==0):
 					timeobj = re.search(curtime, pageFtime)
 					if timeobj:
-						print "bFtime 0 quit"
+						print "bFtime matched ", curtime
+						if (hour==9 and minute<30):
+							firstRec = 1
 						break
 					pageFtime = curtime
 					bFtime = 1
 
 				matchDataFlag = 1
-				ret,hour,minute,second = parseTime(curtime)
-				if (ret==-1):
-					continue
 				if (key.group(2)=="0.00") or (key.group(3)=="-100.00%"):
 					print "page(%d) Price(%s) or range(%s) is invalid value"%(i, key.group(2), key.group(3))
 					continue
@@ -769,6 +774,8 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 		#此时还应该有数据，但是得到的数据数量为0，重新获取数据
 		if (count==0):
+			if firstRec==1:
+				break
 			if totalline==1:
 				print "Warning: Only one line data"
 				print urlall
@@ -779,7 +786,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			print "Warnig: !!! Reload data in page=", i
 			reloadUrl += 1
 			if (reloadUrl>9):
-				print "获取数据可能不完整，建议重新获取"
+				print "Get Data:获取数据可能不完整，建议重新获取"
 				break
 			continue
 
@@ -1124,6 +1131,10 @@ def analyze_data(url, code, sarr, priceList, contPrice):
 	pageIdx = 1
 	bAlert = 0
 	bLastAlert = 0
+
+	#临时处理方案，对国债逆回购
+	head5 = code[0:5]
+	bBigChange = (cmp(head5, "sz131")==0) or (cmp(head5, "sh204")==0)
 	for j in range(pageIdx,1000):
 		urlall = url + "&page=" +str(i)
 
@@ -1263,8 +1274,9 @@ def analyze_data(url, code, sarr, priceList, contPrice):
 							#15分钟内的大单
 							bMatch = time_range(firstHour, firstMinute, hour, minute, 15)
 							if bMatch==1:
-								msgstr = u'Hello Big_DT (%s	%s:%d)'%(curtime, sv, curvol)
-								ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
+								if not bBigChange:
+									msgstr = u'Hello Big_DT (%s	%s:%d)'%(curtime, sv, curvol)
+									ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
 					if curvol>=300:
 						if (len(tmpContPrice)==0):
 							if (state=='卖盘' or state=='买盘'):
@@ -1294,8 +1306,9 @@ def analyze_data(url, code, sarr, priceList, contPrice):
 							sv = 'BB'
 							if tmpContPrice[0]=='卖盘':
 								sv = 'SS'
-							msgstr = u'Continued(%s) %d: %d'%(sv, contPriceLen, totalVol/contPriceLen)
-							ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
+							if not bBigChange:
+								msgstr = u'Continued(%s) %d: %d'%(sv, contPriceLen, totalVol/contPriceLen)
+								ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
 							bLastAlert = bAlert
 						elif bAlert==1 and bLastAlert==0:
 							bLastAlert = bAlert

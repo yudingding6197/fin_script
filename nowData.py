@@ -44,6 +44,7 @@ def currentSinaData(url, code, sleepTime):
 	sell = []
 	sellVol = []
 	try:
+		print urllink
 		req = urllib2.Request(urllink)
 		stockData = urllib2.urlopen(req, timeout=2).read()
 	except:
@@ -179,11 +180,11 @@ if (len(code) != 6):
 	exit(1);
 
 head3 = code[0:3]
-result = (cmp(head3, "000")==0) or (cmp(head3, "002")==0) or (cmp(head3, "300")==0)
+result = (cmp(head3, "000")==0) or (cmp(head3, "002")==0) or (cmp(head3, "300")==0) or (cmp(head3, "131")==0)
 if result is True:
 	code = "sz" + code
 else:
-	result = (cmp(head3, "600")==0) or (cmp(head3, "601")==0) or (cmp(head3, "603")==0)
+	result = (cmp(head3, "600")==0) or (cmp(head3, "601")==0) or (cmp(head3, "603")==0) or (cmp(head3, "204")==0)
 	if result is True:
 		code = "sh" + code
 	else:
@@ -215,6 +216,10 @@ alertPrice = []
 #当连续大单出现时报警
 contPrice = []
 
+#临时处理方案，对国债逆回购
+head5 = code[0:5]
+bBigChange = (cmp(head5, "sz131")==0) or (cmp(head5, "sh204")==0)
+
 while True:
 	now = datetime.datetime.now()
 	hour = now.hour
@@ -239,9 +244,10 @@ while True:
 
 	if bAnalyze==1:
 		if exgCount==0:
-			internal.common.analyze_data(exUrl, code, sarr, priceList, contPrice)
+			if not bBigChange:
+				internal.common.analyze_data(exUrl, code, sarr, priceList, contPrice)
+				handle_price(priceList)
 			exgCount += slpTime
-			handle_price(priceList)
 		elif exgCount>=30:
 			exgCount = 0
 		else:
