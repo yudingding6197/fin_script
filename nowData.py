@@ -44,7 +44,7 @@ def currentSinaData(url, code, sleepTime):
 	sell = []
 	sellVol = []
 	try:
-		print urllink
+		#print urllink
 		req = urllib2.Request(urllink)
 		stockData = urllib2.urlopen(req, timeout=2).read()
 	except:
