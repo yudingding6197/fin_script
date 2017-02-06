@@ -79,6 +79,9 @@ def parseDate(qdate, today):
 			print "非法日期格式：" +qdate+ ",期望格式:YYYYMMDD or MMDD"
 			return (-1, '')
 		else:
+			if len(qdate)>4:
+				print "非法日期格式：" +qdate+ ",期望格式:YYYYMMDD or MMDD"
+				return (-1, '')
 			year = today.year
 			month = int(dateObj.group(1))
 			day = int(dateObj.group(2))

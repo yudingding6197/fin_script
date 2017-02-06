@@ -254,9 +254,11 @@ while True:
 			exgCount += slpTime
 	print "~~~~~~~~~~~~~~~~~~~~~\n"
 
-	if (hour<9 or hour>=15 or hour==12):
+	if (hour<9 or hour>15 or hour==12):
 		break
 	elif (hour==9 and minute<15):
+		break
+	elif (hour==15 and minute>0):
 		break
 	elif (hour==11 and minute>30):
 		break
