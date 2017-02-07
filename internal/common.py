@@ -447,6 +447,10 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			print "URL timeout"
 		else:
 			stockObj = stockData.split(',')
+			if len(stockObj)<10:
+				print code, ": No trade data"
+				return -1
+
 			closePrice = float(stockObj[3])
 			lastClsPrice = float(stockObj[2])
 			openPrice = float(stockObj[1])
