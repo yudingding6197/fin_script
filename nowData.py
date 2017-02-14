@@ -9,6 +9,7 @@ import urllib2
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 import internal.common
+import internal.ts_common
 import time
 import ctypes
 
@@ -242,10 +243,13 @@ while True:
 	elif (hour==13 or hour==14):
 		bAnalyze = 1
 
+	value = 0
 	if bAnalyze==1:
 		if exgCount==0:
 			if not bBigChange:
-				internal.common.analyze_data(exUrl, code, sarr, priceList, contPrice)
+				value = internal.ts_common.ts_analyze_data(exUrl, code, sarr, priceList, contPrice)
+				if value==-1:
+					break
 				handle_price(priceList)
 			exgCount += slpTime
 		elif exgCount>=30:

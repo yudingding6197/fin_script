@@ -303,3 +303,182 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 	wb.save(filexlsx)
 	return 0
+
+def ts_analyze_data(url, code, sarr, priceList, contPrice):
+	url = url +"?symbol="+ code
+	dataObj = []
+	if cmp(sarr, '')==0:
+		sarr = dftsarr
+	volObj = sarr.split(',')
+	arrlen = len(volObj)
+	for i in range(0,arrlen):
+		obj = fitItem(int(volObj[i]))
+		dataObj.append(obj)
+	dataObjLen = len(dataObj)
+
+	totalline = 0
+	#可能数据在不同的页面，同时存在，这是重复数据需要过滤重复结果
+	#还可能相同时间，产生多个成交量，需要都保留
+	lasttime = ''
+	lastvol = 0
+	pageFtime = ''
+	bFtime = 0
+	hisUrl = ''
+	fctime = ''
+	todayData = []
+	todayDataLen = 0
+	bGetToday = 0
+
+	cur=datetime.datetime.now()
+
+	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质,收盘价,涨跌幅,前收价,开盘价,最高价,最低价,成交量,成交额'
+	strObj = strline.split(u',')
+	#dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th><h\d+>(卖盘|买盘|中性盘)\D')
+	dtlRe = re.compile(r'\D+(\d{2}:\d{2}:\d{2})\D+(\d+.\d{1,2})</td><td>(\+?-?\d+.\d+%)\D+(--|\+\d+.\d+|-\d+.\d+)\D+(\d+)</td><td>([\d,]+)</td><th>(.*)\D')
+	frameRe = re.compile(r'.*name=\"list_frame\" src=\"(.*)\" frameborder')
+	keyw = '收盘价|涨跌幅|前收价|开盘价|最高价|最低价|成交量|成交额'
+	infoRe = re.compile(r'\D+('+keyw+').*>(\+?-?\d+\.\d+)')
+	excecount = 0
+	stockInfo = []
+	reloadUrl = 0
+	noDataFlag = 0
+	noDataKey = "该股票没有交易数据"
+	notTrasFlag = 0
+	notTrasKey = "输入的日期为非交易日期"
+	#每一页的数据，如果找到匹配数据则设置为1；解决有时候页面有数据但是收不到，
+	#count为0，重新加载尝试再次获取；如果解析到数据的页面，如果count为0就不再继续解析数据
+	matchDataFlag = 0
+	i = 1
+	lineCount = 0
+	firstHour = 0
+	firstMinute = 0
+	firstSecond = 0
+	minValue = 0
+	maxValue = 0
+	curValue = 0
+	tmpContPrice = []
+	pageIdx = 1
+	bAlert = 0
+	bLastAlert = 0
+
+	st_buy = '买盘'.decode('gbk')
+	st_sell = '卖盘'.decode('gbk')
+	st_mid = '中性盘'.decode('gbk')
+
+	#临时处理方案，对国债逆回购
+	head5 = code[0:5]
+	bBigChange = (cmp(head5, "sz131")==0) or (cmp(head5, "sh204")==0)
+
+	#获取当天所有分笔交易
+	curcode=code
+	if len(code)==8:
+		curcode=code[2:8]
+	while excecount<=3:
+		df = ts.get_today_ticks(curcode)
+		if df is None:
+			excecount += 1
+			continue
+		excecount += 1
+		if df.size>0:
+			break
+
+	print ""
+	#尝试3次，检查结果
+	if df is None:
+		print curcode, ": None Object"
+		return -1
+	if df.size==0:
+		print curcode, ": Fail to get today ticks"
+		return -1
+
+	for index,row in df.iterrows():
+		curtime = row['time']
+		curprice = row['price']
+		range_per = ''
+		#if last_close!=0:
+		#	range_val = ((float(curprice)-last_close) * 100) / last_close
+		#	range_per = round(range_val, 2)
+		fluctuate = row['change']
+		curvol = int(row['volume'])
+		volume = curvol
+		amount = row['amount']
+		state = row['type']#.decode('utf8')
+		lasttime = curtime
+		lastvol = curvol
+		volume = curvol
+		#print curtime,curprice,row['pchange'],row['change'],curvol,amount,row['type'],state
+
+		ret,hour,minute,second = parseTime(curtime)
+		if (ret==-1):
+			continue
+		if (curprice=="0.00") or (fluctuate=="-100.00%"):
+			print "page(%d) Price(%s) or range(%s) is invalid value"%(i, key.group(2), key.group(3))
+			continue
+		if (hour==9 and minute<=20) or (hour==15 and minute>1):
+			count += 1
+			continue
+
+		if curvol>Large_Volume:
+			#记录成交时间，判断防止数据重复
+			bFind = 0
+			for k in range(0, len(Large_Vol_Time)):
+				if (curtime==Large_Vol_Time[k]):
+					bFind=1
+					break
+			if bFind==0:
+				Large_Vol_Time.append(curtime)
+				sv = ''
+				if state==st_sell:
+					sv = 'S'
+				elif state==st_buy:
+					sv = 'B'
+				elif state==st_mid:
+					sv = 'M'
+
+				#15分钟内的大单
+				bMatch = time_range(firstHour, firstMinute, hour, minute, 15)
+				if bMatch==1:
+					if not bBigChange:
+						msgstr = u'Hello Big_DT (%s	%s:%d)'%(curtime, sv, curvol)
+						ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
+
+		if curvol>=300:
+			if (len(tmpContPrice)==0):
+				if (state==st_sell or state==st_buy):
+					tmpContPrice.append(state)
+					tmpContPrice.append(1)
+					tmpContPrice.append(curvol)
+			else:
+				stateValue = tmpContPrice[0]
+				allowAdd = tmpContPrice[1]
+				if (allowAdd==1):
+					if cmp(stateValue, state)==0:
+						tmpContPrice.append(curvol)
+					else:
+						if state==st_sell:
+							tmpContPrice[1] = 0
+						elif state==st_buy:
+							tmpContPrice[1] = 0
+						elif state==st_mid:
+							tmpContPrice.append(curvol)
+			bAlert = handle_last_price(tmpContPrice, contPrice)
+			if bLastAlert==1 and bAlert==0:
+				print "Price=", contPrice
+				totalVol = 0
+				contPriceLen = len(contPrice)
+				for k in range(0, contPriceLen):
+					totalVol += contPrice[k]
+				sv = 'BB'
+				if tmpContPrice[0]==st_sell:
+					sv = 'SS'
+				if not bBigChange:
+					msgstr = u'Continued(%s) %d: %d'%(sv, contPriceLen, totalVol/contPriceLen)
+					ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
+				bLastAlert = bAlert
+			elif bAlert==1 and bLastAlert==0:
+				bLastAlert = bAlert
+
+	priceList[0] = curValue
+	priceList[1] = int(curValue*100)
+	priceList[2] = minValue
+	priceList[3] = maxValue
