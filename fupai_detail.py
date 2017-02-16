@@ -12,6 +12,20 @@ from openpyxl.reader.excel  import  load_workbook
 from internal.common import *
 from internal.ts_common import *
 
+reload(sys)
+sys.setdefaultencoding('gbk')
+
+def list_stock_news_sum(codeArray, curdate, file):
+	codeLen = len(codeArray)
+	for j in range(0, codeLen):
+		df = ts.get_notices(codeArray[j],curdate)
+		if file is None:
+			continue
+		for index,row in df.iterrows():
+			file.write("%s,%s"%(row['date'],row['title']))
+			file.write("\r\n")
+		file.write("\r\n")
+
 prepath = "..\\Data\\"
 pindex = len(sys.argv)
 today = datetime.date.today()
@@ -36,7 +50,7 @@ url = "http://www.cninfo.com.cn/information/memo/jyts_more.jsp?datePara="
 
 totalline = 0
 lasttime = ''
-filename = prepath + 'fupai' + curdate
+filename = prepath + 'fupai' + curdate + '_detail'
 filetxt = filename + '.txt'
 fl = open(filetxt, 'w')
 
@@ -95,7 +109,7 @@ while line:
 			fl.write(codename)
 			fl.write("\n")
 			print stockCode[stockIdx],codename
-			#list_stock_news(stockCode[stockIdx], curdate, None)
+			list_stock_news(stockCode[stockIdx], curdate, fl)
 			totalline += 1
 		count = 0
 		ignore = 0
@@ -107,9 +121,12 @@ while line:
 	line = res_data.readline()
 
 #将所有的数据汇总输出
+fl.write("\n====================================================================================\n")
 list_stock_rt(stockCode, curdate, fl)
+list_stock_news_sum(stockCode, curdate, fl)
 
 fl.close()
 if (totalline==0):
 	print "No Matched Record"
 	os.remove(filetxt)
+	

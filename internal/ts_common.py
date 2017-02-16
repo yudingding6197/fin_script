@@ -482,3 +482,35 @@ def ts_analyze_data(url, code, sarr, priceList, contPrice):
 	priceList[1] = int(curValue*100)
 	priceList[2] = minValue
 	priceList[3] = maxValue
+
+def list_stock_news(code, curdate, file):
+	df = ts.get_notices(code, curdate)
+	for index,row in df.iterrows():
+		if index>1:
+			break
+		print row['date'],row['title']
+	print ''
+
+def list_stock_rt(codeArray, curdate, file):
+	if len(codeArray)==0:
+		return
+	df = ts.get_realtime_quotes(codeArray)
+	#c = df[['name','price','bid','ask','volume','amount','time']]
+	print ''
+	for index,row in df.iterrows():
+		stname = row['name']
+		open = row['open']
+		pre_close = row['pre_close']
+		price = row['price']
+		high = row['high']
+		low = row['low']
+
+		price_f = float(price)
+		pre_close_f = float(pre_close)
+		change = '%02.02f'%( ((price_f-pre_close_f)/pre_close_f)*100 )
+		change_l = '%02.02f'%( ((float(low)-pre_close_f)/pre_close_f)*100 )
+		change_h = '%02.02f'%( ((float(high)-pre_close_f)/pre_close_f)*100 )
+		change_o = '%02.02f'%( ((float(open)-pre_close_f)/pre_close_f)*100 )
+		#print change
+		#print "%10s	" %(stname, change)
+		print "%4s  %8s(%6s,%6s,%6s)	%8s(%8s,%8s)" %(stname, change, change_l, change_h, change_o, price, low, high)

@@ -25,6 +25,7 @@ if df is None:
 
 print ""
 df.to_csv(prepath+"info.txt")
+df.to_excel(prepath+"today.xlsx")
 '''
 for index,row in df.iterrows():
 	if index<40:
