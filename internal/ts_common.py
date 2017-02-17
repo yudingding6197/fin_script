@@ -12,18 +12,11 @@ from common import *
 import ctypes
 import tushare as ts
 
+#reload(sys)
+#sys.setdefaultencoding('gbk')
+
 def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	todayUrl = "http://hq.sinajs.cn/list=" + code
-	if bhist==0:
-		url = url +"?symbol="+ code
-	elif bhist==1:
-		url = url +"?date="+ qdate +"&symbol="+ code
-	#当天日期按照历史记录处理
-	elif bhist==2:
-		url = url +"?symbol="+ code
-	else:
-		print "Unknown flag:", bhist
-		return -1
 	#if Handle_Mid==0:
 	#	print "Message: Ignore 中性盘"
 
@@ -136,7 +129,11 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			stockInfo.append(row['turnover'])
 
 	while excecount<=3:
-		df = ts.get_tick_data(curcode, date=qdate)
+		if bhist==0:
+			df = ts.get_today_ticks(curcode)
+		else:
+			df = ts.get_tick_data(curcode, qdate)
+		#print df
 		if df is None:
 			excecount += 1
 			continue;
@@ -165,7 +162,10 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		curvol = int(row['volume'])
 		volume = curvol
 		amount = row['amount']
-		state = row['type'].decode('utf8')
+		if bhist==0:
+			state = row['type']
+		else:
+			state = row['type'].decode('utf-8')
 		#print state.decode('utf8')
 
 		ret,hour,minute,second = parseTime(curtime)
@@ -513,4 +513,4 @@ def list_stock_rt(codeArray, curdate, file):
 		change_o = '%02.02f'%( ((float(open)-pre_close_f)/pre_close_f)*100 )
 		#print change
 		#print "%10s	" %(stname, change)
-		print "%4s  %8s(%6s,%6s,%6s)	%8s(%8s,%8s)" %(stname, change, change_l, change_h, change_o, price, low, high)
+		print "%5s	%6s(%6s,%6s,%6s)	%8s(%8s,%8s)" %(stname, change, change_l, change_h, change_o, price, low, high)

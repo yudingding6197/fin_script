@@ -18,14 +18,18 @@ sys.setdefaultencoding('gbk')
 prepath = "..\\Data\\"
 pindex = len(sys.argv)
 
-df = ts.get_today_all()
-if df is None:
-	print "Fail to get data!"
-	exit(1)
+df = ts.get_realtime_quotes('000807')
+#c = df[['name','price','bid','ask','volume','amount','time']]
+print df
+for index,row in df.iterrows():
+	stname = row['name']
+	open = float(row['open'])
+	if open==0.0:
+		print 111
+	else:
+		print 222
 
-print ""
-df.to_csv(prepath+"info.txt")
-df.to_excel(prepath+"today.xlsx")
+
 '''
 for index,row in df.iterrows():
 	if index<40:
