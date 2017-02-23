@@ -572,3 +572,43 @@ def list_latest_news(codeArray, curdate):
 					break
 			print row['date'],row['title']
 		print ''
+
+def show_index_info(df, show_idx):
+	if df is None:
+		return
+	for index,row in df.iterrows():
+		if row[0] not in show_idx:
+			continue
+
+		open = float(row['open'])
+		close = float(row['close'])
+		preclose = float(row['preclose'])
+		print "%8.2f(%6s)"%(close, row[2])
+
+def check_cx(code):
+	if len(code)!=6:
+		return 0
+	if code.isdigit() is False:
+		return 0
+
+	df = ts.get_hist_data(code)
+	if df is None:
+		return 0
+	if len(df)>39:
+		return 0
+
+	b_match = 1
+	for index,row in df.iterrows():
+		open = float(row['open'])
+		close = float(row['close'])
+		high = float(row['open'])
+		low = float(row['close'])
+		p_change = float(row['p_change'])
+		if p_change>12:
+			continue
+		if open==close and low==high and p_change>1:
+			pass
+		else:
+			b_match = 0
+			break
+	return b_match
