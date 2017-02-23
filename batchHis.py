@@ -8,13 +8,7 @@ import urllib2
 from openpyxl import Workbook
 from openpyxl.reader.excel import load_workbook
 from internal.common import *
-
-#url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001&date=2015-09-10&page=48"
-#url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php?symbol=sz300001&date=2015-09-10&page=1"
-#成交时间	成交价	涨跌幅	价格变动	成交量(手)		成交额(元)	性质
-#	<tr ><th>11:29:48</th><td>14.57</td><td>-3.06%</td><td>+0.01</td><td>16</td><td>23,312</td><th><h1>中性盘</h1></th></tr>
-#<tr ><th>11:29:36</th><td>14.56</td><td>-3.13%</td><td>--</td><td>9</td><td>13,104</td><th><h6>卖盘</h6></th></tr>
-#<tr ><th>11:29:21</th><td>14.56</td><td>-3.13%</td><td>-0.02</td><td>10</td><td>14,560</td><th><h6>卖盘</h6></th></tr>
+from internal.ts_common import *
 
 #如果需要记录到csv文件中，修改addcsv=1
 addcsv = 0
@@ -79,7 +73,7 @@ while (delta.days>=0):
 		print "当前日期(" +curdate.strftime("%Y-%m-%d")+ ")超过当天日期了！"
 		break
 	qdate = curdate.strftime("%Y-%m-%d")
-	handle_data(addcsv, prepath, 1, url, code, qdate, qarr)
+	ts_handle_data(addcsv, prepath, 1, url, code, qdate, qarr)
 	curdate = curdate + delta1
 	delta = edate - curdate
 
@@ -87,4 +81,4 @@ if cmp(sys.argv[3], '.')==0:
 	t = datetime.datetime.now()
 	if (t.hour>=15 and t.minute>0):
 		qdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
-		handle_data(addcsv, prepath, 2, urlToday, code, qdate, qarr)
+		ts_handle_data(addcsv, prepath, 2, urlToday, code, qdate, qarr)
