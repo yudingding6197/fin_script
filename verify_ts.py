@@ -19,13 +19,17 @@ sys.setdefaultencoding('gbk')
 prepath = "..\\Data\\"
 pindex = len(sys.argv)
 
+dt_list=['000520']
+stdf = ts.get_realtime_quotes(dt_list)
+print stdf[['code','name']]
+
+'''
 df = ts.get_today_all()
 df1 = df.sort_index(by=['changepercent','code'])
 #df1 = df.sort_index(by=['name'])
 print df1
 df1.to_excel('temp_today1.xlsx');
 
-'''
 today_data= ts.get_today_ticks('000520')
 today_data = today_data.sort_index(ascending=False)
 time_range = list(today_data['time'])
