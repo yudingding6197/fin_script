@@ -108,9 +108,6 @@ show_index_info(idx_df, show_idx)
 
 df = ts.get_today_all()
 print ''
-#chg_df = df.sort_values(['changepercent','code'], ascending=False)
-#print chg_df.head(50)
-#print df.loc[0:5, 'name']
 flag = 0
 pindex = len(sys.argv)
 if pindex==2:

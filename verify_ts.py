@@ -2,6 +2,7 @@
 import sys
 import re
 import os
+import time
 import string
 import datetime
 import urllib
@@ -18,12 +19,31 @@ sys.setdefaultencoding('gbk')
 
 prepath = "..\\Data\\"
 pindex = len(sys.argv)
+yzzt_list = ['603345','603238','000520','300613','300608','300553','603615']
 
+listidx=0
+df=ts.get_realtime_quotes(yzzt_list)
+for index,row in df.iterrows():
+	#print "For idx=", index
+	high = row['high']
+	low = row['low']
+	#此时不再是YZZT态
+	if high!=low:
+		print yzzt_list[listidx],row[0], "NOT YZ"
+		yzzt_list.pop(listidx)
+		#print "Increase=",listidx
+		continue
+	print yzzt_list[listidx]
+	listidx += 1
+
+print "======"
+print yzzt_list
+	
+'''
 dt_list=['000520']
 stdf = ts.get_realtime_quotes(dt_list)
 print stdf[['code','name']]
 
-'''
 df = ts.get_today_all()
 df1 = df.sort_index(by=['changepercent','code'])
 #df1 = df.sort_index(by=['name'])
