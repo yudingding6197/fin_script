@@ -75,7 +75,7 @@ for code,row in df1.iterrows():
 	yzzt_day = 0
 	last_close = 0.0
 	td_total = len(day_info_df)
-	#认为YZZT不会超过32个交易日
+	#认为YZZT不会超过 32 个交易日
 	if td_total>32:
 		break
 	for tdidx,tdrow in day_info_df.iterrows():
@@ -89,8 +89,8 @@ for code,row in df1.iterrows():
 					today_open.append(code)
 				b_open = 1
 				break
-		else:
-			yzzt_day += 1
+		#当ZT打开，就会break for 循环
+		yzzt_day += 1
 	if b_open==0:
 		dt_str=day_info_df.iloc[td_total-1,0]
 		last_date = datetime.datetime.strptime(dt_str, '%Y-%m-%d').date()
@@ -98,10 +98,10 @@ for code,row in df1.iterrows():
 		if cmp_delta.days==0:
 			yzzt_list.append(code)
 
-print "今开：",len(today_open)
+print "DAKA：",len(today_open)
 print today_open
 print "==============="
-print "一字：",len(yzzt_list)
+print "YIZI：",len(yzzt_list)
 print yzzt_list
 
 #首先得到 By1量，设置初始基线

@@ -95,7 +95,6 @@ def analyze_df(df, flag):
 				ppstk += 1
 	#一个list追加另一个list需要extend，不是append()
 	zt_list.extend(oldst)
-	print zt_list
 	
 	print "ZT: %4d(%4d%4d)(%4d%4d)"%(zt, yzzt, zthl, yzcx, (yzzt-yzcx))
 	print "DT: %4d(%4d%4d)"%(dt, yzdt, dtft)
@@ -126,11 +125,14 @@ def analyze_df(df, flag):
 		number = len(dt_list)
 		if number>0 and number<30:
 			stdf = ts.get_realtime_quotes(dt_list)
+			print "DT:"
 			print stdf[['code','name','price','low','pre_close','open']]
 		elif number>=30:
 			print "DT number too much"
+		number = len(dtft_list)
 		if number>0 and number<30:
 			stdf = ts.get_realtime_quotes(dtft_list)
+			print "DTFT:"
 			print stdf[['code','name','price','low','pre_close','open']]
 		elif number>=30:
 			print "DTFT number too much"
