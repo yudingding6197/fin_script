@@ -515,7 +515,7 @@ def list_stock_rt(codeArray, curdate, file):
 		change_o = '%02.02f'%( ((float(open)-pre_close_f)/pre_close_f)*100 )
 		#print change
 		#print "%10s	" %(stname, change)
-		print "%5s	%6s(%6s,%6s,%6s)	%8s(%8s,%8s)" %(stname, change, change_l, change_h, change_o, price, low, high)
+		print "%-8s	%6s(%6s,%6s,%6s)	%8s(%8s,%8s)" %(stname, change, change_l, change_h, change_o, price, low, high)
 
 def list_realtime_info(basic, codeArray):
 	if len(codeArray)==0:
