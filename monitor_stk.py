@@ -171,4 +171,4 @@ while 1:
 	check_zt_status(yzzt_list, today_open)
 	if openlen != len(today_open):
 		print "New Open ST:", today_open
-	#time.sleep(1)
+	time.sleep(0.5)

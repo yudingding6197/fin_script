@@ -99,7 +99,7 @@ def analyze_df(df, flag):
 	zt_list.extend(oldst)
 	dt_list.extend(yzdt_list)
 
-	print "ZT:(%4d) YZZT(%3d) YZCX(%3d) YZPT(%4d) ZTHL(%4d)"%(zt, yzzt, zthl, yzcx, (yzzt-yzcx))
+	print "ZT:(%4d) YZZT(%3d) YZCX(%3d) YZPT(%4d) ZTHL(%4d)"%(zt, yzzt, yzcx, (yzzt-yzcx), zthl)
 	print "DT:(%4d) YZDT(%3d) DTFT(%3d)"%(dt, yzdt, dtft)
 	print "%4d	%4d	%4d"%(szstk, xdstk, ppstk)
 
