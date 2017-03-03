@@ -109,7 +109,7 @@ def analyze_df(df, flag):
 		if number>0:
 			#ZT一次取出 base 个
 			#截取list，通过配置起始位置
-			base = 20
+			base = 23
 			ed = 0
 			tl = len(zt_list)
 			ct = tl/base

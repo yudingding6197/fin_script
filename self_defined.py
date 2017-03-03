@@ -47,7 +47,7 @@ while 1:
 		#print code
 file.close()
 
-if show_flag==2:
+if show_flag==1:
 	list_latest_news(stockCode, curdate)
 	exit(0)
 
@@ -56,6 +56,6 @@ idx_df=ts.get_index()
 show_index_info(idx_df, show_idx)
 
 st_bas = None
-if show_flag==1:
+if show_flag==2:
 	st_bas=ts.get_stock_basics()
 list_realtime_info(st_bas, stockCode)
