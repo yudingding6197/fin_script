@@ -21,6 +21,12 @@ prepath = "..\\Data\\"
 pindex = len(sys.argv)
 yzzt_list = ['603345','603238','000520','300613','300608','300553','603615']
 
+
+df = ts.get_stock_basics()
+df.to_excel('atemp_today1.xlsx');
+
+
+'''
 listidx=0
 df=ts.get_realtime_quotes(yzzt_list)
 for index,row in df.iterrows():
@@ -39,7 +45,6 @@ for index,row in df.iterrows():
 print "======"
 print yzzt_list
 	
-'''
 dt_list=['000520']
 stdf = ts.get_realtime_quotes(dt_list)
 print stdf[['code','name']]
