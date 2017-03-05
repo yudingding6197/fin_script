@@ -31,20 +31,51 @@ st_index = st_pb_base.index
 st_list=list(st_index)
 
 number = len(st_list)
-if number>0:
-	#ZT一次取出 base 个
-	#截取list，通过配置起始位置
-	base = 23
-	ed = 0
-	tl = number
-	ct = tl/base
-	if tl%base!=0:
-		ct += 1
-	for i in range(0, ct):
-		ed = min(base*(i+1), tl)
-		cut_list = st_list[i*base:ed]
-		if len(cut_list)==0:
-			break
-		print cut_list
-		stdf = ts.get_realtime_quotes(cut_list)
+if number<=0:
+	exit(0)
+
+b_get_data = 1
+#ZT一次取出 base 个
+#截取list，通过配置起始位置
+base = 23
+loop_ct = number/base
+if number%base!=0:
+	loop_ct += 1
+for i in range(0, loop_ct):
+	end_idx = min(base*(i+1), number)
+	cur_list = st_list[i*base:end_idx]
+	if len(cur_list)==0:
+		break
+	#print cur_list
+	stdf = ts.get_realtime_quotes(cur_list)
+
+	#print stdf
+	for index,row in stdf.iterrows():
+		stockInfo = []
+		code = cur_list[index]
+		index += 1
+		name = row[0]
+		#ltgb = row['outstanding']
+		#zgb = row['totals']
+
+		high = row['high']
+		low = row['low']
+		open = row['open']
+		price = row['price']
+		pre_close = row['pre_close']
+		print index, code,name,open,low,high,price,pre_close
+
+		#通过获得K线数据，判断是否YZZT新股
+		if b_get_data == 1:
+			#获得每只个股每天交易数据
+			day_info_df = ts.get_k_data(code)
+			#print day_info_df
+			trade_days = len(day_info_df)
+
+			#认为YZZT不会超过 32 个交易日
+			if trade_days>32:
+				b_get_data = 0
+		yz_type = check_yzzt(code, name, row)
+	if i>2:
+		break
 
