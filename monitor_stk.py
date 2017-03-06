@@ -75,8 +75,8 @@ for code,row in df1.iterrows():
 	yzzt_day = 0
 	last_close = 0.0
 	td_total = len(day_info_df)
-	#认为YZZT不会超过 32 个交易日
-	if td_total>32:
+	#认为YZZT不会超过 33 个交易日
+	if td_total>33:
 		break
 	for tdidx,tdrow in day_info_df.iterrows():
 		open = tdrow[1]

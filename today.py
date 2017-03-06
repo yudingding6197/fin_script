@@ -38,7 +38,6 @@ else:
 
 today = datetime.date.today()
 qdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
-#print qdate
 
 sarr = ''
 if pindex==3:

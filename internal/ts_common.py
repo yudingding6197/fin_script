@@ -15,6 +15,56 @@ import tushare as ts
 #reload(sys)
 #sys.setdefaultencoding('gbk')
 
+STK_ZT = 1<<0
+STK_DT = 1<<1
+STK_ZTHL = 1<<2
+STK_DTFT = 1<<3
+STK_YZZT = 1<<4
+STK_YZDT = 1<<5
+STK_OPEN_ZT = 1<<6
+STK_OPEN_DT = 1<<7
+STK_ST_YZZT = 1<<8
+STK_ST_YZDT = 1<<9
+
+class statisticsItem:
+	s_zt = 0
+	s_dt = 0
+	s_zthl = 0
+	s_dtft = 0
+	s_yzzt = 0
+	s_yzdt = 0
+	s_open_zt = 0
+	s_open_dt = 0
+	s_st_yzzt = 0
+	s_st_yzdt = 0
+	s_open_zf = 0		#开盘涨幅
+	s_open_df = 0		#开盘跌幅
+	s_high_zf = 0		#最高涨幅
+	s_low_df = 0		#最低跌幅
+	s_cx_yzzt = 0		#次新YZZT
+	s_sz = 0			#上涨票
+	s_xd = 0			#下跌票
+	s_total = 0			#总计所有交易票
+	def __init__(self):
+		self.s_zt = 0
+		self.s_dt = 0
+		self.s_zthl = 0
+		self.s_dtft = 0
+		self.s_yzzt = 0
+		self.s_yzdt = 0
+		self.s_open_zt = 0
+		self.s_open_dt = 0
+		self.s_st_yzzt = 0
+		self.s_st_yzdt = 0
+		self.s_open_zf = 0
+		self.s_open_df = 0
+		self.s_high_zf = 0
+		self.s_low_df = 0
+		self.s_cx_yzzt = 0
+		self.s_sz = 0
+		self.s_xd = 0
+		self.s_total = 0
+
 def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	todayUrl = "http://hq.sinajs.cn/list=" + code
 	#if Handle_Mid==0:
@@ -612,3 +662,105 @@ def check_cx(code):
 			b_match = 0
 			break
 	return b_match
+
+#分析此单的状态：ZT、DT、ZTHL、DTFT...，详见 statisticsItem 定义
+def analyze_status(code, name, row, stcsItem):
+	if len(code)!=6:
+		return 0
+	if code.isdigit() is False:
+		return 0
+
+	status = 0
+	high = float(row['high'])
+	low = float(row['low'])
+	open = float(row['open'])
+	price = float(row['price'])
+	pre_close = float(row['pre_close'])
+
+	#排除当天没有交易
+	if pre_close==0:
+		print "PRE_CLOSE Not exist!!!", code, name
+		return 0
+
+	if high==0 or low==0:
+		return 0
+
+	b_ST = 0
+	if name.find("ST")>=0 or name.find("st")>=0:
+		b_ST = 1
+		#print code,name
+
+	open_percent = (open-pre_close)*100/pre_close
+	change_percent = (price-pre_close)*100/pre_close
+	high_zf_percent = (high-pre_close)*100/pre_close
+	low_df_percent = (low-pre_close)*100/pre_close
+	#YZ状态处理
+	if high==low:
+		if open>pre_close:
+			if b_ST==1:
+				stcsItem.s_st_yzzt += 1
+				status |= STK_ST_YZZT
+			else:
+				stcsItem.s_yzzt += 1
+				status |= STK_YZZT
+				stcsItem.s_zt += 1
+				status |= STK_ZT
+				stcsItem.s_open_zt += 1
+				status |= STK_OPEN_ZT
+		elif open<pre_close:
+			if b_ST==1:
+				stcsItem.s_st_yzdt += 1
+				status |= STK_ST_YZDT
+			else:
+				stcsItem.s_yzdt += 1
+				status |= STK_YZDT
+				stcsItem.s_dt += 1
+				status |= STK_DT
+				stcsItem.s_open_dt += 1
+				status |= STK_OPEN_DT
+		#print code,name,open,low,high,price,pre_close
+		#print code, name, status
+	else:
+		#非YZ的分析
+		if b_ST==1:
+			zt_price = round(pre_close * 1.05, 2)
+			dt_price = round(pre_close * 0.95, 2)
+		else:
+			zt_price = round(pre_close * 1.1, 2)
+			dt_price = round(pre_close * 0.9, 2)
+
+		if high==zt_price:
+			if price==zt_price:
+				stcsItem.s_zt += 1
+				status |= STK_ZT
+			else:
+				stcsItem.s_zthl += 1
+				status |= STK_DTFT
+		if low==dt_price:
+			if price==dt_price:
+				stcsItem.s_dt += 1
+				status |= STK_ZT
+			else:
+				stcsItem.s_dtft += 1
+				status |= STK_DTFT
+
+	#统计开盘涨跌幅度
+	if open_percent>=4.0:
+		stcsItem.s_open_zf += 1
+	elif open_percent<=-4.0:
+		stcsItem.s_open_df += 1
+
+	#统计上涨下跌数量
+	if change_percent>0:
+		stcsItem.s_sz += 1
+	elif change_percent<0:
+		stcsItem.s_xd += 1
+	stcsItem.s_total += 1
+
+	#统计最大涨跌幅度
+	if high_zf_percent>=4.0:
+		stcsItem.s_high_zf += 1
+	if low_df_percent<=-4.0:
+		stcsItem.s_low_df += 1
+
+	return status

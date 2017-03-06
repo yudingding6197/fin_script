@@ -9,12 +9,12 @@ from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 from internal.common import *
 
-cmp_string = "20150201"
+cmp_string = "20170201"
 base_date = datetime.datetime.strptime(cmp_string, '%Y%m%d').date()
 
 prepath = "..\\Data\\"
+prepath1 = "..\\Data\\Cixin\\"
 df = ts.get_stock_basics()
-#df.to_csv("aa.csv")
 df1 = df.sort_values(['timeToMarket'], 0, False)
 #print df1
 
@@ -23,19 +23,19 @@ index = -1
 wb = Workbook()
 # grab the active worksheet
 ws = wb.active
-strline = u'代码,名称,是否开板,封板天数,封板价格,上市日期,流通股本,流通市值,总股本,总市值,封单数量'
+strline = u'代码,名称,是否开板,封板天数,封板价格,上市日期,流通股本,流通市值,总股本,总市值,封单数量,封单流通比,换手率'
 strObj = strline.split(u',')
 ws.append(strObj)
 #随着列数进行改变
-ws.auto_filter.ref = "A1:K1"
+ws.auto_filter.ref = "A1:M1"
 excel_row = 2
 for code,row in df1.iterrows():
 	stockInfo = []
 	index += 1
 	name = row[0].decode('utf8')
 	trade_item = row['timeToMarket']
-	ltgb = row['outstanding']
-	zgb = row['totals']
+	liutong_gb = row['outstanding']
+	zong_gb = row['totals']
 	#print type(trade_item) 竟然是 long 类型
 	trade_string = str(trade_item)
 	trade_date = datetime.datetime.strptime(trade_string, '%Y%m%d').date()
@@ -53,19 +53,23 @@ for code,row in df1.iterrows():
 	yzzt_day = 0
 	last_close = 0.0
 	td_total = len(tddf)
-	ztfb_vol = 0
+	fengban_vol = 0		#封板数量
+	fengliu_prop = 0.0
+	last_day_vol = 0.0
+	turnover = 0.0
 	for tdidx,tdrow in tddf.iterrows():
 		open = tdrow[1]
 		close = tdrow[2]
 		high = tdrow['high']
 		low = tdrow['low']
+		last_day_vol = tdrow['volume']
 		if high!=low:
 			if yzzt_day!=0:
 				b_open = 1
 				break
 			#针对特殊新股：招商蛇口、温氏股份等
 			if open<=close and close==high:
-				pass
+				yzzt_day += 1
 			else:
 				b_open = 1
 				break
@@ -76,22 +80,26 @@ for code,row in df1.iterrows():
 		trdf = ts.get_realtime_quotes(code)
 		volstr = trdf.iloc[0,10]
 		if volstr.isdigit() is True:
-			ztfb_vol = int(volstr)
+			fengban_vol = int(volstr)
+			fengliu_prop = fengban_vol/(liutong_gb*10000)
+			turnover = last_day_vol/(liutong_gb*10000)
 
-	#追加数据
-	ltsz = ltgb*last_close
-	zsz = zgb*last_close
+	#追加数据,流通市值、总市值
+	liutong_sz = liutong_gb*last_close
+	zong_sz = zong_gb*last_close
 	stockInfo.append(code)
 	stockInfo.append(name)
 	stockInfo.append(b_open)
 	stockInfo.append(yzzt_day)
 	stockInfo.append(last_close)
 	stockInfo.append(trade_item)
-	stockInfo.append(ltgb)
-	stockInfo.append(round(ltsz,2))
-	stockInfo.append(zgb)
-	stockInfo.append(round(zsz,2))
-	stockInfo.append(ztfb_vol)
+	stockInfo.append(liutong_gb)
+	stockInfo.append(round(liutong_sz,2))
+	stockInfo.append(zong_gb)
+	stockInfo.append(round(zong_sz,2))
+	stockInfo.append(fengban_vol)
+	stockInfo.append(round(fengliu_prop,2))
+	stockInfo.append(round(turnover,2))
 	#print stockInfo
 
 	k = 0
@@ -104,3 +112,11 @@ for code,row in df1.iterrows():
 
 filexlsx = prepath + "cixin_analyze.xlsx"
 wb.save(filexlsx)
+
+today = datetime.date.today()
+cur=datetime.datetime.now()
+qdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
+filexlsx1 = prepath1 + "cx_anly_"+ qdate
+filexlsx1 = '%s_%02d-%02d.xlsx' %(filexlsx1, cur.hour, cur.minute)
+wb.save(filexlsx1)
+
