@@ -37,13 +37,19 @@ class statisticsItem:
 	s_open_dt = 0
 	s_st_yzzt = 0
 	s_st_yzdt = 0
-	s_open_zf = 0		#开盘涨幅
-	s_open_df = 0		#开盘跌幅
+	s_open_sz = 0		#开盘上涨
+	s_open_xd = 0		#开盘下跌
+	s_open_pp = 0		#开盘平盘
+	s_open_dz = 0		#开盘大涨
+	s_open_dd = 0		#开盘大跌
+	s_close_sz = 0		#收盘上涨
+	s_close_xd = 0		#收盘下跌
+	s_close_pp = 0		#收盘平盘
+	s_close_dz = 0		#收盘大涨
+	s_close_dd = 0		#收盘大跌
 	s_high_zf = 0		#最高涨幅
 	s_low_df = 0		#最低跌幅
 	s_cx_yzzt = 0		#次新YZZT
-	s_sz = 0			#上涨票
-	s_xd = 0			#下跌票
 	s_total = 0			#总计所有交易票
 	def __init__(self):
 		self.s_zt = 0
@@ -56,13 +62,19 @@ class statisticsItem:
 		self.s_open_dt = 0
 		self.s_st_yzzt = 0
 		self.s_st_yzdt = 0
-		self.s_open_zf = 0
-		self.s_open_df = 0
+		self.s_open_sz = 0
+		self.s_open_xd = 0
+		self.s_open_pp = 0
+		self.s_open_dz = 0
+		self.s_open_dd = 0
+		self.s_close_sz = 0
+		self.s_close_xd = 0
+		self.s_close_pp = 0
+		self.s_close_dz = 0
+		self.s_close_dd = 0
 		self.s_high_zf = 0
 		self.s_low_df = 0
 		self.s_cx_yzzt = 0
-		self.s_sz = 0
-		self.s_xd = 0
 		self.s_total = 0
 
 def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
@@ -701,12 +713,16 @@ def analyze_status(code, name, row, stcsItem):
 				stcsItem.s_st_yzzt += 1
 				status |= STK_ST_YZZT
 			else:
-				stcsItem.s_yzzt += 1
-				status |= STK_YZZT
-				stcsItem.s_zt += 1
-				status |= STK_ZT
-				stcsItem.s_open_zt += 1
-				status |= STK_OPEN_ZT
+				if high_zf_percent>15:
+					pass
+				else:
+					stcsItem.s_yzzt += 1
+					status |= STK_YZZT
+					stcsItem.s_zt += 1
+					status |= STK_ZT
+					stcsItem.s_open_zt += 1
+					status |= STK_OPEN_ZT
+					#print stcsItem.s_zt,code,name,2
 		elif open<pre_close:
 			if b_ST==1:
 				stcsItem.s_st_yzdt += 1
@@ -730,31 +746,52 @@ def analyze_status(code, name, row, stcsItem):
 			dt_price = round(pre_close * 0.9, 2)
 
 		if high==zt_price:
-			if price==zt_price:
-				stcsItem.s_zt += 1
-				status |= STK_ZT
-			else:
-				stcsItem.s_zthl += 1
-				status |= STK_DTFT
+			if b_ST==0:
+				if price==zt_price:
+					stcsItem.s_zt += 1
+					status |= STK_ZT
+					if open==zt_price:
+						stcsItem.s_open_zt += 1
+						status |= STK_OPEN_ZT
+				else:
+					stcsItem.s_zthl += 1
+					status |= STK_DTFT
+					#print stcsItem.s_zthl,code,name,high,zt_price
 		if low==dt_price:
-			if price==dt_price:
-				stcsItem.s_dt += 1
-				status |= STK_ZT
-			else:
-				stcsItem.s_dtft += 1
-				status |= STK_DTFT
+			if b_ST==0:
+				if price==dt_price:
+					stcsItem.s_dt += 1
+					status |= STK_DT
+					if open==dt_price:
+						stcsItem.s_open_dt += 1
+						status |= STK_OPEN_DT
+				else:
+					stcsItem.s_dtft += 1
+					status |= STK_DTFT
 
 	#统计开盘涨跌幅度
-	if open_percent>=4.0:
-		stcsItem.s_open_zf += 1
-	elif open_percent<=-4.0:
-		stcsItem.s_open_df += 1
+	if open_percent>0:
+		stcsItem.s_open_sz += 1
+		if open_percent>=4.0:
+			stcsItem.s_open_dz += 1
+	elif open_percent<0:
+		stcsItem.s_open_xd += 1
+		if open_percent<=-4.0:
+			stcsItem.s_open_dd += 1
+	else:
+		stcsItem.s_open_pp += 1
 
-	#统计上涨下跌数量
+	#统计开盘涨跌幅度
 	if change_percent>0:
-		stcsItem.s_sz += 1
+		stcsItem.s_close_sz += 1
+		if change_percent>=4.0:
+			stcsItem.s_close_dz += 1
 	elif change_percent<0:
-		stcsItem.s_xd += 1
+		stcsItem.s_close_xd += 1
+		if change_percent<=-4.0:
+			stcsItem.s_close_dd += 1
+	else:
+		stcsItem.s_close_pp += 1
 	stcsItem.s_total += 1
 
 	#统计最大涨跌幅度

@@ -27,7 +27,19 @@ for index,row in st_today.iterrows():
 print ''
 #print new_st_list
 
-st_bas=ts.get_stock_basics()
+LOOP_COUNT=0
+st_bas = None
+while LOOP_COUNT<3:
+	try:
+		st_bas = ts.get_stock_basics()
+	except:
+		LOOP_COUNT += 1
+		time.sleep(0.5)
+	else:
+		break;
+if st_bas is None:
+	print "Timeout to get stock basic info"
+	exit(0)
 st_pb_base = st_bas[st_bas.pb!=0]
 st_pb_base = st_pb_base.sort_values(['timeToMarket'], 0, False)
 st_index = st_pb_base.index
@@ -129,4 +141,9 @@ for i in range(0, loop_ct):
 		stk_type = analyze_status(code, name, row, stcsItem)
 	#if i>2:
 	#	break
+print "ZT:%d	DT:%d" %(stcsItem.s_zt,stcsItem.s_dt)
+print "CG:%d	FT:%d" %(stcsItem.s_zthl,stcsItem.s_dtft)
+print "OZ:%d,%d	ZERO:%d	OD:%d,%d" %(stcsItem.s_open_sz, stcsItem.s_open_dz, stcsItem.s_open_pp, stcsItem.s_open_xd, stcsItem.s_open_dd)
+print "OZ:%d,%d	ZERO:%d	OD:%d,%d" %(stcsItem.s_close_sz, stcsItem.s_close_dz, stcsItem.s_close_pp, stcsItem.s_close_xd, stcsItem.s_close_dd)
+print "ZG:%d	ZD:%d" %(stcsItem.s_high_zf,stcsItem.s_low_df)
 print '\n'.join(['%s:%s' % item for item in stcsItem.__dict__.items()])

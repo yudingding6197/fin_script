@@ -28,7 +28,6 @@ if df is None:
 	print "Timeout to get stock basic info"
 	exit(0)
 df1 = df.sort_values(['timeToMarket'], 0, False)
-print df1.head(8)
 
 index = -1
 
