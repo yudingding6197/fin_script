@@ -9,14 +9,26 @@ from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 from internal.common import *
 
-cmp_string = "20170201"
+cmp_string = "20150201"
 base_date = datetime.datetime.strptime(cmp_string, '%Y%m%d').date()
 
 prepath = "..\\Data\\"
-prepath1 = "..\\Data\\Cixin\\"
-df = ts.get_stock_basics()
+prepath1 = "..\\Data\\entry\\Cixin\\"
+LOOP_COUNT = 0
+df = None
+while LOOP_COUNT<3:
+	try:
+		df = ts.get_stock_basics()
+	except:
+		LOOP_COUNT += 1
+		time.sleep(0.5)
+	else:
+		break;
+if df is None:
+	print "Timeout to get stock basic info"
+	exit(0)
 df1 = df.sort_values(['timeToMarket'], 0, False)
-#print df1
+print df1.head(8)
 
 index = -1
 
