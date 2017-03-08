@@ -9,6 +9,7 @@ import urllib2
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 from common import *
+from decimal import Decimal
 import ctypes
 import tushare as ts
 
@@ -34,6 +35,10 @@ class statisticsItem:
 	s_yzzt = 0
 	s_yzdt = 0
 	s_open_zt = 0
+	s_close_zt = 0		#涨停开盘个股收盘仍涨停
+	s_open_T_zt = 0		#涨停开盘个股收盘仍涨停，非一字
+	f = 0			#涨停开盘,收盘打开
+	s_zt_o_gt_c = 0		#触及涨停,开盘价高于收盘价
 	s_open_dt = 0
 	s_st_yzzt = 0
 	s_st_yzdt = 0
@@ -50,7 +55,9 @@ class statisticsItem:
 	s_high_zf = 0		#最高涨幅
 	s_low_df = 0		#最低跌幅
 	s_cx_yzzt = 0		#次新YZZT
+	s_new = 0			#上市新股
 	s_total = 0			#总计所有交易票
+	lst_kd = []
 	def __init__(self):
 		self.s_zt = 0
 		self.s_dt = 0
@@ -59,6 +66,10 @@ class statisticsItem:
 		self.s_yzzt = 0
 		self.s_yzdt = 0
 		self.s_open_zt = 0
+		self.s_close_zt = 0
+		self.s_open_T_zt = 0
+		s_zt_o_gt_c = 0
+		self.s_dk_zt = 0
 		self.s_open_dt = 0
 		self.s_st_yzzt = 0
 		self.s_st_yzdt = 0
@@ -75,7 +86,9 @@ class statisticsItem:
 		self.s_high_zf = 0
 		self.s_low_df = 0
 		self.s_cx_yzzt = 0
+		self.s_new = 0
 		self.s_total = 0
+		self.lst_kd = []
 
 def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	todayUrl = "http://hq.sinajs.cn/list=" + code
@@ -702,10 +715,14 @@ def analyze_status(code, name, row, stcsItem):
 		b_ST = 1
 		#print code,name
 
-	open_percent = (open-pre_close)*100/pre_close
-	change_percent = (price-pre_close)*100/pre_close
-	high_zf_percent = (high-pre_close)*100/pre_close
-	low_df_percent = (low-pre_close)*100/pre_close
+	o_percent = (open-pre_close)*100/pre_close
+	c_percent = (price-pre_close)*100/pre_close
+	h_percent = (high-pre_close)*100/pre_close
+	l_percent = (low-pre_close)*100/pre_close
+	open_percent = float('{:.2f}'.format(Decimal(str(o_percent))))
+	change_percent = float('{:.2f}'.format(Decimal(str(c_percent))))
+	high_zf_percent = float('{:.2f}'.format(Decimal(str(h_percent))))
+	low_df_percent = float('{:.2f}'.format(Decimal(str(l_percent))))
 	#YZ状态处理
 	if high==low:
 		if open>pre_close:
@@ -722,6 +739,7 @@ def analyze_status(code, name, row, stcsItem):
 					status |= STK_ZT
 					stcsItem.s_open_zt += 1
 					status |= STK_OPEN_ZT
+					stcsItem.s_close_zt += 1
 					#print stcsItem.s_zt,code,name,2
 		elif open<pre_close:
 			if b_ST==1:
@@ -739,11 +757,15 @@ def analyze_status(code, name, row, stcsItem):
 	else:
 		#非YZ的分析
 		if b_ST==1:
-			zt_price = round(pre_close * 1.05, 2)
-			dt_price = round(pre_close * 0.95, 2)
+			zt_price = pre_close * 1.05
+			dt_price = pre_close * 0.95
 		else:
-			zt_price = round(pre_close * 1.1, 2)
-			dt_price = round(pre_close * 0.9, 2)
+			zt_price = pre_close * 1.1
+			dt_price = pre_close * 0.9
+		zt_str_prc = '{:.2f}'.format(Decimal(str(zt_price)))
+		dt_str_prc = '{:.2f}'.format(Decimal(str(dt_price)))
+		zt_price = float(zt_str_prc)
+		dt_price = float(dt_str_prc)
 
 		if high==zt_price:
 			if b_ST==0:
@@ -753,10 +775,22 @@ def analyze_status(code, name, row, stcsItem):
 					if open==zt_price:
 						stcsItem.s_open_zt += 1
 						status |= STK_OPEN_ZT
+						if price==open:
+							stcsItem.s_close_zt += 1
+							stcsItem.s_open_T_zt += 1
 				else:
 					stcsItem.s_zthl += 1
-					status |= STK_DTFT
-					#print stcsItem.s_zthl,code,name,high,zt_price
+					status |= STK_ZTHL
+					if open==zt_price:
+						stcsItem.s_open_zt += 1
+						status |= STK_OPEN_ZT
+						stcsItem.s_dk_zt += 1
+						#print stcsItem.s_zthl,code,name,price,high,zt_price
+				if change_percent<=3:
+					stcsItem.lst_kd.append(name)
+				if price<open:
+					stcsItem.s_zt_o_gt_c += 1
+					print stcsItem.s_zt,code,name,price,open,change_percent
 		if low==dt_price:
 			if b_ST==0:
 				if price==dt_price:

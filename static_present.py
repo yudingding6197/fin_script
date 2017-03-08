@@ -7,6 +7,7 @@ import string
 import datetime
 import tushare as ts
 from internal.ts_common import *
+from decimal import Decimal
 
 today = datetime.date.today()
 
@@ -16,7 +17,19 @@ today = datetime.date.today()
 #2：显示每一只最新的新闻，当天的新闻全部显示，当天没有只显示一条news
 pindex = len(sys.argv)
 
-st_today_base = ts.get_today_all()
+LOOP_COUNT=0
+st_today_base = None
+while LOOP_COUNT<3:
+	try:
+		st_today_base = ts.get_today_all()
+	except:
+		LOOP_COUNT += 1
+		time.sleep(0.5)
+	else:
+		break;
+if st_today_base is None:
+	print "Timeout to get stock basic info"
+	exit(0)
 st_today = st_today_base.sort_values(['changepercent'], 0, False)
 #new_st_list = list(st_today[st_today.changepercent>11]['code'])
 new_st_list = []
@@ -114,6 +127,8 @@ for i in range(0, loop_ct):
 
 			b_open=0
 			yzzt_day = 0
+			if trade_days==1:
+				stcsItem.s_new += 1
 			for tdidx,tdrow in day_info_df.iterrows():
 				open = tdrow[1]
 				close = tdrow[2]
@@ -141,9 +156,10 @@ for i in range(0, loop_ct):
 		stk_type = analyze_status(code, name, row, stcsItem)
 	#if i>2:
 	#	break
-print "ZT:%d	DT:%d" %(stcsItem.s_zt,stcsItem.s_dt)
-print "CG:%d	FT:%d" %(stcsItem.s_zthl,stcsItem.s_dtft)
-print "OZ:%d,%d	ZERO:%d	OD:%d,%d" %(stcsItem.s_open_sz, stcsItem.s_open_dz, stcsItem.s_open_pp, stcsItem.s_open_xd, stcsItem.s_open_dd)
-print "OZ:%d,%d	ZERO:%d	OD:%d,%d" %(stcsItem.s_close_sz, stcsItem.s_close_dz, stcsItem.s_close_pp, stcsItem.s_close_xd, stcsItem.s_close_dd)
-print "ZG:%d	ZD:%d" %(stcsItem.s_high_zf,stcsItem.s_low_df)
-print '\n'.join(['%s:%s' % item for item in stcsItem.__dict__.items()])
+str_opn = "[%d %d %d %d]" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt)
+print "%4d-ZT	%4d-DT		%d-X %d--%s" % (stcsItem.s_zt,stcsItem.s_dt,stcsItem.s_new,stcsItem.s_yzzt, str_opn)
+print "%4d-CG	%4d-FT		KD:%s  %2d-YIN" %(stcsItem.s_zthl,stcsItem.s_dtft,stcsItem.lst_kd,stcsItem.s_zt_o_gt_c)
+print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_open_sz, stcsItem.s_open_dz, stcsItem.s_open_pp, stcsItem.s_open_xd, stcsItem.s_open_dd)
+print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_close_sz, stcsItem.s_close_dz, stcsItem.s_close_pp, stcsItem.s_close_xd, stcsItem.s_close_dd)
+print "4%%:%4d	%4d" %(stcsItem.s_high_zf,stcsItem.s_low_df)
+#print '\n'.join(['%s:%s' % item for item in stcsItem.__dict__.items()])
