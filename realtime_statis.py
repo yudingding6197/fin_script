@@ -27,6 +27,26 @@ szstk=0
 xdstk=0
 ppstk=0
 
+def list_zt_st(zt_list):
+	number = len(zt_list)
+	if number<=0:
+		return
+	#ZT一次取出 base 个
+	#截取list，通过配置起始位置
+	base = 23
+	ed = 0
+	tl = len(zt_list)
+	ct = tl/base
+	if tl%base!=0:
+		ct += 1
+	for i in range(0, ct):
+		ed = min(base*(i+1), tl)
+		cut_list = zt_list[i*base:ed]
+		if len(cut_list)==0:
+			break
+		stdf = ts.get_realtime_quotes(cut_list)
+		print stdf[['code','name','price','low','high','open','pre_close']]
+
 def analyze_df(df, flag):
 	global zt
 	global yzzt
@@ -42,7 +62,7 @@ def analyze_df(df, flag):
 	if df is None:
 		return
 
-	oldst = []
+	yzzt_st = []
 	dt_list = []
 	yzdt_list = []
 	dtft_list = []
@@ -69,7 +89,7 @@ def analyze_df(df, flag):
 				if all_yz==1:
 					yzcx += 1
 				else:
-					oldst.append(row[0])
+					yzzt_st.append(row[0])
 			szstk += 1
 		elif chg_percent<=-9.9:
 			if trade==low:
@@ -96,7 +116,6 @@ def analyze_df(df, flag):
 			else:
 				ppstk += 1
 	#一个list追加另一个list需要extend，不是append()
-	zt_list.extend(oldst)
 	dt_list.extend(yzdt_list)
 
 	print "ZT:(%4d) YZZT(%3d) YZCX(%3d) YZPT(%4d) ZTHL(%4d)"%(zt, yzzt, yzcx, (yzzt-yzcx), zthl)
@@ -104,26 +123,11 @@ def analyze_df(df, flag):
 	print "%4d	%4d	%4d"%(szstk, xdstk, ppstk)
 
 	if flag==1:
-		#print dtft_list
-		number = len(zt_list)
-		if number>0:
-			#ZT一次取出 base 个
-			#截取list，通过配置起始位置
-			base = 23
-			ed = 0
-			tl = len(zt_list)
-			ct = tl/base
-			if tl%base!=0:
-				ct += 1
-			for i in range(0, ct):
-				ed = min(base*(i+1), tl)
-				cut_list = zt_list[i*base:ed]
-				if len(cut_list)==0:
-					break
-				stdf = ts.get_realtime_quotes(cut_list)
-				print stdf[['code','name','price','low','high','open','pre_close']]
-			print "==================================================="
-
+		print "Non CiXin ZT:"
+		list_zt_st(zt_list)
+		print "--------------------"
+		list_zt_st(yzzt_st)
+		print "==================================================="
 		number = len(dt_list)
 		if number>0 and number<30:
 			stdf = ts.get_realtime_quotes(dt_list)

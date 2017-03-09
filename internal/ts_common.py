@@ -790,7 +790,7 @@ def analyze_status(code, name, row, stcsItem):
 					stcsItem.lst_kd.append(name)
 				if price<open:
 					stcsItem.s_zt_o_gt_c += 1
-					print stcsItem.s_zt,code,name,price,open,change_percent
+					#print stcsItem.s_zt,code,name,price,open,change_percent
 		if low==dt_price:
 			if b_ST==0:
 				if price==dt_price:
