@@ -7,12 +7,14 @@ import urllib
 import urllib2
 import datetime
 import binascii
+import shutil
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 from internal.common import *
 from internal.ts_common import *
 
 prepath = "..\\Data\\"
+prepath1 = "..\\Data\\entry\\fupai\\"
 pindex = len(sys.argv)
 today = datetime.date.today()
 curdate = ''
@@ -113,3 +115,5 @@ fl.close()
 if (totalline==0):
 	print "No Matched Record"
 	os.remove(filetxt)
+else:
+	shutil.copy(filetxt, prepath1)

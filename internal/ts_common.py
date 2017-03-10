@@ -6,6 +6,7 @@ import string
 import datetime
 import urllib
 import urllib2
+import pandas as pd
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 from common import *
@@ -57,7 +58,9 @@ class statisticsItem:
 	s_cx_yzzt = 0		#次新YZZT
 	s_new = 0			#上市新股
 	s_total = 0			#总计所有交易票
-	lst_kd = []
+	lst_kd = []			#坑爹个股
+	lst_nb = []			#NB，低位强拉高位
+	lst_jc = []			#韭菜了，严重坑人
 	def __init__(self):
 		self.s_zt = 0
 		self.s_dt = 0
@@ -89,6 +92,16 @@ class statisticsItem:
 		self.s_new = 0
 		self.s_total = 0
 		self.lst_kd = []
+		self.lst_nb = []
+		self.lst_jc = []
+
+def spc_round(value,bit):
+	b = int(value*1000)%10
+	rd_val=float( '{:.2f}'.format(Decimal(str(value))) )
+	if b==5:
+		if int(value*100)%2==0:
+			rd_val+=0.01
+	return round(rd_val,2)
 
 def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	todayUrl = "http://hq.sinajs.cn/list=" + code
@@ -689,18 +702,19 @@ def check_cx(code):
 	return b_match
 
 #分析此单的状态：ZT、DT、ZTHL、DTFT...，详见 statisticsItem 定义
-def analyze_status(code, name, row, stcsItem):
+def analyze_status(code, name, row, stcsItem, pd_list):
 	if len(code)!=6:
 		return 0
 	if code.isdigit() is False:
 		return 0
 
 	status = 0
-	high = float(row['high'])
-	low = float(row['low'])
-	open = float(row['open'])
-	price = float(row['price'])
-	pre_close = float(row['pre_close'])
+	high = round(float(row['high']),2)
+	low = round(float(row['low']),2)
+	open = round(float(row['open']),2)
+	price = round(float(row['price']),2)
+	pre_close = round(float(row['pre_close']),2)
+	volume = int(row['volume'])
 
 	#排除当天没有交易
 	if pre_close==0:
@@ -719,10 +733,11 @@ def analyze_status(code, name, row, stcsItem):
 	c_percent = (price-pre_close)*100/pre_close
 	h_percent = (high-pre_close)*100/pre_close
 	l_percent = (low-pre_close)*100/pre_close
-	open_percent = float('{:.2f}'.format(Decimal(str(o_percent))))
-	change_percent = float('{:.2f}'.format(Decimal(str(c_percent))))
-	high_zf_percent = float('{:.2f}'.format(Decimal(str(h_percent))))
-	low_df_percent = float('{:.2f}'.format(Decimal(str(l_percent))))
+	open_percent = spc_round(o_percent,2)
+	change_percent = spc_round(c_percent,2)
+	high_zf_percent = spc_round(h_percent,2)
+	low_df_percent = spc_round(l_percent,2)
+
 	#YZ状态处理
 	if high==low:
 		if open>pre_close:
@@ -740,7 +755,9 @@ def analyze_status(code, name, row, stcsItem):
 					stcsItem.s_open_zt += 1
 					status |= STK_OPEN_ZT
 					stcsItem.s_close_zt += 1
-					#print stcsItem.s_zt,code,name,2
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+					pd_list.append(list)
+					#print stcsItem.s_zt,code,name,price,change_percent,open
 		elif open<pre_close:
 			if b_ST==1:
 				stcsItem.s_st_yzdt += 1
@@ -757,15 +774,14 @@ def analyze_status(code, name, row, stcsItem):
 	else:
 		#非YZ的分析
 		if b_ST==1:
-			zt_price = pre_close * 1.05
-			dt_price = pre_close * 0.95
+			zt_price1 = pre_close * 1.05
+			dt_price1 = pre_close * 0.95
 		else:
-			zt_price = pre_close * 1.1
-			dt_price = pre_close * 0.9
-		zt_str_prc = '{:.2f}'.format(Decimal(str(zt_price)))
-		dt_str_prc = '{:.2f}'.format(Decimal(str(dt_price)))
-		zt_price = float(zt_str_prc)
-		dt_price = float(dt_str_prc)
+			zt_price1 = pre_close * 1.1
+			dt_price1 = pre_close * 0.9
+		zt_price = spc_round(zt_price1,2)
+		dt_price = spc_round(dt_price1,2)
+		#print code,name,price,zt_price,high,low
 
 		if high==zt_price:
 			if b_ST==0:
@@ -778,6 +794,8 @@ def analyze_status(code, name, row, stcsItem):
 						if price==open:
 							stcsItem.s_close_zt += 1
 							stcsItem.s_open_T_zt += 1
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+					pd_list.append(list)
 				else:
 					stcsItem.s_zthl += 1
 					status |= STK_ZTHL
@@ -791,6 +809,7 @@ def analyze_status(code, name, row, stcsItem):
 				if price<open:
 					stcsItem.s_zt_o_gt_c += 1
 					#print stcsItem.s_zt,code,name,price,open,change_percent
+
 		if low==dt_price:
 			if b_ST==0:
 				if price==dt_price:
@@ -834,4 +853,13 @@ def analyze_status(code, name, row, stcsItem):
 	if low_df_percent<=-4.0:
 		stcsItem.s_low_df += 1
 
+	#统计表现震撼个股 通过成交量排除新股
+	zf_range = high_zf_percent-low_df_percent
+	if zf_range>=15.0 and volume>100000:
+		if change_percent>=9.0:
+			list = [code, name, change_percent, price, zf_range]
+			stcsItem.lst_nb.append(list)
+		elif change_percent<=-8.0:
+			list = [code, name, change_percent, price, zf_range]
+			stcsItem.lst_jc.append(list)
 	return status

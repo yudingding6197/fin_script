@@ -9,6 +9,8 @@ import urllib
 import urllib2
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
+import decimal
+from decimal import Decimal
 import internal.common
 import internal.ts_common
 import tushare as ts
@@ -17,7 +19,23 @@ import pandas as pd
 
 #reload(sys)
 #sys.setdefaultencoding('gbk')
+def spc_round(value,bit):
+	b = int(value*1000)%10
+	rd_val=float( '{:.2f}'.format(Decimal(str(value))) )
+	if b==5:
+		if int(value*100)%2==0:
+			rd_val+=0.01
+	return rd_val
 
+zt_price_l = [9.404, 9.414, 9.424, 9.434, 9.444, 9.454, 9.464, 9.474, 9.484, 9.494]
+for i in range(0, len(zt_price_l)):
+	zt_price = zt_price_l[i]
+	zt_str_prc = up_round(zt_price,2)
+	zt_str_prc1 = '{:.2f}'.format(Decimal(str(zt_price)))
+	#zt_str_prc = round(a,2)
+	print zt_price,zt_str_prc,zt_str_prc1
+
+'''
 yzzt_list = ['000520','300613','300608','300553','603615']
 
 day_info_df = ts.get_k_data('000520')
@@ -41,7 +59,6 @@ if stdf is None:
 	exit(0)
 print stdf.head(3)
 
-'''
 a = pd.Series([11,34,54,89,39,20,25])
 b = pd.Series(['aa','cc','asd','ew','asd','ew','ce',])
 #df = pd.DataFrame([a,b])

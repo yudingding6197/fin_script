@@ -60,10 +60,6 @@ st_bas_list=list(st_index)
 #st_bas.to_excel("a_stock_base.xlsx")
 #st_pb_base.to_excel("a_stock_pb_base.xlsx")
 #print st_pb_base.head(10)
-'''
-st_list=['002740','300364','002850']
-print st_list
-'''
 
 st_list = []
 for i in range(0, len(new_st_list)):
@@ -72,7 +68,15 @@ for i in range(0, len(new_st_list)):
 	else:
 		st_list.append(new_st_list[i])
 st_list.extend(st_bas_list)
-	
+
+'''
+st_list = st_list[0:60]
+st_list.append('300175')
+st_list.append('603558')
+#st_list=['600828','002819','300611']
+#print st_list
+'''
+
 number = len(st_list)
 if number<=0:
 	exit(0)
@@ -86,6 +90,10 @@ base = 23
 loop_ct = number/base
 if number%base!=0:
 	loop_ct += 1
+
+
+pd_list = []
+
 for i in range(0, loop_ct):
 	end_idx = min(base*(i+1), number)
 	cur_list = st_list[i*base:end_idx]
@@ -117,6 +125,8 @@ for i in range(0, loop_ct):
 		code = cur_list[index]
 		index += 1
 		name = row[0]
+		pre_close = float(row['pre_close'])
+		price = float(row['price'])
 
 		#通过获得K线数据，判断是否YZZT新股
 		if b_get_data == 1:
@@ -137,11 +147,14 @@ for i in range(0, loop_ct):
 				if high!=low:
 					if yzzt_day!=0:
 						if (yzzt_day+1)==trade_days:
-							today_open.append(code)
+							chg_perc = round((price-pre_close)*100/pre_close,2)
+							open_list = [code, name, chg_perc, price, yzzt_day]
+							today_open.append(open_list)
 						b_open = 1
 						break
 				#当ZT打开，就会break for 循环
 				yzzt_day += 1
+				pre_close = close
 			if b_open==0:
 				dt_str=day_info_df.iloc[trade_days-1,0]
 				last_date = datetime.datetime.strptime(dt_str, '%Y-%m-%d').date()
@@ -153,13 +166,63 @@ for i in range(0, loop_ct):
 			if trade_days>33:
 				b_get_data = 0
 
-		stk_type = analyze_status(code, name, row, stcsItem)
+		stk_type = analyze_status(code, name, row, stcsItem, pd_list)
 	#if i>2:
 	#	break
+
+#if len(pd_list)>0:
+#	df_tdy = pd.DataFrame(pd_list)
+#	df_tdy1 = df_tdy.sort_values([0], 0, False)
+
 str_opn = "[%d %d %d %d]" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt)
 print "%4d-ZT	%4d-DT		%d-X %d--%s" % (stcsItem.s_zt,stcsItem.s_dt,stcsItem.s_new,stcsItem.s_yzzt, str_opn)
 print "%4d-CG	%4d-FT		KD:%s  %2d-YIN" %(stcsItem.s_zthl,stcsItem.s_dtft,stcsItem.lst_kd,stcsItem.s_zt_o_gt_c)
 print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_open_sz, stcsItem.s_open_dz, stcsItem.s_open_pp, stcsItem.s_open_xd, stcsItem.s_open_dd)
 print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_close_sz, stcsItem.s_close_dz, stcsItem.s_close_pp, stcsItem.s_close_xd, stcsItem.s_close_dd)
 print "4%%:%4d	%4d" %(stcsItem.s_high_zf,stcsItem.s_low_df)
+#print today_open
+
+str = ''
+list = today_open
+if len(list)>0:
+	print "CXKB:"
+	for i in range(0, len(list)):
+		itm_lst = list[i]
+		if itm_lst[2]>9.9:
+			str1 = "%s(%d, ZT), " % (itm_lst[1], itm_lst[4])
+		elif itm_lst[2]<-9.9:
+			str1 = "%s(%d, DT), " % (itm_lst[1], itm_lst[4])
+		else:
+			str1 = "%s(%d, %.2f%%), " % (itm_lst[1], itm_lst[4],itm_lst[2])
+		str += str1
+	print str
+else:
+	print "CXKB:====="
+print ''
+
+str = ''
+list = stcsItem.lst_nb
+if len(list)>0:
+	print "NB:"
+	for i in range(0, len(list)):
+		itm_lst = list[i]
+		str1 = "%s(%.2f%%, %.2f%%), " % (itm_lst[1], itm_lst[2], itm_lst[4])
+		str += str1
+	print str
+else:
+	print "NB:====="
+print ''
+
+str = ''
+list = stcsItem.lst_jc
+if len(list)>0:
+	print "JC:"
+	for i in range(0, len(list)):
+		itm_lst = list[i]
+		str1 = "%s(%.2f%%, %.2f%%), " % (itm_lst[1], itm_lst[2], itm_lst[4])
+		str += str1
+	print str
+else:
+	print "JC:====="
+
 #print '\n'.join(['%s:%s' % item for item in stcsItem.__dict__.items()])

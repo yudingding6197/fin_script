@@ -13,7 +13,7 @@ cmp_string = "20150201"
 base_date = datetime.datetime.strptime(cmp_string, '%Y%m%d').date()
 
 prepath = "..\\Data\\"
-prepath1 = "..\\Data\\entry\\Cixin\\"
+prepath1 = "..\\Data\\entry\\cixin\\"
 LOOP_COUNT = 0
 df = None
 while LOOP_COUNT<3:
@@ -57,8 +57,19 @@ for code,row in df1.iterrows():
 		break
 
 	#获得每只个股每天交易数据
-	tddf = ts.get_k_data(code)
-	#print tddf
+	LOOP_COUNT = 0
+	tddf = None
+	while LOOP_COUNT<3:
+		try:
+			tddf = ts.get_k_data(code)
+		except:
+			LOOP_COUNT += 1
+			time.sleep(0.5)
+		else:
+			break;
+	if tddf is None:
+		print "Timeout to get k data"
+		exit(0)
 
 	b_open = 0
 	yzzt_day = 0
@@ -88,7 +99,20 @@ for code,row in df1.iterrows():
 			yzzt_day += 1
 		last_close = close
 	if b_open==0:
-		trdf = ts.get_realtime_quotes(code)
+		LOOP_COUNT = 0
+		trdf = None
+		while LOOP_COUNT<3:
+			try:
+				trdf = ts.get_realtime_quotes(code)
+			except:
+				LOOP_COUNT += 1
+				time.sleep(0.5)
+			else:
+				break;
+		if trdf is None:
+			print "Timeout to get real time quotes"
+			exit(0)
+
 		volstr = trdf.iloc[0,10]
 		if volstr.isdigit() is True:
 			fengban_vol = int(volstr)
