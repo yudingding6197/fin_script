@@ -36,6 +36,28 @@ def handle_st_data(code, name, row):
 		b_ST = 1
 		#print code,name
 
+def output_info(desc, type, stk_list):
+	print "%s(%d)" % (desc, len(stk_list))
+	if len(stk_list)<=0:
+		return
+
+	df_tdy = pd.DataFrame(stk_list)
+	if type==1:
+		df_tdy1 = df_tdy.sort_values([2], 0, False)
+	elif type==2:
+		df_tdy1 = df_tdy.sort_values([5], 0, False)
+	else:
+		return
+
+	id = 0
+	for index, row in df_tdy1.iterrows():
+		id += 1
+		if type==1:
+			print "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %6d" % (id,row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7])
+		elif type==2:
+			print "%2d %6s %-7s	%8.2f %8.2f %3d %8d" % (id,row[0],row[1],row[2],row[3],row[4],row[5])
+	print ''
+
 
 today = datetime.date.today()
 
@@ -93,12 +115,19 @@ for i in range(0, len(new_st_list)):
 	else:
 		st_list.append(new_st_list[i])
 st_list.extend(st_bas_list)
-	
+
+'''
+st_list = ['603603','300613','300601','002849','300616','002852','603955','601212']
+'''
+
 number = len(st_list)
 if number<=0:
 	exit(0)
 
 today_open = []
+two_day_open = []
+three_day_open = []
+four_day_open = []
 new_stk = []
 stcsItem=statisticsItem()
 b_get_data = 1
@@ -155,7 +184,9 @@ for i in range(0, loop_ct):
 		change_percent = float('{:.2f}'.format(Decimal(str(c_percent))))
 		high_zf_percent = float('{:.2f}'.format(Decimal(str(h_percent))))
 		low_df_percent = float('{:.2f}'.format(Decimal(str(l_percent))))
-		by1_vol = int(row['b1_v'])
+		by1_vol = 0
+		if row['b1_v'].isdigit():
+			by1_vol = int(row['b1_v'])
 
 		#通过获得K线数据，判断是否YZZT新股
 		if b_get_data == 1:
@@ -174,9 +205,18 @@ for i in range(0, loop_ct):
 				h_low = tdrow['low']
 				if h_high!=h_low:
 					if yzzt_day!=0:
+						list = []
+						if (yzzt_day+4)>=trade_days:
+							list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, yzzt_day]
+
 						if (yzzt_day+1)==trade_days:
-							list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
 							today_open.append(list)
+						elif (yzzt_day+2)==trade_days:
+							two_day_open.append(list)
+						elif (yzzt_day+3)==trade_days:
+							three_day_open.append(list)
+						elif (yzzt_day+4)==trade_days:
+							four_day_open.append(list)
 						b_open = 1
 						break
 				#当ZT打开，就会break for 循环
@@ -187,7 +227,7 @@ for i in range(0, loop_ct):
 				cmp_delta = today-last_date
 				if cmp_delta.days==0:
 					stcsItem.s_cx_yzzt += 1
-					list = [code, name, change_percent, price, by1_vol]
+					list = [code, name, change_percent, price, yzzt_day, by1_vol]
 					new_stk.append(list)
 
 			#认为YZZT不会超过 33 个交易日
@@ -197,15 +237,8 @@ for i in range(0, loop_ct):
 	if b_get_data==0:
 		break
 
-if len(today_open)>0:
-	df_tdy = pd.DataFrame(today_open)
-	df_tdy1 = df_tdy.sort_values([2], 0, False)
-	print "Len:", len(today_open)
-	print df_tdy1
-	print ''
-
-if len(new_stk)>0:
-	df_stk = pd.DataFrame(new_stk)
-	df_stk1 = df_stk.sort_values([4], 0, False)
-	print "Len:", len(new_stk)
-	print df_stk1
+output_info("One   Day", 1, today_open)
+output_info("Two   Day", 1, two_day_open)
+output_info("Thr   Day", 1, three_day_open)
+output_info("Fur   Day", 1, four_day_open)
+output_info("YZZT Len", 2, new_stk)
