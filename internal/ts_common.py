@@ -35,12 +35,12 @@ class statisticsItem:
 	s_dtft = 0
 	s_yzzt = 0
 	s_yzdt = 0
-	s_open_zt = 0
+	s_open_zt = 0		#涨停开盘
 	s_close_zt = 0		#涨停开盘个股收盘仍涨停
 	s_open_T_zt = 0		#涨停开盘个股收盘仍涨停，非一字
-	f = 0			#涨停开盘,收盘打开
 	s_zt_o_gt_c = 0		#触及涨停,开盘价高于收盘价
-	s_open_dt = 0
+	s_dk_zt = 0			#开盘涨停，收盘打开涨停
+	s_open_dt = 0		#跌停开盘
 	s_st_yzzt = 0
 	s_st_yzdt = 0
 	s_open_sz = 0		#开盘上涨
@@ -71,7 +71,7 @@ class statisticsItem:
 		self.s_open_zt = 0
 		self.s_close_zt = 0
 		self.s_open_T_zt = 0
-		s_zt_o_gt_c = 0
+		self.s_zt_o_gt_c = 0
 		self.s_dk_zt = 0
 		self.s_open_dt = 0
 		self.s_st_yzzt = 0
@@ -856,10 +856,10 @@ def analyze_status(code, name, row, stcsItem, pd_list):
 	#统计表现震撼个股 通过成交量排除新股
 	zf_range = high_zf_percent-low_df_percent
 	if zf_range>=15.0 and volume>100000:
-		if change_percent>=9.0:
+		if change_percent>=6.0:
 			list = [code, name, change_percent, price, zf_range]
 			stcsItem.lst_nb.append(list)
-		elif change_percent<=-8.0:
+		elif change_percent<=-6.0:
 			list = [code, name, change_percent, price, zf_range]
 			stcsItem.lst_jc.append(list)
 	return status
