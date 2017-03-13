@@ -61,6 +61,10 @@ class statisticsItem:
 	lst_kd = []			#坑爹个股
 	lst_nb = []			#NB，低位强拉高位
 	lst_jc = []			#韭菜了，严重坑人
+	lst_non_yzcx_zt = []		#非次新涨停
+	lst_non_yzcx_yzzt = []		#非次新一字涨停
+	lst_dt = []					#跌停
+	lst_dtft = []				#跌停反弹
 	def __init__(self):
 		self.s_zt = 0
 		self.s_dt = 0
@@ -94,6 +98,10 @@ class statisticsItem:
 		self.lst_kd = []
 		self.lst_nb = []
 		self.lst_jc = []
+		self.lst_non_yzcx_zt = []
+		self.lst_non_yzcx_yzzt = []
+		self.lst_dt = []
+		self.lst_dtft = []
 
 def spc_round(value,bit):
 	b = int(value*1000)%10
@@ -702,7 +710,7 @@ def check_cx(code):
 	return b_match
 
 #分析此单的状态：ZT、DT、ZTHL、DTFT...，详见 statisticsItem 定义
-def analyze_status(code, name, row, stcsItem, pd_list):
+def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list):
 	if len(code)!=6:
 		return 0
 	if code.isdigit() is False:
@@ -755,8 +763,11 @@ def analyze_status(code, name, row, stcsItem, pd_list):
 					stcsItem.s_open_zt += 1
 					status |= STK_OPEN_ZT
 					stcsItem.s_close_zt += 1
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
-					pd_list.append(list)
+					#list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+					#pd_list.append(list)
+					if yzcx_flag==0:
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+						stcsItem.lst_non_yzcx_yzzt.append(list)
 					#print stcsItem.s_zt,code,name,price,change_percent,open
 		elif open<pre_close:
 			if b_ST==1:
@@ -769,6 +780,9 @@ def analyze_status(code, name, row, stcsItem, pd_list):
 				status |= STK_DT
 				stcsItem.s_open_dt += 1
 				status |= STK_OPEN_DT
+
+				list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+				stcsItem.lst_dt.append(list)
 		#print code,name,open,low,high,price,pre_close
 		#print code, name, status
 	else:
@@ -794,8 +808,11 @@ def analyze_status(code, name, row, stcsItem, pd_list):
 						if price==open:
 							stcsItem.s_close_zt += 1
 							stcsItem.s_open_T_zt += 1
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
-					pd_list.append(list)
+					#list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+					#pd_list.append(list)
+					if yzcx_flag==0:
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+						stcsItem.lst_non_yzcx_zt.append(list)
 				else:
 					stcsItem.s_zthl += 1
 					status |= STK_ZTHL
@@ -808,7 +825,6 @@ def analyze_status(code, name, row, stcsItem, pd_list):
 					stcsItem.lst_kd.append(name)
 				if price<open:
 					stcsItem.s_zt_o_gt_c += 1
-					#print stcsItem.s_zt,code,name,price,open,change_percent
 
 		if low==dt_price:
 			if b_ST==0:
@@ -818,9 +834,17 @@ def analyze_status(code, name, row, stcsItem, pd_list):
 					if open==dt_price:
 						stcsItem.s_open_dt += 1
 						status |= STK_OPEN_DT
+
+					#DT Data
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+					stcsItem.lst_dt.append(list)
 				else:
 					stcsItem.s_dtft += 1
 					status |= STK_DTFT
+
+					#DTFT Data
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+					stcsItem.lst_dtft.append(list)
 
 	#统计开盘涨跌幅度
 	if open_percent>0:

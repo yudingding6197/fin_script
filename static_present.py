@@ -120,6 +120,7 @@ for i in range(0, loop_ct):
 		continue
 
 	#print stdf
+	yzcx_flag = 0
 	for index,row in stdf.iterrows():
 		stockInfo = []
 		code = cur_list[index]
@@ -139,6 +140,7 @@ for i in range(0, loop_ct):
 			yzzt_day = 0
 			if trade_days==1:
 				stcsItem.s_new += 1
+				yzcx_flag = 1
 			for tdidx,tdrow in day_info_df.iterrows():
 				open = tdrow[1]
 				close = tdrow[2]
@@ -161,12 +163,13 @@ for i in range(0, loop_ct):
 				cmp_delta = today-last_date
 				if cmp_delta.days==0:
 					stcsItem.s_cx_yzzt += 1
+					yzcx_flag = 1
 
 			#认为YZZT不会超过 33 个交易日
 			if trade_days>33:
 				b_get_data = 0
 
-		stk_type = analyze_status(code, name, row, stcsItem, pd_list)
+		stk_type = analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list)
 	#if i>2:
 	#	break
 
