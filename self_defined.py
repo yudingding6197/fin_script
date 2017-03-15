@@ -9,7 +9,7 @@ import tushare as ts
 from internal.ts_common import *
 
 curdate = ''
-data_path = "..\\Data\\_self_define.txt"
+data_path = "debug\\_self_define.txt"
 stockCode = []
 
 today = datetime.date.today()

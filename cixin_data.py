@@ -68,7 +68,7 @@ for code,row in df1.iterrows():
 		else:
 			break;
 	if tddf is None:
-		print "Timeout to get k data"
+		print "Timeout to get k data of " + code +", Quit"
 		exit(0)
 
 	b_open = 0

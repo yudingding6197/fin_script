@@ -86,8 +86,9 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 				b_open=0
 				yzzt_day = 0
 				if trade_days==1:
-					stcsItem.s_new += 1
-					yzcx_flag = 1
+					if name[0:1]=='N':
+						stcsItem.s_new += 1
+						yzcx_flag = 1
 				for tdidx,tdrow in day_info_df.iterrows():
 					open = tdrow[1]
 					close = tdrow[2]
@@ -182,7 +183,7 @@ st_list.extend(st_bas_list)
 
 '''
 st_list = []
-st_list=['600828','002819','300611','601212','300609','300534']
+st_list=['603977','000415','300611','601212','603281','300534']
 #print st_list
 '''
 
@@ -195,7 +196,9 @@ if status==-1:
 #获取数据进行打印
 str_opn = "[%d %d %d %d]" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt)
 print "%4d-ZT	%4d-DT		%d-X %d--%s" % (stcsItem.s_zt,stcsItem.s_dt,stcsItem.s_new,stcsItem.s_yzzt, str_opn)
-print "%4d-CG	%4d-FT		KD:%s  %2d-YIN" %(stcsItem.s_zthl,stcsItem.s_dtft,stcsItem.lst_kd,stcsItem.s_zt_o_gt_c)
+print "%4d-CG	%4d-FT		KD:[%s]  %2d-YIN" %(stcsItem.s_zthl,stcsItem.s_dtft,','.join(stcsItem.lst_kd),stcsItem.s_zt_o_gt_c)
+for i in range(0, len(stcsItem.lst_kd)):
+	print stcsItem.lst_kd[i]
 print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_open_sz, stcsItem.s_open_dz, stcsItem.s_open_pp, stcsItem.s_open_xd, stcsItem.s_open_dd)
 print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_close_sz, stcsItem.s_close_dz, stcsItem.s_close_pp, stcsItem.s_close_xd, stcsItem.s_close_dd)
 print "4%%:%4d	%4d" %(stcsItem.s_high_zf,stcsItem.s_low_df)
