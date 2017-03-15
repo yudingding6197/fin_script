@@ -38,7 +38,7 @@ url = "http://www.cninfo.com.cn/information/memo/jyts_more.jsp?datePara="
 
 totalline = 0
 lasttime = ''
-filename = prepath + 'fupai' + curdate
+filename = prepath + 'fupai'
 filetxt = filename + '.txt'
 fl = open(filetxt, 'w')
 

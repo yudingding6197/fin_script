@@ -2,6 +2,7 @@
 import sys
 import re
 import os
+import time
 import string
 import datetime
 import tushare as ts
