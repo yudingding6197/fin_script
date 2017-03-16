@@ -196,8 +196,12 @@ for i in range(0, loop_ct):
 
 			b_open=0
 			yzzt_day = 0
-			if trade_days==1:
+			if trade_days==0:
 				stcsItem.s_new += 1
+				continue
+			if trade_days==1:
+				if name[0:1]=='N':
+					stcsItem.s_new += 1
 			for tdidx,tdrow in day_info_df.iterrows():
 				h_open = tdrow[1]
 				h_close = tdrow[2]

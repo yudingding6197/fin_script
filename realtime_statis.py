@@ -85,6 +85,11 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 
 				b_open=0
 				yzzt_day = 0
+				if trade_days==0:
+					if name[0:1]=='N':
+						stcsItem.s_new += 1
+						yzcx_flag = 1
+						continue
 				if trade_days==1:
 					if name[0:1]=='N':
 						stcsItem.s_new += 1
