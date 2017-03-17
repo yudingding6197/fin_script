@@ -127,6 +127,9 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 
 #Main Start:
 pindex = len(sys.argv)
+cur=datetime.datetime.now()
+fmt_time = '%d-%02d-%02d %02d:%02d' %(cur.year, cur.month, cur.day, cur.hour, cur.minute)
+print "TIME:",fmt_time
 
 #show index information
 show_idx = ['000001', '399001', '399005', '399006']
@@ -202,8 +205,6 @@ if status==-1:
 str_opn = "[%d %d %d %d]" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt)
 print "%4d-ZT	%4d-DT		%d-X %d--%s" % (stcsItem.s_zt,stcsItem.s_dt,stcsItem.s_new,stcsItem.s_yzzt, str_opn)
 print "%4d-CG	%4d-FT		KD:[%s]  %2d-YIN" %(stcsItem.s_zthl,stcsItem.s_dtft,','.join(stcsItem.lst_kd),stcsItem.s_zt_o_gt_c)
-for i in range(0, len(stcsItem.lst_kd)):
-	print stcsItem.lst_kd[i]
 print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_open_sz, stcsItem.s_open_dz, stcsItem.s_open_pp, stcsItem.s_open_xd, stcsItem.s_open_dd)
 print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_close_sz, stcsItem.s_close_dz, stcsItem.s_close_pp, stcsItem.s_close_xd, stcsItem.s_close_dd)
 print "4%%:%4d	%4d" %(stcsItem.s_high_zf,stcsItem.s_low_df)

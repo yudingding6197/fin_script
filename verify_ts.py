@@ -19,6 +19,13 @@ import pandas as pd
 
 #reload(sys)
 #sys.setdefaultencoding('gbk')
+
+today = datetime.date.today()
+cur=datetime.datetime.now()
+fmt_time = '%d-%02d-%02d %02d:%02d' %(cur.year, cur.month, cur.day, cur.hour, cur.minute)
+
+print fmt_time
+
 def spc_round(value,bit):
 	b = int(value*1000)%10
 	rd_val=float( '{:.2f}'.format(Decimal(str(value))) )
@@ -27,6 +34,7 @@ def spc_round(value,bit):
 			rd_val+=0.01
 	return rd_val
 
+'''
 zt_price_l = [9.404, 9.414, 9.424, 9.434, 9.444, 9.454, 9.464, 9.474, 9.484, 9.494]
 for i in range(0, len(zt_price_l)):
 	zt_price = zt_price_l[i]
@@ -35,7 +43,6 @@ for i in range(0, len(zt_price_l)):
 	#zt_str_prc = round(a,2)
 	print zt_price,zt_str_prc,zt_str_prc1
 
-'''
 yzzt_list = ['000520','300613','300608','300553','603615']
 
 day_info_df = ts.get_k_data('000520')
