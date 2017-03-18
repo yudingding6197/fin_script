@@ -34,11 +34,11 @@ index = -1
 wb = Workbook()
 # grab the active worksheet
 ws = wb.active
-strline = u'代码,名称,是否开板,封板天数,封板价格,上市日期,流通股本,流通市值,总股本,总市值,封单数量,封单流通比,换手率'
+strline = u'代码,名称,是否开板,封板天数,封板价格,上市日期,开板日期,流通股本,流通市值,总股本,总市值,封单数量,封单流通比,换手率'
 strObj = strline.split(u',')
 ws.append(strObj)
 #随着列数进行改变
-ws.auto_filter.ref = "A1:M1"
+ws.auto_filter.ref = "A1:N1"
 excel_row = 2
 for code,row in df1.iterrows():
 	stockInfo = []
@@ -79,6 +79,7 @@ for code,row in df1.iterrows():
 	fengliu_prop = 0.0
 	last_day_vol = 0.0
 	turnover = 0.0
+	open_date = 0
 	for tdidx,tdrow in tddf.iterrows():
 		open = tdrow[1]
 		close = tdrow[2]
@@ -88,16 +89,19 @@ for code,row in df1.iterrows():
 		if high!=low:
 			if yzzt_day!=0:
 				b_open = 1
+				opn_date_str = tdrow['date']
 				break
 			#针对特殊新股：招商蛇口、温氏股份等
 			if open<=close and close==high:
 				yzzt_day += 1
 			else:
 				b_open = 1
+				opn_date_str = tdrow['date']
 				break
 		else:
 			yzzt_day += 1
 		last_close = close
+
 	if b_open==0:
 		LOOP_COUNT = 0
 		trdf = None
@@ -118,6 +122,9 @@ for code,row in df1.iterrows():
 			fengban_vol = int(volstr)
 			fengliu_prop = fengban_vol/(liutong_gb*10000)
 			turnover = last_day_vol/(liutong_gb*10000)
+	elif b_open==1:
+		opn_date_int = ''.join(opn_date_str.split('-'))
+		open_date = int(opn_date_int)
 
 	#追加数据,流通市值、总市值
 	liutong_sz = liutong_gb*last_close
@@ -128,6 +135,7 @@ for code,row in df1.iterrows():
 	stockInfo.append(yzzt_day)
 	stockInfo.append(last_close)
 	stockInfo.append(trade_item)
+	stockInfo.append(open_date)
 	stockInfo.append(liutong_gb)
 	stockInfo.append(round(liutong_sz,2))
 	stockInfo.append(zong_gb)
