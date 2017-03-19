@@ -34,11 +34,11 @@ index = -1
 wb = Workbook()
 # grab the active worksheet
 ws = wb.active
-strline = u'代码,名称,是否开板,封板天数,封板价格,上市日期,开板日期,流通股本,流通市值,总股本,总市值,封单数量,封单流通比,换手率'
+strline = u'代码,名称,是否开板,封板天数,封板价格,上市日期,开板日期,开板ZT,流通股本,流通市值,总股本,总市值,封单数量,封单流通比,换手率'
 strObj = strline.split(u',')
 ws.append(strObj)
 #随着列数进行改变
-ws.auto_filter.ref = "A1:N1"
+ws.auto_filter.ref = "A1:O1"
 excel_row = 2
 for code,row in df1.iterrows():
 	stockInfo = []
@@ -80,26 +80,40 @@ for code,row in df1.iterrows():
 	last_day_vol = 0.0
 	turnover = 0.0
 	open_date = 0
+	kbzt_days = 0
 	for tdidx,tdrow in tddf.iterrows():
 		open = tdrow[1]
 		close = tdrow[2]
 		high = tdrow['high']
 		low = tdrow['low']
 		last_day_vol = tdrow['volume']
-		if high!=low:
-			if yzzt_day!=0:
-				b_open = 1
-				opn_date_str = tdrow['date']
+		#high == low 意味YZZT
+		if high==low:
+			yzzt_day += 1
+			last_close = close
+			if b_open==1:
+				kbzt_days += 1
+			continue
+
+		#新股第一天可能 high!=low
+		if yzzt_day!=0:
+			b_open = 1
+			opn_date_str = tdrow['date']
+			#近似涨停处理
+			zt_price = last_close * 1.0992
+			#print code,name,last_close,close,zt_price
+			if close>=zt_price or high>=zt_price:
+				kbzt_days += 1
+			else:
 				break
+		else:
 			#针对特殊新股：招商蛇口、温氏股份等
-			if open<=close and close==high:
+			if open<=close and close==high and low==open:
 				yzzt_day += 1
 			else:
 				b_open = 1
 				opn_date_str = tdrow['date']
 				break
-		else:
-			yzzt_day += 1
 		last_close = close
 
 	if b_open==0:
@@ -136,6 +150,7 @@ for code,row in df1.iterrows():
 	stockInfo.append(last_close)
 	stockInfo.append(trade_item)
 	stockInfo.append(open_date)
+	stockInfo.append(kbzt_days)
 	stockInfo.append(liutong_gb)
 	stockInfo.append(round(liutong_sz,2))
 	stockInfo.append(zong_gb)

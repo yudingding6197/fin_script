@@ -34,7 +34,25 @@ def spc_round(value,bit):
 			rd_val+=0.01
 	return rd_val
 
+
+tddf = ts.get_k_data('300613')
+print tddf.head(3)
+for tdidx,tdrow in tddf.iterrows():
+	open = tdrow[1]
+	close = tdrow[2]
+	high = tdrow['high']
+	low = tdrow['low']
+	last_day_vol = tdrow['volume']
+	print high,type(high)
+	print low,type(low)
+
+	
 '''
+df=ts.get_stock_basics(date='20170301')
+df.to_excel("_temp.xlsx")
+print df.head(2)
+
+
 zt_price_l = [9.404, 9.414, 9.424, 9.434, 9.444, 9.454, 9.464, 9.474, 9.484, 9.494]
 for i in range(0, len(zt_price_l)):
 	zt_price = zt_price_l[i]
@@ -44,9 +62,6 @@ for i in range(0, len(zt_price_l)):
 	print zt_price,zt_str_prc,zt_str_prc1
 
 yzzt_list = ['000520','300613','300608','300553','603615']
-
-day_info_df = ts.get_k_data('000520')
-print day_info_df.head(3)
 
 
 excecount = 0
