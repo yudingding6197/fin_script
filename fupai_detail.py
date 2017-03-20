@@ -16,9 +16,15 @@ from internal.ts_common import *
 def list_stock_news_sum(codeArray, curdate, file):
 	codeLen = len(codeArray)
 	for j in range(0, codeLen):
-		df = ts.get_notices(codeArray[j],curdate)
 		if file is None:
 			continue
+		df = None
+		try:
+			df = ts.get_notices(codeArray[j],curdate)
+		except:
+			pass
+		if df is None:
+			df = ts.get_notices(code)
 		for index,row in df.iterrows():
 			file.write("%s,%s"%(row['date'],row['title'].encode('gbk') ))
 			file.write("\r\n")

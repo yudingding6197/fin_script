@@ -5,9 +5,41 @@ import os
 import time
 import datetime
 import tushare as ts
+import pandas as pd
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 from internal.common import *
+
+#读取表格中的价格
+def get_xg_fx():
+	sheet_st = "Sheet"
+	wkfile = "..\\Data\\entry\\xingu\\s_xingu_faxing.xlsx"
+	wb = load_workbook(wkfile)
+
+	ws = wb.get_sheet_by_name(sheet_st)	
+	#print ws.max_column, ws.max_row
+	data_list = []
+	first_list = []
+	xg_df = pd.DataFrame()
+	for rx in range(1,ws.max_row+1):
+		w1 = ws.cell(row = rx, column = 1).value
+		w2 = ws.cell(row = rx, column = 2).value
+		w3 = ws.cell(row = rx, column = 3).value
+		w4 = ws.cell(row = rx, column = 4).value
+		w5 = ws.cell(row = rx, column = 5).value
+		w6 = ws.cell(row = rx, column = 6).value
+
+		if rx==1:
+			first_list = [w1,w2,w3,w4,w5,w6]
+			continue
+
+		temp_list = [w1,w2,w3,w4,w5,w6]
+		df1 = pd.DataFrame([temp_list], columns=first_list)
+		xg_df = xg_df.append(df1)
+		data_list.append(temp_list)
+	xg_df = xg_df.set_index('code')
+	#print xg_df.ix['002334'][3]
+	return xg_df
 
 cmp_string = "20150201"
 base_date = datetime.datetime.strptime(cmp_string, '%Y%m%d').date()
@@ -16,6 +48,10 @@ prepath = "..\\Data\\"
 prepath1 = "..\\Data\\entry\\cixin\\"
 LOOP_COUNT = 0
 df = None
+
+xg_df = get_xg_fx()
+
+#得到basic info
 while LOOP_COUNT<3:
 	try:
 		df = ts.get_stock_basics()
@@ -29,16 +65,16 @@ if df is None:
 	exit(0)
 df1 = df.sort_values(['timeToMarket'], 0, False)
 
-index = -1
 
+index = -1
 wb = Workbook()
 # grab the active worksheet
 ws = wb.active
-strline = u'代码,名称,是否开板,封板天数,封板价格,上市日期,开板日期,开板ZT,流通股本,流通市值,总股本,总市值,封单数量,封单流通比,换手率'
+strline = u'代码,名称,发行价,是否开板,封板天数,封板价格,上市日期,开板日期,开板ZT,流通股本,流通市值,总股本,总市值,封单数量,封单流通比,换手率'
 strObj = strline.split(u',')
 ws.append(strObj)
 #随着列数进行改变
-ws.auto_filter.ref = "A1:O1"
+ws.auto_filter.ref = "A1:P1"
 excel_row = 2
 for code,row in df1.iterrows():
 	stockInfo = []
@@ -145,6 +181,10 @@ for code,row in df1.iterrows():
 	zong_sz = zong_gb*last_close
 	stockInfo.append(code)
 	stockInfo.append(name)
+	if xg_df is None:
+		stockInfo.append(None)
+	else:
+		stockInfo.append(xg_df.ix[code][3])
 	stockInfo.append(b_open)
 	stockInfo.append(yzzt_day)
 	stockInfo.append(last_close)

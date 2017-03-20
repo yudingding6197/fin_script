@@ -580,8 +580,13 @@ def ts_analyze_data(url, code, sarr, priceList, contPrice):
 	priceList[3] = maxValue
 
 def list_stock_news(code, curdate, file):
-	df = ts.get_notices(code, curdate)
-	if df.empty:
+	df = None
+	try:
+		df = ts.get_notices(code, curdate)
+	except:
+		pass
+
+	if df is None or df.empty:
 		df = ts.get_notices(code)
 	for index,row in df.iterrows():
 		if index>1:

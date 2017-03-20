@@ -26,6 +26,7 @@ fmt_time = '%d-%02d-%02d %02d:%02d' %(cur.year, cur.month, cur.day, cur.hour, cu
 
 print fmt_time
 
+
 def spc_round(value,bit):
 	b = int(value*1000)%10
 	rd_val=float( '{:.2f}'.format(Decimal(str(value))) )
@@ -46,13 +47,7 @@ for tdidx,tdrow in tddf.iterrows():
 	print high,type(high)
 	print low,type(low)
 
-	
 '''
-df=ts.get_stock_basics(date='20170301')
-df.to_excel("_temp.xlsx")
-print df.head(2)
-
-
 zt_price_l = [9.404, 9.414, 9.424, 9.434, 9.444, 9.454, 9.464, 9.474, 9.484, 9.494]
 for i in range(0, len(zt_price_l)):
 	zt_price = zt_price_l[i]

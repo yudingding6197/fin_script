@@ -29,14 +29,43 @@ print df1
 df2 = df1.sort_values(['B'], 0, False)
 print df2
 
-print "3333 ____________________"
+print "3) ____________________"
 s1=[]
 s1.append(['a',32,33,4])
 s1.append(['f',6,47,118])
 s1.append(['g',26,723,32])
 print s1
 df1 = pd.DataFrame(s1, columns=list('ABCD'))
-print df1
+df1 = df1.set_index('A')
+#print df1
+print df1.ix['f']['C']
+for idx,row in df1.iterrows():
+	print idx
+
+print "4) ____________________"
+ascid=65
+#w1=''
+w2=32
+w3=245
+w4=23
+df = pd.DataFrame()
+for i in range(0, 3):
+	w1 = chr(ascid+i)
+	w2 += 2
+	w3 -= 3
+	w4 *= 2
+	s1 = [w1,w2,w3,w4]
+	df1 = pd.DataFrame([s1], columns=list('TBCD'))
+	#df1 = df1.set_index('T')
+	#df = df.append(pd.DataFrame([s1], columns=list('TBCD')))
+	df = df.append(s1)
+
+#df = df.set_index('T')
+print df
+#df1 = pd.DataFrame(s1, columns=list('ABCD'))
+#df1 = df1.set_index('A')
+#print df1
+#print df1.ix['f']['C']
 
 df2 = df1.sort_values(['A'], 0, False)
 print df2
