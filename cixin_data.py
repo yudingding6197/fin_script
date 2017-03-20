@@ -70,11 +70,11 @@ index = -1
 wb = Workbook()
 # grab the active worksheet
 ws = wb.active
-strline = u'代码,名称,发行价,是否开板,封板天数,封板价格,上市日期,开板日期,开板ZT,流通股本,流通市值,总股本,总市值,封单数量,封单流通比,换手率'
+strline = u'代码,名称,发行价,是否开板,封板天数,封板价格,上市日期,开板日期,开板ZT,开板CZT,流通股本,流通市值,总股本,总市值,封单数量,封单流通比,换手率,开板DT'
 strObj = strline.split(u',')
 ws.append(strObj)
 #随着列数进行改变
-ws.auto_filter.ref = "A1:P1"
+ws.auto_filter.ref = "A1:R1"
 excel_row = 2
 for code,row in df1.iterrows():
 	stockInfo = []
@@ -116,7 +116,9 @@ for code,row in df1.iterrows():
 	last_day_vol = 0.0
 	turnover = 0.0
 	open_date = 0
-	kbzt_days = 0
+	kbzt_days = 0		#仅仅计算打开涨停当天是否再涨停
+	kbczt_days = 0
+	kbdt_days = 0		#仅仅计算打开涨停当天是否再涨停
 	for tdidx,tdrow in tddf.iterrows():
 		open = tdrow[1]
 		close = tdrow[2]
@@ -128,7 +130,7 @@ for code,row in df1.iterrows():
 			yzzt_day += 1
 			last_close = close
 			if b_open==1:
-				kbzt_days += 1
+				kbczt_days += 1
 			continue
 
 		#新股第一天可能 high!=low
@@ -137,9 +139,16 @@ for code,row in df1.iterrows():
 			opn_date_str = tdrow['date']
 			#近似涨停处理
 			zt_price = last_close * 1.0992
-			#print code,name,last_close,close,zt_price
-			if close>=zt_price or high>=zt_price:
-				kbzt_days += 1
+			dt_price = last_close * 0.9005
+			#print code,name,last_close,close,zt_price,high
+			if (close>=zt_price or high>=zt_price) and (kbdt_days==0):
+				#通过计算开板后冲涨停和涨停的天数进行判断
+				#避免第一天冲涨停，第二天涨停，计算为开板涨停
+				if kbczt_days==kbzt_days and close>=zt_price:
+					kbzt_days += 1
+				kbczt_days += 1
+			elif close<=dt_price and kbczt_days==0 and kbzt_days==0:
+				kbdt_days += 1
 			else:
 				break
 		else:
@@ -151,6 +160,11 @@ for code,row in df1.iterrows():
 				opn_date_str = tdrow['date']
 				break
 		last_close = close
+		#尽管开板，但是可能还会继续计算ZT or DT天数，需要记录开板日期
+		if b_open==1:
+			if open_date==0:
+				opn_date_int = ''.join(opn_date_str.split('-'))
+				open_date = int(opn_date_int)
 
 	if b_open==0:
 		LOOP_COUNT = 0
@@ -172,9 +186,6 @@ for code,row in df1.iterrows():
 			fengban_vol = int(volstr)
 			fengliu_prop = fengban_vol/(liutong_gb*10000)
 			turnover = last_day_vol/(liutong_gb*10000)
-	elif b_open==1:
-		opn_date_int = ''.join(opn_date_str.split('-'))
-		open_date = int(opn_date_int)
 
 	#追加数据,流通市值、总市值
 	liutong_sz = liutong_gb*last_close
@@ -191,6 +202,7 @@ for code,row in df1.iterrows():
 	stockInfo.append(trade_item)
 	stockInfo.append(open_date)
 	stockInfo.append(kbzt_days)
+	stockInfo.append(kbczt_days)
 	stockInfo.append(liutong_gb)
 	stockInfo.append(round(liutong_sz,2))
 	stockInfo.append(zong_gb)
@@ -198,6 +210,7 @@ for code,row in df1.iterrows():
 	stockInfo.append(fengban_vol)
 	stockInfo.append(round(fengliu_prop,2))
 	stockInfo.append(round(turnover,2))
+	stockInfo.append(kbdt_days)
 	#print stockInfo
 
 	k = 0
