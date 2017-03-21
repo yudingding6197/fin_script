@@ -191,7 +191,13 @@ for i in range(0, loop_ct):
 		#通过获得K线数据，判断是否YZZT新股
 		if b_get_data == 1:
 			#获得每只个股每天交易数据
-			day_info_df = ts.get_k_data(code)
+			day_info_df = None
+			try:
+				day_info_df = ts.get_k_data(code)
+			except:
+				print "Error: get K data fail",code, name
+			if day_info_df is None:
+				continue
 			trade_days = len(day_info_df)
 
 			b_open=0

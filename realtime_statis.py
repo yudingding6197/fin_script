@@ -67,7 +67,6 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 			continue
 
 		#print stdf
-		yzcx_flag = 0
 		for index,row in stdf.iterrows():
 			stockInfo = []
 			code = cur_list[index]
@@ -77,9 +76,17 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 			price = float(row['price'])
 
 			#通过获得K线数据，判断是否YZZT新股
+			yzcx_flag = 0
 			if b_get_data == 1:
 				#获得每只个股每天交易数据
-				day_info_df = ts.get_k_data(code)
+				day_info_df = None
+				#新股上市可能有Bug
+				try:
+					day_info_df = ts.get_k_data(code)
+				except:
+					print "Error for code:", code, name
+				if day_info_df is None:
+					continue
 				#print day_info_df
 				trade_days = len(day_info_df)
 
@@ -249,7 +256,8 @@ if len(list)>0:
 	print str
 
 if flag==1:
-	print "Non CiXin ZT:"
+	non_cx = len(stcsItem.lst_non_yzcx_yzzt)+len(stcsItem.lst_non_yzcx_zt)
+	print "Total( %d = %d + %d ):"%( stcsItem.s_zt, stcsItem.s_zt-non_cx, non_cx )
 	print "id %6s %-12s	%-10s %-9s %-8s %-8s %-8s " % ("code","name","change","price","opn_p","hgh_p","low_p")
 	show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT")
 	print "--------------------"
