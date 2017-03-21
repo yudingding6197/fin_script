@@ -210,6 +210,7 @@ if status==-1:
 
 #获取数据进行打印
 str_opn = "[%d %d %d %d]" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt)
+print "			ST(%d ZT %d DT)		DTKP:%d YZDT:%d" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, stcsItem.s_open_dt, stcsItem.s_yzdt)
 print "%4d-ZT	%4d-DT		%d-X %d--%s" % (stcsItem.s_zt,stcsItem.s_dt,stcsItem.s_new,stcsItem.s_yzzt, str_opn)
 print "%4d-CG	%4d-FT		KD:[%s]  %2d-YIN" %(stcsItem.s_zthl,stcsItem.s_dtft,','.join(stcsItem.lst_kd),stcsItem.s_zt_o_gt_c)
 print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_open_sz, stcsItem.s_open_dz, stcsItem.s_open_pp, stcsItem.s_open_xd, stcsItem.s_open_dd)
