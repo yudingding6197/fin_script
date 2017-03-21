@@ -58,63 +58,61 @@ def output_info(desc, type, stk_list):
 			print "%2d %6s %-7s	%8.2f %8.2f %3d %8d" % (id,row[0],row[1],row[2],row[3],row[4],row[5])
 	print ''
 
+def get_all_stocks(st_list):
+	LOOP_COUNT=0
+	st_today_base = None
+	while LOOP_COUNT<3:
+		try:
+			st_today_base = ts.get_today_all()
+		except:
+			LOOP_COUNT += 1
+			time.sleep(0.5)
+		else:
+			break;
+	if st_today_base is None:
+		print "Timeout to get stock basic info"
+		return
+	st_today = st_today_base.sort_values(['changepercent'], 0, False)
+	#new_st_list = list(st_today[st_today.changepercent>11]['code'])
+	new_st_list = []
+	for index,row in st_today.iterrows():
+		code = row[0].encode('gbk')
+		if row['changepercent']>11:
+			new_st_list.append(code)
+	print ''
+	#print new_st_list
+
+	LOOP_COUNT=0
+	st_bas = None
+	while LOOP_COUNT<3:
+		try:
+			st_bas = ts.get_stock_basics()
+		except:
+			LOOP_COUNT += 1
+			time.sleep(0.5)
+		else:
+			break;
+	if st_bas is None:
+		print "Timeout to get stock basic info"
+		return
+	st_pb_base = st_bas[st_bas.pb!=0]
+	st_pb_base = st_pb_base.sort_values(['timeToMarket'], 0, False)
+	st_index = st_pb_base.index
+	st_bas_list=list(st_index)
+
+	for i in range(0, len(new_st_list)):
+		if new_st_list[i] in st_bas_list[0:10]:
+			pass
+		else:
+			st_list.append(new_st_list[i])
+	st_list.extend(st_bas_list)
+
+
+#Main
 
 today = datetime.date.today()
-
-#说明show_flag
-#0：不获得每一只的流通盘，不会计算换手率
-#1：获得每一只的流通盘，并且计算换手率
-#2：显示每一只最新的新闻，当天的新闻全部显示，当天没有只显示一条news
-pindex = len(sys.argv)
-
-LOOP_COUNT=0
-st_today_base = None
-while LOOP_COUNT<3:
-	try:
-		st_today_base = ts.get_today_all()
-	except:
-		LOOP_COUNT += 1
-		time.sleep(0.5)
-	else:
-		break;
-if st_today_base is None:
-	print "Timeout to get stock basic info"
-	exit(0)
-st_today = st_today_base.sort_values(['changepercent'], 0, False)
-#new_st_list = list(st_today[st_today.changepercent>11]['code'])
-new_st_list = []
-for index,row in st_today.iterrows():
-	code = row[0].encode('gbk')
-	if row['changepercent']>11:
-		new_st_list.append(code)
-print ''
-#print new_st_list
-
-LOOP_COUNT=0
-st_bas = None
-while LOOP_COUNT<3:
-	try:
-		st_bas = ts.get_stock_basics()
-	except:
-		LOOP_COUNT += 1
-		time.sleep(0.5)
-	else:
-		break;
-if st_bas is None:
-	print "Timeout to get stock basic info"
-	exit(0)
-st_pb_base = st_bas[st_bas.pb!=0]
-st_pb_base = st_pb_base.sort_values(['timeToMarket'], 0, False)
-st_index = st_pb_base.index
-st_bas_list=list(st_index)
-
 st_list = []
-for i in range(0, len(new_st_list)):
-	if new_st_list[i] in st_bas_list[0:10]:
-		pass
-	else:
-		st_list.append(new_st_list[i])
-st_list.extend(st_bas_list)
+get_all_stocks(st_list)
 
 '''
 st_list = ['603603','300613','300601','002849','300616','002852','603955','601212']
@@ -143,19 +141,15 @@ for i in range(0, loop_ct):
 	if len(cur_list)==0:
 		break
 	#print cur_list
-	excecount = 0
+	LOOP_COUNT = 0
 	stdf = None
-	while excecount<5:
+	while LOOP_COUNT<5:
 		try:
 			stdf = ts.get_realtime_quotes(cur_list)
 		except:
 			print "Get except:"
+			LOOP_COUNT += 1
 			time.sleep(0.5)
-			excecount += 1
-			if excecount<5:
-				continue
-			stdf = None
-			break
 		else:
 			break
 	if stdf is None:

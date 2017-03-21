@@ -49,24 +49,30 @@ w2=32
 w3=245
 w4=23
 df = pd.DataFrame()
-for i in range(0, 3):
+for i in range(0, 8):
 	w1 = chr(ascid+i)
 	w2 += 2
 	w3 -= 3
 	w4 *= 2
 	s1 = [w1,w2,w3,w4]
-	df1 = pd.DataFrame([s1], columns=list('TBCD'))
+	#df1 = pd.DataFrame([s1], columns=list('TBCD'))
 	#df1 = df1.set_index('T')
-	#df = df.append(pd.DataFrame([s1], columns=list('TBCD')))
-	df = df.append(s1)
+	df = df.append(pd.DataFrame([s1], columns=list('TBCD')))
+	#df = df.append(s1)
 
-#df = df.set_index('T')
+df = df.set_index('T')
+#print df.describe()
+
+#通过切片组成新的dataFrame
+df = df[2:5]
 print df
+
 #df1 = pd.DataFrame(s1, columns=list('ABCD'))
 #df1 = df1.set_index('A')
 #print df1
 #print df1.ix['f']['C']
 
+'''
 df2 = df1.sort_values(['A'], 0, False)
 print df2
 df2 = df1.sort_values(['B'], 0, False)
@@ -74,9 +80,8 @@ print df2
 df2 = df1.sort_values(['C'], 0, False)
 print df2
 
+'''
 print "____________________"
-for i in df1:
-	print i
 
 #切片 slice 方式合并list，NB
 L1 = [1,2,4,5,6]

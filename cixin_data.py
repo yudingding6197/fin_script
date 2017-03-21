@@ -70,7 +70,7 @@ index = -1
 wb = Workbook()
 # grab the active worksheet
 ws = wb.active
-strline = u'代码,名称,发行价,是否开板,封板天数,封板价格,上市日期,开板日期,开板ZT,开板CZT,流通股本,流通市值,总股本,总市值,封单数量,封单流通比,换手率,开板DT'
+strline = u'代码,名称,发行价,开板,封板日,封板价,上市日,开板日,开板ZT,开板CZT,流通股本,流通市值,总股本,总市值,封单数量,封单流通比,换手率,开板DT'
 strObj = strline.split(u',')
 ws.append(strObj)
 #随着列数进行改变
