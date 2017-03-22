@@ -256,7 +256,7 @@ if len(list)>0:
 		str += str1
 	print str
 
-if flag==1:
+if flag==0:
 	non_cx = len(stcsItem.lst_non_yzcx_yzzt)+len(stcsItem.lst_non_yzcx_zt)
 	print "Total( %d = %d + %d ):"%( stcsItem.s_zt, stcsItem.s_zt-non_cx, non_cx )
 	print "id %6s %-12s	%-10s %-9s %-8s %-8s %-8s " % ("code","name","change","price","opn_p","hgh_p","low_p")
