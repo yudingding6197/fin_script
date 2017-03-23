@@ -13,12 +13,12 @@ from internal.common import *
 #读取表格中的价格
 def get_xg_fx():
 	sheet_st = "Sheet"
-	wkfile = "..\\Data\\entry\\xingu\\s_xingu_faxing.xlsx"
-	wb = load_workbook(wkfile)
+	wkfile = "..\\Data\\entry\\xingu\\faxing.xlsx"
+	wkfile1 = "..\\Data\\entry\\xingu\\faxing_re.xlsx"
 
+	wb = load_workbook(wkfile)
 	ws = wb.get_sheet_by_name(sheet_st)	
 	#print ws.max_column, ws.max_row
-	data_list = []
 	first_list = []
 	xg_df = pd.DataFrame()
 	for rx in range(1,ws.max_row+1):
@@ -36,11 +36,27 @@ def get_xg_fx():
 		temp_list = [w1,w2,w3,w4,w5,w6]
 		df1 = pd.DataFrame([temp_list], columns=first_list)
 		xg_df = xg_df.append(df1)
-		data_list.append(temp_list)
+	
+	wb = load_workbook(wkfile1)
+	ws = wb.get_sheet_by_name(sheet_st)	
+	for rx in range(2,ws.max_row+1):
+		w1 = ws.cell(row = rx, column = 1).value
+		w2 = ws.cell(row = rx, column = 2).value
+		w3 = ws.cell(row = rx, column = 3).value
+		w4 = ws.cell(row = rx, column = 4).value
+		w5 = ws.cell(row = rx, column = 5).value
+		w6 = ws.cell(row = rx, column = 6).value
+
+		temp_list = [w1,w2,w3,w4,w5,w6]
+		df1 = pd.DataFrame([temp_list], columns=first_list)
+		xg_df = xg_df.append(df1)
+
 	xg_df = xg_df.set_index('code')
-	#print xg_df.ix['002334'][3]
+	#print xg_df.ix['001979'][3]
+
 	return xg_df
 
+# Main
 cmp_string = "20150201"
 base_date = datetime.datetime.strptime(cmp_string, '%Y%m%d').date()
 
@@ -228,6 +244,6 @@ today = datetime.date.today()
 cur=datetime.datetime.now()
 qdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
 filexlsx1 = prepath1 + "cx_anly_"+ qdate
-filexlsx1 = '%s_%02d-%02d.xlsx' %(filexlsx1, cur.hour, cur.minute)
+filexlsx1 = '%s#%02d-%02d.xlsx' %(filexlsx1, cur.hour, cur.minute)
 wb.save(filexlsx1)
 
