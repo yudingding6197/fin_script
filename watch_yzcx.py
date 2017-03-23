@@ -8,6 +8,7 @@ import urllib2
 import pandas as pd
 import time
 import ctypes
+from internal.ts_common import *
 
 ALERT_HIGH = 0
 COND_COUNT = 0
@@ -29,7 +30,22 @@ def currentIndexData(url, code):
 		idxVal = "%.02f"%(float(stockObj[1]))
 		print "%10s	%s%%(%s)" % (idxVal, stockObj[3], stockObj[2])
 
-def getSinaData(url, code, sleepTime, inst_info):
+def handle_code(code):
+	head3 = code[0:3]
+	result = (cmp(head3, "000")==0) or (cmp(head3, "002")==0) or (cmp(head3, "300")==0) or (cmp(head3, "131")==0)
+	if result is True:
+		code = "sz" + code
+		return code
+
+	result = (cmp(head3, "600")==0) or (cmp(head3, "601")==0) or (cmp(head3, "603")==0) or (cmp(head3, "204")==0)
+	if result is True:
+		code = "sh" + code
+		return code
+
+	print "非法代码:" +code+ "\n"
+	return None
+
+def getSinaData(url, code, sleepTime, inst_info, phase):
 	global COND_COUNT
 	global ALERT_HIGH
 	global ZT_BUY_VOL
@@ -53,9 +69,10 @@ def getSinaData(url, code, sleepTime, inst_info):
 	stockLen = len(stockObj)
 	if stockLen<10:
 		return -1
+
 	#for i in range(0, stockLen):
 	#	print "%02d:	%s" % (i, stockObj[i])
-	#print stockObj[0]
+
 	obj = re.match(r'.*\"(.*)',stockObj[0])
 	str = obj.group(1)
 	name = str.decode("gbk")
@@ -64,15 +81,21 @@ def getSinaData(url, code, sleepTime, inst_info):
 	curPrice = stockObj[3]
 	highPrice = stockObj[4]
 	lowPrice = stockObj[5]
-	lastPrice = stockObj[2]
+	pre_close = float(stockObj[2])
 	jingmaijia = stockObj[6]
 	#variation = stockObj[43]
 	zhangdiejia = 0.0
 	if float(curPrice)==0:
-		zhangdiejia = float(jingmaijia) - float(lastPrice)
+		zhangdiejia = float(jingmaijia) - pre_close
 	else:
-		zhangdiejia = float(curPrice) - float(lastPrice)
-	zhangdiefu = zhangdiejia*100/float(lastPrice)
+		zhangdiejia = float(curPrice) - pre_close
+	zhangdiefu = zhangdiejia*100/pre_close
+
+	zt_price1 = pre_close * 1.1
+	dt_price1 = pre_close * 0.9
+	zt_price = spc_round(zt_price1,2)
+	dt_price = spc_round(dt_price1,2)
+
 	#成交量 和 成交额
 	volume = stockObj[8]
 	amount = stockObj[9]
@@ -90,6 +113,8 @@ def getSinaData(url, code, sleepTime, inst_info):
 	for i in range(0, 5):
 		sellVol.append(int(stockObj[index+i*2])/100)
 
+	print code, name, "===BUY_PRICE", buy[0], buy[1], buy[2]
+
 	inst_info.append(code)
 	inst_info.append(sellVol[0])
 	inst_info.append(buyVol[0])
@@ -97,29 +122,19 @@ def getSinaData(url, code, sleepTime, inst_info):
 	inst_info.append(curPrice)
 	inst_info.append(volume)
 	inst_info.append(name)
+
+	if highPrice!=lowPrice:
+		return 1
+
+	status = 0
+	if phase==1:
+		if buy[0]!=zt_price:
+			status = 1
+	else:
+		if sellVol[0]!=0:
+			status = 1
+	return status
 	
-	#还没有打开
-	if sellVol[0]==0:
-		return 0
-
-	#已经打开
-	return 1
-	
-def handle_code(code):
-	head3 = code[0:3]
-	result = (cmp(head3, "000")==0) or (cmp(head3, "002")==0) or (cmp(head3, "300")==0) or (cmp(head3, "131")==0)
-	if result is True:
-		code = "sz" + code
-		return code
-
-	result = (cmp(head3, "600")==0) or (cmp(head3, "601")==0) or (cmp(head3, "603")==0) or (cmp(head3, "204")==0)
-	if result is True:
-		code = "sh" + code
-		return code
-
-	print "非法代码:" +code+ "\n"
-	return None
-
 def get_stk_by_file(stockCode):
 	data_path = "..\\Data\\entry\\_self_define.txt"
 	if os.path.isfile(data_path) is False:
@@ -146,6 +161,10 @@ def get_stk_by_file(stockCode):
 
 
 # Main
+pindex = len(sys.argv)
+if pindex==2:
+	slpTime = int(sys.argv[1])
+
 today = datetime.date.today()
 curdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
 #print curdate
@@ -156,15 +175,12 @@ if len(stockCode)==0:
 	print "No CX Data"
 	exit(0)
 #stockCode = stockCode[0:1]
-#stockCode = ['sz002850']
+#stockCode = ['sz300625']
 
-slpTime = 2
 idxCount=0
 exgCount=0
 sarr = ''
 url = "http://hq.sinajs.cn/list="
-exUrl = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
-#exUrl = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php"
 c_list = ['code', 'sell1', 'buy1', 'buy2', 'price', 'vol', 'name']
 while True:
 	now = datetime.datetime.now()
@@ -172,12 +188,16 @@ while True:
 	minute = now.minute
 
 	print "---------------------[%02d:%02d:%02d]"%(hour, minute,now.second)
+	#处理竞价阶段
+	phase = 0
+	if (hour==9 and minute>=14 and minute<=26):
+		phase = 1
 
 	opened_df = pd.DataFrame()
 	fengbd_df = pd.DataFrame()
 	for code in stockCode:
 		inst_info = []
-		state = getSinaData(url, code, slpTime, inst_info)
+		state = getSinaData(url, code, slpTime, inst_info, phase)
 		#print inst_info
 		if state<0:
 			continue
@@ -193,20 +213,30 @@ while True:
 	if len(opened_df)==0:
 		print "No KaiBan Item"
 	else:
-		df = opened_df.sort_values(['buy1'], 0, True)
-		df = df[df.buy2<50000]
-		print opened_df
+		if phase==0:
+			df = opened_df.sort_values(['buy1'], 0, True)
+			df = df[df.buy1<40000]
+		elif phase==1:
+			df = opened_df.sort_values(['buy2'], 0, True)
+			df = df[df.buy2<50000]
+		print df
 	print ''
 
-	print "#########################################"
+	str = "#########################################"
 	if len(fengbd_df)==0:
+		print str
 		print "No FengBan Item"
 	else:
-		df = fengbd_df.sort_values(['buy1'], 0, True)
-		df = df[df.buy2<50000]
+		if phase==0:
+			df = fengbd_df.sort_values(['buy1'], 0, True)
+			df = df[df.buy1<40000]
+		elif phase==1:
+			df = fengbd_df.sort_values(['buy2'], 0, True)
+			df = df[df.buy2<50000]
+		print "T:%d   S:%d %s"%(len(fengbd_df), len(df), str)
 		print df
 	print "===================================="
-	print ''
+	print "\n\n"
 	time.sleep(slpTime)
 
 	'''	
