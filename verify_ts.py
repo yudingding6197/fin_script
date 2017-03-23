@@ -35,7 +35,10 @@ def spc_round(value,bit):
 			rd_val+=0.01
 	return rd_val
 
+df = ts.get_stock_basics()
 
+	
+'''
 tddf = ts.get_k_data('300613')
 print tddf.head(3)
 for tdidx,tdrow in tddf.iterrows():
@@ -47,7 +50,6 @@ for tdidx,tdrow in tddf.iterrows():
 	print high,type(high)
 	print low,type(low)
 
-'''
 zt_price_l = [9.404, 9.414, 9.424, 9.434, 9.444, 9.454, 9.464, 9.474, 9.484, 9.494]
 for i in range(0, len(zt_price_l)):
 	zt_price = zt_price_l[i]

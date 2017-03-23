@@ -42,67 +42,99 @@ if len(stockCode)==0:
 	exit(0)
 '''
 
-index = -1
-cmp_string = "20170201"
-base_date = datetime.datetime.strptime(cmp_string, '%Y%m%d').date()
-today = datetime.date.today()
+def get_new_stk_by_ts(yzzt_list, today_open):
+	index = -1
+	cmp_string = "20170201"
+	base_date = datetime.datetime.strptime(cmp_string, '%Y%m%d').date()
+	today = datetime.date.today()
 
-df = ts.get_stock_basics()
-df1 = df.sort_values(['timeToMarket'], 0, False)
-#print df1
+	df = ts.get_stock_basics()
+	df1 = df.sort_values(['timeToMarket'], 0, False)
+	#print df1
 
+	for code,row in df1.iterrows():
+		stockInfo = []
+		index += 1
+		name = row[0].decode('utf8')
+		trade_item = row['timeToMarket']
+		ltgb = row['outstanding']
+		zgb = row['totals']
+		#print type(trade_item) 竟然是 long 类型
+		trade_string = str(trade_item)
+		trade_date = datetime.datetime.strptime(trade_string, '%Y%m%d').date()
+		delta = trade_date - base_date
+		#if delta.days<0:
+		#	break
+
+		#获得每只个股每天交易数据
+		day_info_df = ts.get_k_data(code)
+		#print day_info_df
+
+		b_open = 0
+		yzzt_day = 0
+		last_close = 0.0
+		td_total = len(day_info_df)
+		#认为YZZT不会超过 33 个交易日
+		if td_total>33:
+			break
+		for tdidx,tdrow in day_info_df.iterrows():
+			open = tdrow[1]
+			close = tdrow[2]
+			high = tdrow['high']
+			low = tdrow['low']
+			if high!=low:
+				if yzzt_day!=0:
+					if (yzzt_day+1)==td_total:
+						today_open.append(code)
+					b_open = 1
+					break
+			#当ZT打开，就会break for 循环
+			yzzt_day += 1
+		if b_open==0:
+			dt_str=day_info_df.iloc[td_total-1,0]
+			last_date = datetime.datetime.strptime(dt_str, '%Y-%m-%d').date()
+			cmp_delta = today-last_date
+			if cmp_delta.days==0:
+				yzzt_list.append(code)
+
+def get_new_stk_by_file(yzzt_list, today_open):			
+	data_path = "..\\Data\\entry\\_self_define.txt"
+
+	if os.path.isfile(data_path) is False:
+		print "No file:",data_path
+		exit(0)
+
+	file = open(data_path, 'r')
+	while 1:
+		lines = file.readlines(100000)
+		if not lines:
+			break
+		for line in lines:
+			code = line.strip()
+			if len(code)!=6:
+				continue
+			if code.isdigit() is False:
+				continue
+			yzzt_list.append(code)
+	file.close()
+
+
+# Main
 today_open = []
 yzzt_list = []
-for code,row in df1.iterrows():
-	stockInfo = []
-	index += 1
-	name = row[0].decode('utf8')
-	trade_item = row['timeToMarket']
-	ltgb = row['outstanding']
-	zgb = row['totals']
-	#print type(trade_item) 竟然是 long 类型
-	trade_string = str(trade_item)
-	trade_date = datetime.datetime.strptime(trade_string, '%Y%m%d').date()
-	delta = trade_date - base_date
-	#if delta.days<0:
-	#	break
 
-	#获得每只个股每天交易数据
-	day_info_df = ts.get_k_data(code)
-	#print day_info_df
+get_new_stk_by_file(yzzt_list, today_open)
+if len(yzzt_list)==0:
+	print "No CX Data"
+	exit(0)
 
-	b_open = 0
-	yzzt_day = 0
-	last_close = 0.0
-	td_total = len(day_info_df)
-	#认为YZZT不会超过 33 个交易日
-	if td_total>33:
-		break
-	for tdidx,tdrow in day_info_df.iterrows():
-		open = tdrow[1]
-		close = tdrow[2]
-		high = tdrow['high']
-		low = tdrow['low']
-		if high!=low:
-			if yzzt_day!=0:
-				if (yzzt_day+1)==td_total:
-					today_open.append(code)
-				b_open = 1
-				break
-		#当ZT打开，就会break for 循环
-		yzzt_day += 1
-	if b_open==0:
-		dt_str=day_info_df.iloc[td_total-1,0]
-		last_date = datetime.datetime.strptime(dt_str, '%Y-%m-%d').date()
-		cmp_delta = today-last_date
-		if cmp_delta.days==0:
-			yzzt_list.append(code)
-
+'''
 print "DAKA：",len(today_open)
 print today_open
 print "==============="
 print "YIZI：",len(yzzt_list)
 print yzzt_list
+'''
 
 #首先得到 By1量，设置初始基线
 buy1_vol = []

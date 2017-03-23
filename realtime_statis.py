@@ -74,6 +74,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 			name = row[0]
 			pre_close = float(row['pre_close'])
 			price = float(row['price'])
+			change_perc = (price-pre_close)*100/pre_close
 
 			#通过获得K线数据，判断是否YZZT新股
 			yzcx_flag = 0
@@ -126,7 +127,10 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 						yzcx_flag = 1
 
 				#认为YZZT不会超过 33 个交易日
-				if trade_days>33:
+				#if trade_days>33:
+				#	b_get_data = 0
+				#改变判断方法，不再是ZT的个股不是YZCX了
+				if change_perc<9.8:
 					b_get_data = 0
 
 			stk_type = analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list)
@@ -163,13 +167,17 @@ if st_today_base is None:
 	print "Timeout to get stock basic info"
 	exit(0)
 st_today = st_today_base.sort_values(['changepercent'], 0, False)
+temp_today_list = []
 new_st_list = []
 for index,row in st_today.iterrows():
 	code = row[0].encode('gbk')
 	if row['changepercent']>11:
 		new_st_list.append(code)
+	temp_today_list.append(code)
 print ''
 
+#暂时注释此段，因为 get_stock_basics() 不可用
+'''
 LOOP_COUNT=0
 st_bas = None
 while LOOP_COUNT<3:
@@ -195,6 +203,9 @@ for i in range(0, len(new_st_list)):
 	else:
 		st_list.append(new_st_list[i])
 st_list.extend(st_bas_list)
+'''
+
+st_list = temp_today_list
 
 '''
 st_list = []

@@ -93,6 +93,7 @@ def getSinaData(url, code, sleepTime, inst_info):
 	inst_info.append(code)
 	inst_info.append(sellVol[0])
 	inst_info.append(buyVol[0])
+	inst_info.append(buyVol[1])
 	inst_info.append(curPrice)
 	inst_info.append(volume)
 	inst_info.append(name)
@@ -119,36 +120,38 @@ def handle_code(code):
 	print "·Ç·¨´úÂë:" +code+ "\n"
 	return None
 
-# Main
-data_path = "..\\Data\\entry\\_self_define.txt"
-stockCode = []
+def get_stk_by_file(stockCode):
+	data_path = "..\\Data\\entry\\_self_define.txt"
+	if os.path.isfile(data_path) is False:
+		print "No file:",data_path
+		return
 
+	file = open(data_path, 'r')
+	while 1:
+		lines = file.readlines(100000)
+		if not lines:
+			break
+		for line in lines:
+			code = line.strip()
+			if len(code)!=6:
+				continue
+			if code.isdigit() is False:
+				continue
+			code = handle_code(code)
+			if code is None:
+				continue
+			#print code
+			stockCode.append(code)
+	file.close()
+
+
+# Main
 today = datetime.date.today()
 curdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
 #print curdate
+stockCode = []
 
-if os.path.isfile(data_path) is False:
-	print "No file:",data_path
-	exit(0)
-
-file = open(data_path, 'r')
-while 1:
-	lines = file.readlines(100000)
-	if not lines:
-		break
-	for line in lines:
-		code = line.strip()
-		if len(code)!=6:
-			continue
-		if code.isdigit() is False:
-			continue
-		code = handle_code(code)
-		if code is None:
-			continue
-		#print code
-		stockCode.append(code)
-file.close()
-
+get_stk_by_file(stockCode)
 if len(stockCode)==0:
 	print "No CX Data"
 	exit(0)
@@ -162,7 +165,7 @@ sarr = ''
 url = "http://hq.sinajs.cn/list="
 exUrl = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
 #exUrl = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php"
-c_list = ['code', 'sell1', 'buy1', 'price', 'vol', 'name']
+c_list = ['code', 'sell1', 'buy1', 'buy2', 'price', 'vol', 'name']
 while True:
 	now = datetime.datetime.now()
 	hour = now.hour
@@ -190,19 +193,20 @@ while True:
 	if len(opened_df)==0:
 		print "No KaiBan Item"
 	else:
+		df = opened_df.sort_values(['buy1'], 0, True)
+		df = df[df.buy2<50000]
 		print opened_df
 	print ''
 
+	print "#########################################"
 	if len(fengbd_df)==0:
 		print "No FengBan Item"
 	else:
 		df = fengbd_df.sort_values(['buy1'], 0, True)
-		df = df[df.buy1<50000]
+		df = df[df.buy2<50000]
 		print df
-	
-
-	#currentSinaData(url, code, slpTime)
-
+	print "===================================="
+	print ''
 	time.sleep(slpTime)
 
 	'''	
