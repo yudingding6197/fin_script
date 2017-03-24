@@ -80,7 +80,7 @@ if df is None:
 	print "Timeout to get stock basic info"
 	exit(0)
 df1 = df.sort_values(['timeToMarket'], 0, False)
-
+#df1 = df1[0:50]
 
 index = -1
 wb = Workbook()
@@ -96,11 +96,11 @@ for code,row in df1.iterrows():
 	stockInfo = []
 	index += 1
 	name = row[0].decode('utf8')
-	trade_item = row['timeToMarket']
+	ipo_date = row['timeToMarket']
 	liutong_gb = row['outstanding']
 	zong_gb = row['totals']
-	#print type(trade_item) 竟然是 long 类型
-	trade_string = str(trade_item)
+	#print type(ipo_date) 竟然是 long 类型
+	trade_string = str(ipo_date)
 	trade_date = datetime.datetime.strptime(trade_string, '%Y%m%d').date()
 	delta = trade_date - base_date
 	#print (index+1),code,delta.days,trade_date,base_date
@@ -131,7 +131,7 @@ for code,row in df1.iterrows():
 	fengliu_prop = 0.0
 	last_day_vol = 0.0
 	turnover = 0.0
-	open_date = 0
+	cxkb_date = 0
 	kbzt_days = 0		#仅仅计算打开涨停当天是否再涨停
 	kbczt_days = 0
 	kbdt_days = 0		#仅仅计算打开涨停当天是否再涨停
@@ -165,8 +165,6 @@ for code,row in df1.iterrows():
 				kbczt_days += 1
 			elif close<=dt_price and kbczt_days==0 and kbzt_days==0:
 				kbdt_days += 1
-			else:
-				break
 		else:
 			#针对特殊新股：招商蛇口、温氏股份等
 			if open<=close and close==high and low==open:
@@ -174,13 +172,15 @@ for code,row in df1.iterrows():
 			else:
 				b_open = 1
 				opn_date_str = tdrow['date']
-				break
 		last_close = close
+		
 		#尽管开板，但是可能还会继续计算ZT or DT天数，需要记录开板日期
 		if b_open==1:
-			if open_date==0:
+			if cxkb_date==0:
 				opn_date_int = ''.join(opn_date_str.split('-'))
-				open_date = int(opn_date_int)
+				cxkb_date = int(opn_date_int)
+			if kbczt_days==0 and kbzt_days==0:
+				break
 
 	if b_open==0:
 		LOOP_COUNT = 0
@@ -215,8 +215,8 @@ for code,row in df1.iterrows():
 	stockInfo.append(b_open)
 	stockInfo.append(yzzt_day)
 	stockInfo.append(last_close)
-	stockInfo.append(trade_item)
-	stockInfo.append(open_date)
+	stockInfo.append(ipo_date)
+	stockInfo.append(cxkb_date)
 	stockInfo.append(kbzt_days)
 	stockInfo.append(kbczt_days)
 	stockInfo.append(liutong_gb)

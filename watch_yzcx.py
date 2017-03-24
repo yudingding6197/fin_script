@@ -113,9 +113,12 @@ def getSinaData(url, code, sleepTime, inst_info, phase):
 	for i in range(0, 5):
 		sellVol.append(int(stockObj[index+i*2])/100)
 
-	print code, name, "===BUY_PRICE", buy[0], buy[1], buy[2]
+	#print code, name, "===BUY_PRICE", buy[0], buy[1], buy[2]
 
-	inst_info.append(code)
+	if (code[0:2]=='sh' or code[0:2]=='sz'):
+		inst_info.append(code[2:])
+	else:
+		inst_info.append(code)
 	inst_info.append(sellVol[0])
 	inst_info.append(buyVol[0])
 	inst_info.append(buyVol[1])
@@ -190,8 +193,16 @@ while True:
 	print "---------------------[%02d:%02d:%02d]"%(hour, minute,now.second)
 	#´¦Àí¾º¼Û½×¶Î
 	phase = 0
-	if (hour==9 and minute>=14 and minute<=26):
+	filter_vol = 200000
+	if (hour==9 and minute>=14 and minute<=25):
 		phase = 1
+		filter_vol = 200000
+	elif (hour<10):
+		phase = 2
+		filter_vol = 150000
+	else:
+		phase = 3
+		filter_vol = 40000
 
 	opened_df = pd.DataFrame()
 	fengbd_df = pd.DataFrame()
@@ -213,26 +224,23 @@ while True:
 	if len(opened_df)==0:
 		print "No KaiBan Item"
 	else:
-		if phase==0:
-			df = opened_df.sort_values(['buy1'], 0, True)
-			df = df[df.buy1<40000]
-		elif phase==1:
+		if phase==1:
 			df = opened_df.sort_values(['buy2'], 0, True)
-			df = df[df.buy2<50000]
+		else:
+			df = opened_df.sort_values(['buy1'], 0, True)
 		print df
 	print ''
-
 	str = "#########################################"
 	if len(fengbd_df)==0:
 		print str
 		print "No FengBan Item"
 	else:
-		if phase==0:
-			df = fengbd_df.sort_values(['buy1'], 0, True)
-			df = df[df.buy1<40000]
-		elif phase==1:
+		if phase==1:
 			df = fengbd_df.sort_values(['buy2'], 0, True)
-			df = df[df.buy2<50000]
+			df = df[df.buy2<filter_vol]
+		else:
+			df = fengbd_df.sort_values(['buy1'], 0, True)
+			df = df[df.buy1<filter_vol]
 		print "T:%d   S:%d %s"%(len(fengbd_df), len(df), str)
 		print df
 	print "===================================="

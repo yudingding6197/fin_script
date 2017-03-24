@@ -20,13 +20,6 @@ import pandas as pd
 #reload(sys)
 #sys.setdefaultencoding('gbk')
 
-today = datetime.date.today()
-cur=datetime.datetime.now()
-fmt_time = '%d-%02d-%02d %02d:%02d' %(cur.year, cur.month, cur.day, cur.hour, cur.minute)
-
-print fmt_time
-
-
 def spc_round(value,bit):
 	b = int(value*1000)%10
 	rd_val=float( '{:.2f}'.format(Decimal(str(value))) )
@@ -35,11 +28,34 @@ def spc_round(value,bit):
 			rd_val+=0.01
 	return rd_val
 
-df = ts.get_stock_basics()
 
-	
+today = datetime.date.today()
+cur=datetime.datetime.now()
+fmt_time = '%d-%02d-%02d %02d:%02d' %(cur.year, cur.month, cur.day, cur.hour, cur.minute)
+
+print fmt_time
+
+code='603098'
+
+tddf = ts.get_hist_data(code)
+tddf.to_excel('a_hist_data.xlsx');
+#print tddf.head(3)
+
+#tddf = ts.get_h_data('300613')
+#print tddf.head(4)
+
 '''
-tddf = ts.get_k_data('300613')
+df = ts.get_stock_basics()
+	
+tddf = ts.get_k_data(code)
+tddf.to_excel('a_k_data_qfq.xlsx');
+
+tddf = ts.get_k_data(code,autype='hfq')
+tddf.to_excel('a_k_data_hfq.xlsx');
+
+tddf = ts.get_k_data(code,autype='None')
+tddf.to_excel('a_k_data_No_fq.xlsx');
+
 print tddf.head(3)
 for tdidx,tdrow in tddf.iterrows():
 	open = tdrow[1]
