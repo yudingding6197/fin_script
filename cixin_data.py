@@ -80,7 +80,7 @@ if df is None:
 	print "Timeout to get stock basic info"
 	exit(0)
 df1 = df.sort_values(['timeToMarket'], 0, False)
-#df1 = df1[0:50]
+#df1 = df1[332:333]
 
 index = -1
 wb = Workbook()
@@ -124,6 +124,7 @@ for code,row in df1.iterrows():
 		exit(0)
 
 	b_open = 0
+	b_log_cxkb = 0
 	yzzt_day = 0
 	last_close = 0.0
 	td_total = len(tddf)
@@ -142,6 +143,7 @@ for code,row in df1.iterrows():
 		low = tdrow['low']
 		last_day_vol = tdrow['volume']
 		#high == low 意味YZZT
+		#print code,name,kbczt_days,kbzt_days,tdrow['date'],high,low
 		if high==low:
 			yzzt_day += 1
 			last_close = close
@@ -156,7 +158,7 @@ for code,row in df1.iterrows():
 			#近似涨停处理
 			zt_price = last_close * 1.0992
 			dt_price = last_close * 0.9005
-			#print code,name,last_close,close,zt_price,high
+			#print code,name,last_close,close,zt_price,high,kbczt_days,kbzt_days
 			if (close>=zt_price or high>=zt_price) and (kbdt_days==0):
 				#通过计算开板后冲涨停和涨停的天数进行判断
 				#避免第一天冲涨停，第二天涨停，计算为开板涨停
@@ -165,23 +167,26 @@ for code,row in df1.iterrows():
 				kbczt_days += 1
 			elif close<=dt_price and kbczt_days==0 and kbzt_days==0:
 				kbdt_days += 1
+			else:
+				b_log_cxkb = 1
 		else:
 			#针对特殊新股：招商蛇口、温氏股份等
 			if open<=close and close==high and low==open:
 				yzzt_day += 1
 			else:
 				b_open = 1
+				b_log_cxkb = 1
 				opn_date_str = tdrow['date']
 		last_close = close
 		
 		#尽管开板，但是可能还会继续计算ZT or DT天数，需要记录开板日期
-		if b_open==1:
+		if b_log_cxkb==1:
 			if cxkb_date==0:
 				opn_date_int = ''.join(opn_date_str.split('-'))
 				cxkb_date = int(opn_date_int)
-			if kbczt_days==0 and kbzt_days==0:
-				break
+			break
 
+	#只有没有打开的CX，才计算这几项数据，打开的就忽略
 	if b_open==0:
 		LOOP_COUNT = 0
 		trdf = None
