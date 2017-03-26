@@ -124,6 +124,7 @@ for code,row in df1.iterrows():
 		exit(0)
 
 	b_open = 0
+	b_break = 0
 	b_log_cxkb = 0
 	yzzt_day = 0
 	last_close = 0.0
@@ -149,6 +150,7 @@ for code,row in df1.iterrows():
 			last_close = close
 			if b_open==1:
 				kbczt_days += 1
+				kbzt_days += 1
 			continue
 
 		#新股第一天可能 high!=low
@@ -168,13 +170,15 @@ for code,row in df1.iterrows():
 			elif close<=dt_price and kbczt_days==0 and kbzt_days==0:
 				kbdt_days += 1
 			else:
-				b_log_cxkb = 1
+				b_break = 1
+			b_log_cxkb = 1
 		else:
 			#针对特殊新股：招商蛇口、温氏股份等
 			if open<=close and close==high and low==open:
 				yzzt_day += 1
 			else:
 				b_open = 1
+				b_break = 1
 				b_log_cxkb = 1
 				opn_date_str = tdrow['date']
 		last_close = close
@@ -184,6 +188,7 @@ for code,row in df1.iterrows():
 			if cxkb_date==0:
 				opn_date_int = ''.join(opn_date_str.split('-'))
 				cxkb_date = int(opn_date_int)
+		if b_break==1:
 			break
 
 	#只有没有打开的CX，才计算这几项数据，打开的就忽略

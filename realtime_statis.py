@@ -35,6 +35,14 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 	if number<=0:
 		return -1
 
+	delta1=datetime.timedelta(days=30)
+	sdate = today-delta1
+	fmt_start = '%d-%02d-%02d' %(sdate.year, sdate.month, sdate.day)
+	kdf = ts.get_k_data('000001', index=True, start=fmt_start)
+	kdf = kdf.sort_values(['date'], 0, False)
+	last_idx_date = kdf.iloc[0,0]
+	idx_date = datetime.datetime.strptime(last_idx_date, '%Y-%m-%d').date()
+
 	b_get_data = 1
 	#ZT一次取出 base 个
 	#截取list，通过配置起始位置
@@ -121,7 +129,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 				if b_open==0:
 					dt_str=day_info_df.iloc[trade_days-1,0]
 					last_date = datetime.datetime.strptime(dt_str, '%Y-%m-%d').date()
-					cmp_delta = today-last_date
+					cmp_delta = idx_date-last_date
 					if cmp_delta.days==0:
 						stcsItem.s_cx_yzzt += 1
 						yzcx_flag = 1
