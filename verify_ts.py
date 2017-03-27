@@ -38,8 +38,9 @@ print fmt_time
 code='603098'
 
 tddf = ts.get_hist_data(code)
-tddf.to_excel('a_hist_data.xlsx');
-#print tddf.head(3)
+#tddf.to_excel('a_hist_data.xlsx');
+tddf = tddf.loc[:,['open','close', 'turnover']]
+print tddf.head(3)
 
 #tddf = ts.get_h_data('300613')
 #print tddf.head(4)

@@ -137,7 +137,7 @@ def getSinaData(url, code, sleepTime, inst_info, phase):
 		if sellVol[0]!=0:
 			status = 1
 	return status
-	
+
 def get_stk_by_file(stockCode):
 	data_path = "..\\Data\\entry\\_self_define.txt"
 	if os.path.isfile(data_path) is False:

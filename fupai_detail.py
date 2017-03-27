@@ -135,4 +135,5 @@ if (totalline==0):
 	print "No Matched Record"
 	os.remove(filetxt)
 else:
+	prepath1 = prepath1 + "fupai" + curdate + "_detail.txt"
 	shutil.copy(filetxt, prepath1)

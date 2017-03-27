@@ -35,6 +35,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 	if number<=0:
 		return -1
 
+	#得到ZS的信息，但是当天交易的时候，得不到当天的
 	delta1=datetime.timedelta(days=30)
 	sdate = today-delta1
 	fmt_start = '%d-%02d-%02d' %(sdate.year, sdate.month, sdate.day)
@@ -42,6 +43,15 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 	kdf = kdf.sort_values(['date'], 0, False)
 	last_idx_date = kdf.iloc[0,0]
 	idx_date = datetime.datetime.strptime(last_idx_date, '%Y-%m-%d').date()
+
+	#得到最近一天的实时信息，得到日期
+	idx_df = ts.get_realtime_quotes('399001')
+	rq_idx = idx_df.ix[0,'date']
+	rq_idx_dt = datetime.datetime.strptime(rq_idx, '%Y-%m-%d').date()
+
+	cmp_delta = rq_idx_dt-idx_date
+	if cmp_delta.days>0:
+		idx_date = rq_idx_dt
 
 	b_get_data = 1
 	#ZT一次取出 base 个
@@ -129,6 +139,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 				if b_open==0:
 					dt_str=day_info_df.iloc[trade_days-1,0]
 					last_date = datetime.datetime.strptime(dt_str, '%Y-%m-%d').date()
+					#print code, name, idx_date,last_date
 					cmp_delta = idx_date-last_date
 					if cmp_delta.days==0:
 						stcsItem.s_cx_yzzt += 1
@@ -207,7 +218,7 @@ for i in range(0, len(new_st_list)):
 		st_list.append(new_st_list[i])
 st_list.extend(st_bas_list)
 
-#st_list = temp_today_list
+#st_list = st_list[0:50]
 
 '''
 st_list = []
