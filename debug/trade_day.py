@@ -11,7 +11,7 @@ from openpyxl.reader.excel  import  load_workbook
 import tushare as ts
 
 # Main
-path = "..\\Data\\entry\\stk_trade\\"
+path = "..\\Data\\entry\\trade_day\\"
 pindex = len(sys.argv)
 if pindex<2:
 	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " ДњТы \n")
