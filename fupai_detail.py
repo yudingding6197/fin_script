@@ -60,8 +60,20 @@ filetxt = filename + '.txt'
 fl = open(filetxt, 'w')
 
 urlall = url + curdate
-req = urllib2.Request(urlall)
-res_data = urllib2.urlopen(req)
+
+LOOP_COUNT = 0
+res_data=None
+while LOOP_COUNT<3:
+	try:
+		req = urllib2.Request(urlall)
+		res_data = urllib2.urlopen(req)
+	except:
+		print "Error fupai urlopen"
+		LOOP_COUNT = LOOP_COUNT+1
+	else:
+		break
+if res_data is None:
+	exit(0)
 
 flag = 0
 count = 0

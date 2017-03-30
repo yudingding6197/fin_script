@@ -5,6 +5,7 @@ import pandas as pd
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
+# 读取..\\Data\\entry\\cixin\\下最新的cixin_***.xlsx文件，得到未打开的次新值
 # Main
 cx_path = "..\\Data\\entry\\_self_define.txt"
 path = "..\\Data\\entry\\cixin\\"

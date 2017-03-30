@@ -4,8 +4,8 @@ import os
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
-# 中文
 
+# 统计buy_sell下的记录，建议使用上一级的transaction_sum.py，统计信息更多
 # Main
 pindex = len(sys.argv)
 if pindex<2:

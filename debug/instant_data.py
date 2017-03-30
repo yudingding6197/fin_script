@@ -9,6 +9,9 @@ import datetime
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
+#获取每天的所有的信息，包含trade和停牌的
+#放到 "..\\Data\\entry\\trade\\trade_****.xlxs"
+
 #'code,名称,涨跌幅,收盘价,涨跌价,振幅,成交量,成交额,昨收,今开,最高,最低,5分钟幅,Item1,Item2,Item3'
 
 def handle_float(str):
