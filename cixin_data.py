@@ -18,7 +18,6 @@ def get_xg_fx():
 
 	wb = load_workbook(wkfile)
 	ws = wb.get_sheet_by_name(sheet_st)	
-	#print ws.max_column, ws.max_row
 	first_list = []
 	xg_df = pd.DataFrame()
 	for rx in range(1,ws.max_row+1):
@@ -100,7 +99,7 @@ for code,row in df1.iterrows():
 	liutong_gb = row['outstanding']
 	zong_gb = row['totals']
 	#print type(ipo_date) 竟然是 long 类型
-	trade_string = str(ipo_date)
+	trade_string = str(long(ipo_date))
 	trade_date = datetime.datetime.strptime(trade_string, '%Y%m%d').date()
 	delta = trade_date - base_date
 	#print (index+1),code,delta.days,trade_date,base_date

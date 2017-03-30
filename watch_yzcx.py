@@ -79,12 +79,17 @@ def getSinaData(url, code, sleepTime, inst_info, phase):
 	#print name
 
 	curPrice = stockObj[3]
-	highPrice = stockObj[4]
-	lowPrice = stockObj[5]
+	highPrice = float(stockObj[4])
+	lowPrice = float(stockObj[5])
 	pre_close = float(stockObj[2])
 	jingmaijia = stockObj[6]
 	#variation = stockObj[43]
 	zhangdiejia = 0.0
+
+	#当做TP处理
+	if highPrice==0.0 and lowPrice==0.0:
+		return -2
+
 	if float(curPrice)==0:
 		zhangdiejia = float(jingmaijia) - pre_close
 	else:
@@ -178,7 +183,7 @@ if len(stockCode)==0:
 	print "No CX Data"
 	exit(0)
 #stockCode = stockCode[0:1]
-#stockCode = ['sz300625']
+#stockCode = ['sz002853']
 
 idxCount=0
 exgCount=0

@@ -60,9 +60,9 @@ def get_new_stk_by_ts(yzzt_list, today_open):
 		ltgb = row['outstanding']
 		zgb = row['totals']
 		#print type(trade_item) 竟然是 long 类型
-		trade_string = str(trade_item)
-		trade_date = datetime.datetime.strptime(trade_string, '%Y%m%d').date()
-		delta = trade_date - base_date
+		#trade_string = str(long(trade_item))
+		#trade_date = datetime.datetime.strptime(trade_string, '%Y%m%d').date()
+		#delta = trade_date - base_date
 		#if delta.days<0:
 		#	break
 
@@ -80,14 +80,15 @@ def get_new_stk_by_ts(yzzt_list, today_open):
 		for tdidx,tdrow in day_info_df.iterrows():
 			open = tdrow[1]
 			close = tdrow[2]
-			high = tdrow['high']
-			low = tdrow['low']
+			high = float(tdrow['high'])
+			low = float(tdrow['low'])
 			if high!=low:
 				if yzzt_day!=0:
 					if (yzzt_day+1)==td_total:
 						today_open.append(code)
 					b_open = 1
 					break
+
 			#当ZT打开，就会break for 循环
 			yzzt_day += 1
 		if b_open==0:
@@ -118,54 +119,27 @@ def get_new_stk_by_file(yzzt_list, today_open):
 			yzzt_list.append(code)
 	file.close()
 
-
-# Main
-today_open = []
-yzzt_list = []
-
-get_new_stk_by_file(yzzt_list, today_open)
-if len(yzzt_list)==0:
-	print "No CX Data"
-	exit(0)
-
-'''
-print "DAKA：",len(today_open)
-print today_open
-print "==============="
-print "YIZI：",len(yzzt_list)
-print yzzt_list
-'''
-
-#首先得到 By1量，设置初始基线
-buy1_vol = []
-base_line = []
-df=ts.get_realtime_quotes(yzzt_list)
-for index,row in df.iterrows():
-	if row['b1_v']=='':
-		print "Warning: ", yzzt_list[index], "not BUY item"
-		continue
-	buy1_vol.append(int(row['b1_v']))
-	base_line.append(10000)
-	print "%6s	%5s	%.2f	%8s"%(yzzt_list[index], row[0], float(row['b1_p']), row['b1_v'])
-
 #读取每一只的信息，判断是否超过基线范围
 def check_zt_status(yzzt_list, today_open):
 	df=ts.get_realtime_quotes(yzzt_list)
 	#df=ts.get_realtime_quotes('000520')
 	yzztidx = 0
 	for index,row in df.iterrows():
-		high = row['high']
-		low = row['low']
-		#此时不再是YZZT态,将数据pop out
-		if high!=low:
-			print yzzt_list[yzztidx],row[0], "NOT YZ"
-			today_open.append(yzzt_list[yzztidx])
+		high = float(row['high'])
+		low = float(row['low'])
+		#print row['code'],row['name'],high,low
+		#此时不再是YZZT态,将数据pop out，可能停牌
+		if high!=low or (high==0.0 and low==0.0):
+			if high!=0:
+				print yzzt_list[yzztidx],row[0], "NOT YZ"
+				today_open.append(yzzt_list[yzztidx])
 
 			yzzt_list.pop(yzztidx)
 			base_line.pop(yzztidx)
 			buy1_vol.pop(yzztidx)
 			continue
 
+		#a代表卖，b代表买
 		a1_v = row['a1_v']
 		a1_p = row['a1_p']
 		if row['b1_v']=="":
@@ -173,7 +147,7 @@ def check_zt_status(yzzt_list, today_open):
 		else:
 			b1_v = int(row['b1_v'])
 		b1_p = row['b1_p']
-		#print yzzt_list[yzztidx], a1_p, b1_p
+		#print yzztidx,yzzt_list[yzztidx], a1_p, b1_p
 
 		if b1_v<base_line[yzztidx]:
 			if base_line[yzztidx]>2000:
@@ -194,6 +168,40 @@ def check_zt_status(yzzt_list, today_open):
 			buy1_vol[yzztidx] = b1_v
 		#print yzzt_list[yzztidx], row[0], b1_p, b1_v
 		yzztidx += 1
+
+
+# Main
+today_open = []
+yzzt_list = []
+
+#get_new_stk_by_file(yzzt_list, today_open)
+get_new_stk_by_ts(yzzt_list, today_open)
+if len(yzzt_list)==0:
+	print "No CX Data"
+	exit(0)
+
+'''
+print "DAKA：",len(today_open)
+print today_open
+print "==============="
+print "YIZI：",len(yzzt_list)
+print yzzt_list
+'''
+
+#首先得到 By1量，设置初始基线
+buy1_vol = []
+base_line = []
+df=ts.get_realtime_quotes(yzzt_list)
+new_yzzt = []
+for index,row in df.iterrows():
+	if row['b1_v']=='':
+		print "Warning: ", yzzt_list[index], "no BUY item"
+		continue
+	new_yzzt.append(yzzt_list[index])
+	buy1_vol.append(int(row['b1_v']))
+	base_line.append(10000)
+	print "%6s	%5s	%.2f	%8s"%(yzzt_list[index], row[0], float(row['b1_p']), row['b1_v'])
+yzzt_list = new_yzzt
 
 #开始循环检查 By1 量的状态
 while 1:
