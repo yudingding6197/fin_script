@@ -19,6 +19,7 @@ def get_xg_fx():
 	wb = load_workbook(wkfile)
 	ws = wb.get_sheet_by_name(sheet_st)	
 	first_list = []
+	item_list = []
 	xg_df = pd.DataFrame()
 	for rx in range(1,ws.max_row+1):
 		w1 = ws.cell(row = rx, column = 1).value
@@ -33,9 +34,11 @@ def get_xg_fx():
 			continue
 
 		temp_list = [w1,w2,w3,w4,w5,w6]
-		df1 = pd.DataFrame([temp_list], columns=first_list)
-		xg_df = xg_df.append(df1)
-	
+		item_list.append(temp_list)
+	df1 = pd.DataFrame(item_list, columns=first_list)
+	xg_df = xg_df.append(df1)
+
+	item_list = []
 	wb = load_workbook(wkfile1)
 	ws = wb.get_sheet_by_name(sheet_st)	
 	for rx in range(2,ws.max_row+1):
@@ -47,7 +50,9 @@ def get_xg_fx():
 		w6 = ws.cell(row = rx, column = 6).value
 
 		temp_list = [w1,w2,w3,w4,w5,w6]
-		df1 = pd.DataFrame([temp_list], columns=first_list)
+		item_list.append(temp_list)
+	if len(item_list)>0:
+		df1 = pd.DataFrame(item_list, columns=first_list)
 		xg_df = xg_df.append(df1)
 
 	xg_df = xg_df.set_index('code')
@@ -65,6 +70,7 @@ LOOP_COUNT = 0
 df = None
 
 xg_df = get_xg_fx()
+xg_list = list(xg_df.index)
 
 #µÃµ½basic info
 while LOOP_COUNT<3:
@@ -112,7 +118,8 @@ for code,row in df1.iterrows():
 	tddf = None
 	while LOOP_COUNT<3:
 		try:
-			tddf = ts.get_k_data(code)
+			tddf = ts.get_k_data(code, autype='bfq')
+			#tddf = ts.get_k_data(code)
 		except:
 			LOOP_COUNT += 1
 			time.sleep(0.5)
@@ -220,7 +227,10 @@ for code,row in df1.iterrows():
 	if xg_df is None:
 		stockInfo.append(None)
 	else:
-		stockInfo.append(xg_df.ix[code][3])
+		if code in xg_list:
+			stockInfo.append(xg_df.ix[code][3])
+		else:
+			print code,name, "No in list"
 	stockInfo.append(b_open)
 	stockInfo.append(yzzt_day)
 	stockInfo.append(last_close)

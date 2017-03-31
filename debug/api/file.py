@@ -6,6 +6,7 @@ import string
 import urllib
 import urllib2
 import datetime
+import shutil
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
@@ -25,3 +26,7 @@ if(os.path.isdir(path + '/' + f)):
 if(os.path.isfile(path + '/' + f)):
 	pass
 
+#¿½±´ÎÄ¼þ
+filetxt = "a.txt"
+file2 = "file2.txt"
+shutil.copy(filetxt, file2)

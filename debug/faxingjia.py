@@ -25,6 +25,7 @@ def handle_stk_data(stk_item, stockInfo):
 	intro = str_arr[27]
 	faxing_liang = int(float(str_arr[6]))
 	wangshang_fx = int(float(str_arr[7]))
+	print code,name,faxing_liang
 	faxing_jia=str_arr[10]
 	if faxing_jia!='':
 		faxing_jia = float(faxing_jia)
@@ -158,3 +159,6 @@ qdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
 filexlsx1 = prepath1 + "xg_fx"+ qdate
 filexlsx1 = '%s_%02d-%02d.xlsx' %(filexlsx1, cur.hour, cur.minute)
 wb.save(filexlsx1)
+
+file2 = prepath1 + "last_xg.xlsx"
+shutil.copy(filexlsx1, file2)

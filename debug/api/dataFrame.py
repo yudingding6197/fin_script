@@ -41,7 +41,11 @@ df1 = df1.set_index('A')
 print df1.ix['f']['C']
 for idx,row in df1.iterrows():
 	print idx
-
+#得到索引，转为list
+dfidx=df1.index
+df_list = list(dfidx)
+# df = df.reindex(list(df.index) + [ 'c', 'd', 'e' ])
+	
 print "4) ____________________"
 ascid=65
 #w1=''
@@ -98,3 +102,5 @@ L1 = [1,2,4,5,6]
 L2 = [22,44,55,22,443,56]
 L1[4:4] = L2
 print L1
+
+
