@@ -44,8 +44,6 @@ if len(stockCode)==0:
 
 def get_new_stk_by_ts(yzzt_list, today_open):
 	index = -1
-	cmp_string = "20170201"
-	base_date = datetime.datetime.strptime(cmp_string, '%Y%m%d').date()
 	today = datetime.date.today()
 
 	df = ts.get_stock_basics()
@@ -99,7 +97,7 @@ def get_new_stk_by_ts(yzzt_list, today_open):
 				yzzt_list.append(code)
 
 def get_new_stk_by_file(yzzt_list, today_open):			
-	data_path = "..\\Data\\entry\\_self_define.txt"
+	data_path = "..\\Data\\entry\\_no_open_cx.txt"
 
 	if os.path.isfile(data_path) is False:
 		print "No file:",data_path

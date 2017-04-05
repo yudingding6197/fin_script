@@ -6,26 +6,28 @@ import string
 import urllib
 import urllib2
 import datetime
+import shutil
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
 fm_url = "http://datainterface.eastmoney.com/EM_DataCenter/JS.aspx?type=NS&sty=NSSTV5&st=12&sr=-1&p=%d&ps=50"
 prepath1 = "..\\Data\\entry\\xingu\\"
+#得到最新的发行信息生成last_xg.xlsx文件，将其改名为faxing.xlsx
 
 def handle_stk_data(stk_item, stockInfo):
 	str_arr = stk_item.split(',')
 	name = str_arr[3]
 	code = str_arr[4]
 	daxin_code = str_arr[5]
-#	if code=='300618':
-#		for i in range(0, len(str_arr)):
-#			print "%02d	%s"%(i, str_arr[i])
+	#if code=='300618':
+	#	for i in range(0, len(str_arr)):
+	#		print "%02d	%s"%(i, str_arr[i])
 	#print "%6s	%s	%s"%(code, str_arr[31], str_arr[34])
 
 	intro = str_arr[27]
 	faxing_liang = int(float(str_arr[6]))
 	wangshang_fx = int(float(str_arr[7]))
-	print code,name,faxing_liang
+	#print code,name,faxing_liang
 	faxing_jia=str_arr[10]
 	if faxing_jia!='':
 		faxing_jia = float(faxing_jia)
