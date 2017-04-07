@@ -42,6 +42,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 	kdf = ts.get_k_data('000001', index=True, start=fmt_start)
 	kdf = kdf.sort_values(['date'], 0, False)
 	last_idx_date = kdf.iloc[0,0]
+	#idx_date 得到最近一天交易的日期
 	idx_date = datetime.datetime.strptime(last_idx_date, '%Y-%m-%d').date()
 
 	#得到最近一天的实时信息，得到日期
@@ -148,8 +149,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 				#认为YZZT不会超过 33 个交易日
 				if trade_days>33:
 					b_get_data = 0
-
-			stk_type = analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list)
+			stk_type = analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, idx_date)
 	return 0
 
 #Main Start:
@@ -222,7 +222,7 @@ st_list.extend(st_bas_list)
 
 '''
 st_list = []
-st_list=['603977','000415','300611','601212','603281','300534']
+st_list=['603603','603822','300397','600405','600149','300534']
 #print st_list
 '''
 
@@ -233,7 +233,7 @@ if status==-1:
 	exit(0)
 
 #获取数据进行打印
-str_opn = "[%d %d %d %d]" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt)
+str_opn = "[%d %d %d %d] %3d上,%3d下" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
 print "			ST(%d ZT %d DT)		DTKP:%d YZDT:%d" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, stcsItem.s_open_dt, stcsItem.s_yzdt)
 print "%4d-ZT	%4d-DT		%d-X %d--%s" % (stcsItem.s_zt,stcsItem.s_dt,stcsItem.s_new,stcsItem.s_yzzt, str_opn)
 print "%4d-CG	%4d-FT		KD:[%s]  %2d-YIN" %(stcsItem.s_zthl,stcsItem.s_dtft,','.join(stcsItem.lst_kd),stcsItem.s_zt_o_gt_c)
@@ -285,7 +285,7 @@ if flag==0:
 	print "Total( %d = %d + %d ):"%( stcsItem.s_zt, stcsItem.s_zt-non_cx, non_cx )
 	print "id %6s %-12s	%-10s %-9s %-8s %-8s %-8s " % ("code","name","change","price","opn_p","hgh_p","low_p")
 	show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT")
-	print "--------------------"
+	print "-------------------- %d+%d" % (stcsItem.s_sw_zt, stcsItem.s_xw_zt)
 	show_zt_info(stcsItem.lst_non_yzcx_zt, "ZT")
 	print "==================================================="
 

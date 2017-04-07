@@ -103,4 +103,22 @@ L2 = [22,44,55,22,443,56]
 L1[4:4] = L2
 print L1
 
+# filter "isin", "==", "contain"
+df = pd.DataFrame({'date': ['2017-04-05', '2017-01-05', '2017-02-05', '2017-03-05', '2017-04-02'],
+                    'B': [23, 34, 12, 314, 56],
+                    'C': ['C0', 'C1', 'C2', 'C3', 'C4'],
+                    'D': ['D0', 'D1', 'D2', 'D3', 'D4'],
+                    'E': ['E0', 'E1', 'E2', 'E3', 'E4']
+					}, index=[0, 1, 2, 3, 4])
+
+#df2 = df.loc[df['date'].str.contains('2017-04')]
+print df
+print "Filter:"
+df1 = df.loc[df['date'].str.contains('2017-04')]
+print df1
+
+#print df.loc[df['B']]
+df2 = df.loc[df['B']>30]
+print df2
+
 

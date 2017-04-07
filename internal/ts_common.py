@@ -58,6 +58,8 @@ class statisticsItem:
 	s_cx_yzzt = 0		#次新YZZT
 	s_new = 0			#上市新股
 	s_total = 0			#总计所有交易票
+	s_sw_zt = 0			#上午ZT
+	s_xw_zt = 0			#下午ZT
 	lst_kd = []			#坑爹个股
 	lst_nb = []			#NB，低位强拉高位
 	lst_jc = []			#韭菜了，严重坑人
@@ -95,6 +97,8 @@ class statisticsItem:
 		self.s_cx_yzzt = 0
 		self.s_new = 0
 		self.s_total = 0
+		self.s_sw_zt = 0
+		self.s_xw_zt = 0
 		self.lst_kd = []
 		self.lst_nb = []
 		self.lst_jc = []
@@ -714,8 +718,42 @@ def check_cx(code):
 			break
 	return b_match
 
+#通过分时得到ZT时间，上午or下午
+def zt_time_point(code, zt_price, trade_date, stcsItem):
+	excecount = 0
+	df = None
+	while excecount<=3:
+		try:
+			df = ts.get_k_data(code, ktype='60')
+		except:
+			excecount += 1
+		else:
+			break
+	if df is None:
+		return
+
+	df_today = df.loc[df['date'].str.contains(str(trade_date))]
+	if len(df_today)<=0:
+		#print "Not find data"
+		return
+	j=1
+	#读出的数据就是float类型
+	#通过定义区间，记录ZT的时间段
+	#1:[9:30-10:30],2:[10:30-11:30]...
+	for index,row in df_today.iterrows():
+		high = row['high']
+		if high==zt_price:
+			if j<3:
+				stcsItem.s_sw_zt += 1
+			else:
+				stcsItem.s_xw_zt += 1
+			break
+		else:
+			j += 1
+	return
+
 #分析此单的状态：ZT、DT、ZTHL、DTFT...，详见 statisticsItem 定义
-def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list):
+def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 	if len(code)!=6:
 		return 0
 	if code.isdigit() is False:
@@ -789,7 +827,6 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list):
 				list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
 				stcsItem.lst_dt.append(list)
 		#print code,name,open,low,high,price,pre_close
-		#print code, name, status
 	else:
 		#非YZ的分析
 		if b_ST==1:
@@ -805,6 +842,8 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list):
 		if high==zt_price:
 			if b_ST==0:
 				if price==zt_price:
+					#仅仅计算最后还是ZT的item
+					zt_time_point(code, zt_price, trade_date, stcsItem)
 					stcsItem.s_zt += 1
 					status |= STK_ZT
 					if open==zt_price:
