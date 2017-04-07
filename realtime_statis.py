@@ -182,10 +182,10 @@ while LOOP_COUNT<3:
 if st_today_base is None:
 	print "Timeout to get stock basic info"
 	exit(0)
-st_today = st_today_base.sort_values(['changepercent'], 0, False)
+st_today_df = st_today_base.sort_values(['changepercent'], 0, False)
 temp_today_list = []
 new_st_list = []
-for index,row in st_today.iterrows():
+for index,row in st_today_df.iterrows():
 	code = row[0].encode('gbk')
 	if row['changepercent']>11:
 		new_st_list.append(code)
