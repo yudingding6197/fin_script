@@ -60,58 +60,59 @@ def get_xg_fx():
 
 	return xg_df
 
-# Main
-cmp_string = "20150201"
-base_date = datetime.datetime.strptime(cmp_string, '%Y%m%d').date()
+#得到当天上的Item
+def get_xg_trade(xg_trade_list, xg_df):
+	sheet_st = "Sheet"
+	wkfile = "..\\Data\\entry\\trade\\ns_info.xlsx"
+	if os.path.isfile(wkfile) is False:
+		print "Error: No File:", wkfile
+		return None
 
-prepath = "..\\Data\\"
-prepath1 = "..\\Data\\entry\\cixin\\"
-LOOP_COUNT = 0
-df = None
+	wb = load_workbook(wkfile)
+	ws = wb.get_sheet_by_name(sheet_st)	
+	item_list = []
+	first_list = ['code','name','timeToMarket','outstanding','totals']
+	new_st_dt = pd.DataFrame()
+	for rx in range(1,ws.max_row+1):
+		if rx==1:
+			continue
+		w1 = ws.cell(row = rx, column = 1).value
+		w2 = ws.cell(row = rx, column = 2).value
 
-xg_df = get_xg_fx()
-xg_list = list(xg_df.index)
+		#print xg_df.ix[w1][u'发行量']
+		ipo_date = long(0)
+		liutong_gb = xg_df.ix[w1][u'发行量']
+		zong_gb = 0
+		'''
+		'''
+		temp_list = [w1,w2,ipo_date,liutong_gb,zong_gb]
+		item_list.append(temp_list)
+		xg_trade_list.append(w1)
+	df1 = pd.DataFrame(item_list, columns=first_list)
+	new_st_dt = new_st_dt.append(df1)
+	new_st_dt = new_st_dt.set_index('code')
+	return new_st_dt
 
-#得到basic info
-while LOOP_COUNT<3:
-	try:
-		df = ts.get_stock_basics()
-	except:
-		LOOP_COUNT += 1
-		time.sleep(0.5)
-	else:
-		break;
-if df is None:
-	print "Timeout to get stock basic info"
-	exit(0)
-df1 = df.sort_values(['timeToMarket'], 0, False)
-#df1 = df1[332:333]
-
-index = -1
-wb = Workbook()
-# grab the active worksheet
-ws = wb.active
-strline = u'代码,名称,发行价,开板,封板日,封板价,上市日,开板日,开板ZT,开板CZT,流通股本,流通市值,总股本,总市值,封单数量,封单流通比,换手率,开板DT'
-strObj = strline.split(u',')
-ws.append(strObj)
-#随着列数进行改变
-ws.auto_filter.ref = "A1:R1"
-excel_row = 2
-for code,row in df1.iterrows():
+def parse_item_data(type, code, row, xg_df, ws):
+	global excel_row
 	stockInfo = []
-	index += 1
-	name = row[0].decode('utf8')
+	if type==1:
+		name = row[0]
+	elif type==2:
+		name = row[0].decode('utf8')
+	else:
+		return
 	ipo_date = row['timeToMarket']
 	liutong_gb = row['outstanding']
 	zong_gb = row['totals']
 	#print type(ipo_date) 竟然是 long 类型
+	if long(ipo_date)==0:
+		return
 	trade_string = str(long(ipo_date))
 	trade_date = datetime.datetime.strptime(trade_string, '%Y%m%d').date()
 	delta = trade_date - base_date
-	#print (index+1),code,delta.days,trade_date,base_date
-	#print (index+1),code,name,trade_date	
 	if delta.days<0:
-		break
+		return
 
 	#获得每只个股每天交易数据
 	LOOP_COUNT = 0
@@ -256,6 +257,71 @@ for code,row in df1.iterrows():
 		ws[cell] = stockInfo[k]
 	excel_row += 1
 
+# Main
+cmp_string = "20150201"
+base_date = datetime.datetime.strptime(cmp_string, '%Y%m%d').date()
+
+prepath = "..\\Data\\"
+prepath1 = "..\\Data\\entry\\cixin\\"
+LOOP_COUNT = 0
+df = None
+
+xg_df = get_xg_fx()
+xg_list = list(xg_df.index)
+
+new_st_list = []
+new_st_dt = get_xg_trade(new_st_list, xg_df)
+
+#得到basic info
+while LOOP_COUNT<3:
+	try:
+		df = ts.get_stock_basics()
+	except:
+		LOOP_COUNT += 1
+		time.sleep(0.5)
+	else:
+		break;
+if df is None:
+	print "Timeout to get stock basic info"
+	exit(0)
+df1 = df[df.timeToMarket>0]
+df1 = df1.sort_values(['timeToMarket'], 0, False)
+st_index = df1.index
+st_bas_list=list(st_index)
+#df1 = df1[332:333]
+
+st_list = []
+for i in range(0, len(new_st_list)):
+	#print "======="
+	if new_st_list[i] in st_bas_list:
+		pass
+	else:
+		print new_st_list[i], " Not Exist"
+		st_list.append(new_st_list[i])
+#print st_list
+
+index = -1
+wb = Workbook()
+# grab the active worksheet
+ws = wb.active
+strline = u'代码,名称,发行价,开板,封板日,封板价,上市日,开板日,开板ZT,开板CZT,流通股本,流通市值,总股本,总市值,封单数量,封单流通比,换手率,开板DT'
+strObj = strline.split(u',')
+ws.append(strObj)
+#随着列数进行改变
+ws.auto_filter.ref = "A1:R1"
+excel_row = 2
+
+#如果有今日发行个股
+for st_item in st_list:
+	row = new_st_dt.ix[st_item]
+	parse_item_data(1, st_item, row, xg_df, ws)
+#
+for code,row in df1.iterrows():
+	index += 1
+	if index>50:
+		break
+	parse_item_data(2, code, row, xg_df, ws)
+print "Final excel_row=",excel_row
 filexlsx = prepath + "cixin_analyze.xlsx"
 wb.save(filexlsx)
 
