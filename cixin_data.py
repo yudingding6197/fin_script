@@ -317,9 +317,6 @@ for st_item in st_list:
 	parse_item_data(1, st_item, row, xg_df, ws)
 #
 for code,row in df1.iterrows():
-	index += 1
-	if index>50:
-		break
 	parse_item_data(2, code, row, xg_df, ws)
 print "Final excel_row=",excel_row
 filexlsx = prepath + "cixin_analyze.xlsx"
