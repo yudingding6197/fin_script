@@ -6,14 +6,16 @@ import string
 import urllib
 import urllib2
 import datetime
-import shutil
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
+sys.path.append(".")
+sys.path.append("..")
+from internal.ts_common import *
 
-#获取每天的所有STK信息，包含trade和停牌的
-#放到 "..\\Data\\entry\\trade\\trade_****.xlxs"
+#获取每天的所有的信息，将new stock选出
+#放到 "..\\Data\\entry\\trade\\ns_info.xlxs"
 
-#'code,名称,涨跌幅,收盘价,涨跌价,振幅,成交量,成交额,昨收,今开,最高,最低,5分钟幅,Item1,Item2,Item3'
+#'code,name,timeToMarket,outstanding,totals'
 
 def handle_float(str):
 	if str=='-':
@@ -29,93 +31,53 @@ def handle_int(str):
 		obj = int(str)
 	return obj
 
-def handle_stk_data(stk_item, stockInfo):
+def check_new_stk(stk_item, stockInfo):
 	str_arr = stk_item.split(',')
 	name = str_arr[2]
 	code = str_arr[1]
-	#if code=='603999':
-	#	for i in range(0, len(str_arr)):
-	#		print "%02d	%s"%(i, str_arr[i])
-	#print "%6s	%s	%s"%(code, str_arr[31], str_arr[34])
+	if name[0:1]!='N':
+		return 0
 
-	close = str_arr[3]
-	close = handle_float(close)
+	url_liut = "http://vip.stock.finance.sina.com.cn/corp/go.php/vCI_StockStructureHistory/stockid/%s/stocktype/LiuTongA.phtml"
+	url_totl = "http://vip.stock.finance.sina.com.cn/corp/go.php/vCI_StockStructureHistory/stockid/%s/stocktype/TotalStock.phtml"
+	ltgb_list = []
+	gb_str = get_guben_line(url_liut, code)
+	parse_guben(gb_str, ltgb_list)
 
-	change_price = str_arr[4]
-	change_price = handle_float(change_price)
+	zgb_list = []
+	gb_str = get_guben_line(url_totl, code)
+	parse_guben(gb_str, zgb_list)
 
-	change_perc = str_arr[5]
-	if change_perc=='-':
-		change_perc = None
-	else:
-		change_perc = change_perc[:-1]
-		change_perc = float(change_perc)
-
-	zhengfu = str_arr[6]
-	zhengfu = handle_float(zhengfu)
-
-	volume = str_arr[7]
-	volume = handle_int(volume)
-
-	amount = str_arr[8]
-	if amount=='-':
-		amount = None
-	else:
-		amount = long(amount)
-
-	pre_close = str_arr[9]
-	if pre_close=='0.00':
-		pre_close = None
-	else:
-		pre_close = float(pre_close)
-
-	open = str_arr[10]
-	open = handle_float(open)
-	high = str_arr[11]
-	high = handle_float(high)
-	low = str_arr[12]
-	low = handle_float(low)
-	#5分钟涨幅
-	zf_5min = str_arr[21]
-	if zf_5min=='-':
-		zf_5min = None
-	else:
-		zf_5min = zf_5min[:-1]
-		zf_5min = float(zf_5min)
-	item1 = str_arr[22]
-	item1 = handle_float(item1)
-	item2 = str_arr[23]
-	item2 = handle_float(item2)
-	item3 = str_arr[24]
-	item3 = handle_float(item3)
-	
-	stockInfo.append(code)
-	stockInfo.append(name)
-	stockInfo.append(change_perc)
-	stockInfo.append(close)
-	stockInfo.append(change_price)
-	stockInfo.append(zhengfu)
-	stockInfo.append(volume)
-	stockInfo.append(amount)
-	stockInfo.append(pre_close)
-	stockInfo.append(open)
-	stockInfo.append(high)
-	stockInfo.append(low)
-	stockInfo.append(zf_5min)
-	stockInfo.append(item1)
-	stockInfo.append(item2)
-	stockInfo.append(item3)
+	gb_len = len(ltgb_list)
+	if gb_len != len(zgb_list):
+		print code, name, "guben not match"
+		return 0
+	for i in range(0, gb_len):
+		ltobj = ltgb_list[i]
+		zobj = zgb_list[i]
+		if ltobj[0] != zobj[0]:
+			print code, "guben date not match", ltobj[0], zobj[0]
+			return 0
+		if ltobj[1]==0:
+			continue
+		sdate = ''.join(ltobj[0].split('-'))
+		stockInfo.append(code)
+		stockInfo.append(name)
+		stockInfo.append(long(sdate))
+		stockInfo.append(ltobj[1])
+		stockInfo.append(zobj[1])
+	return 1
 
 # Main
 fm_url = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._A&sty=FCOIATA&sortType=A&sortRule=-1&page=%d&pageSize=%d&token=7bc05d0d4c3c22ef9fca8c2a912d779c"
 prepath1 = "..\\Data\\entry\\trade\\"
-name = "trade"
+name = "ns_info.xlsx"
 PAGE_COUNT = 500
 
 wb = Workbook()
 # grab the active worksheet
 ws = wb.active
-strline = u'code,名称,涨跌幅,收盘价,涨跌价,振幅,成交量,成交额,昨收,今开,最高,最低,5分钟幅,Item1,Item2,Item3'
+strline = u'code,name,timeToMarket,outstanding,totals'
 strObj = strline.split(u',')
 ws.append(strObj)
 #随着列数进行改变
@@ -123,7 +85,7 @@ ws.auto_filter.ref = "A1:P1"
 excel_row = 2
 repeat_flag = 0
 first_code = ''
-cd_list = []
+
 for i in range(1, 35):
 	if repeat_flag==1:
 		break
@@ -188,7 +150,11 @@ for i in range(1, 35):
 				first_code = code
 				firstln = 0
 
-			handle_stk_data(stk_item, stockInfo)
+			ret = check_new_stk(stk_item, stockInfo)
+			if ret==0:
+				continue
+			#print stk_item
+			print stockInfo
 			#添加到表格中
 			k = 0
 			ascid = 65
@@ -198,23 +164,10 @@ for i in range(1, 35):
 				ws[cell] = stockInfo[k]
 			excel_row += 1
 			total_item += 1
-			cd_list.append(stockInfo[0])
 		#假设最后一页取出数据太少，停止http请求
 		if total_item<PAGE_COUNT-10:
 			break
 		line = response.readline()
 
-today = datetime.date.today()
-cur=datetime.datetime.now()
-qdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
-filexlsx1 = prepath1 + name + qdate
-filexlsx1 = '%s#%02d-%02d.xlsx' %(filexlsx1, cur.hour, cur.minute)
+filexlsx1 = prepath1 + name
 wb.save(filexlsx1)
-shutil.copy(filexlsx1, prepath1 + name + '_last.xlsx')
-#将code写到txt
-if len(cd_list)<=0:
-	exit(1)
-fl = open(prepath1 + name + '_last.txt', 'w')
-for item in cd_list:
-	fl.write(item+'\n')
-fl.close()

@@ -789,13 +789,23 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 	high_zf_percent = spc_round(h_percent,2)
 	low_df_percent = spc_round(l_percent,2)
 
+	#获取ZT
+	if b_ST==1:
+		zt_price1 = pre_close * 1.05
+		dt_price1 = pre_close * 0.95
+	else:
+		zt_price1 = pre_close * 1.1
+		dt_price1 = pre_close * 0.9
+	zt_price = spc_round(zt_price1,2)
+	dt_price = spc_round(dt_price1,2)
+
 	#YZ状态处理
 	if high==low:
 		if open>pre_close:
-			if b_ST==1:
+			if b_ST==1 and high==zt_price:
 				stcsItem.s_st_yzzt += 1
 				status |= STK_ST_YZZT
-			else:
+			elif b_ST==0 and high==zt_price:
 				if high_zf_percent>15:
 					pass
 				else:
@@ -828,17 +838,6 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 				stcsItem.lst_dt.append(list)
 		#print code,name,open,low,high,price,pre_close
 	else:
-		#非YZ的分析
-		if b_ST==1:
-			zt_price1 = pre_close * 1.05
-			dt_price1 = pre_close * 0.95
-		else:
-			zt_price1 = pre_close * 1.1
-			dt_price1 = pre_close * 0.9
-		zt_price = spc_round(zt_price1,2)
-		dt_price = spc_round(dt_price1,2)
-		#print code,name,price,zt_price,high,low
-
 		if high==zt_price:
 			if b_ST==0:
 				if price==zt_price:
@@ -931,3 +930,43 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 			list = [code, name, change_percent, price, zf_range]
 			stcsItem.lst_jc.append(list)
 	return status
+
+#建议在之前调用debug\instant_data.py更新所有数据，在Data\entry\trade\trade_last.txt保存
+def get_guben_line(url_str, code):
+	url = url_str % (code)
+	#print url
+	guben_info = None
+	excecount = 0
+	while excecount<=3:
+		try:
+			req = urllib2.Request(url)
+			guben_info = urllib2.urlopen(req, timeout=5).read()
+		except:
+			excecount += 1
+		else:
+			break
+	if guben_info is None:
+		print "Fail to get data"
+		return None
+	#找到匹配数据
+	start = guben_info.find("<set name='")
+	if start<0:
+		return None
+	end = guben_info[start:].find("</graph>")
+	if end<0:
+		return None
+	return guben_info[start:start+end]
+
+def parse_guben(gb_str, gb_list):
+	while gb_str:
+		rec = []
+		obj = re.match(r'<set name=\'.*?\' value=\'(.*?)\' hoverText=\'(.*?)\'/>(.*)', gb_str)
+		#print obj,obj.group(1),obj.group(2)
+		rec.append(obj.group(2))
+		if obj.group(1)=='':
+			rec.append(0)
+		else:
+			rec.append(float(obj.group(1)))
+		gb_list.append(rec)
+		gb_str = obj.group(3)
+	return

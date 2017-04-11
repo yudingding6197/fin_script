@@ -10,6 +10,8 @@ from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 from internal.common import *
 
+#可以先执行debug\newstk_get.py,得到今日的new
+
 #读取表格中的价格
 def get_xg_fx():
 	sheet_st = "Sheet"
@@ -78,11 +80,14 @@ def get_xg_trade(xg_trade_list, xg_df):
 			continue
 		w1 = ws.cell(row = rx, column = 1).value
 		w2 = ws.cell(row = rx, column = 2).value
+		ipo_date = ws.cell(row = rx, column = 3).value
+		liutong_gb = ws.cell(row = rx, column = 4).value
+		zong_gb = ws.cell(row = rx, column = 5).value
 
 		#print xg_df.ix[w1][u'发行量']
-		ipo_date = long(0)
-		liutong_gb = xg_df.ix[w1][u'发行量']
-		zong_gb = 0
+		#ipo_date = xg_df.ix[w1]['timeToMarket']
+		#liutong_gb = xg_df.ix[w1]['outstanding']
+		#zong_gb = xg_df.ix[w1]['totals']
 		'''
 		'''
 		temp_list = [w1,w2,ipo_date,liutong_gb,zong_gb]
@@ -98,14 +103,21 @@ def parse_item_data(type, code, row, xg_df, ws):
 	stockInfo = []
 	if type==1:
 		name = row[0]
+		ipo_date = long(row['timeToMarket'])
+		ltgb = float(row['outstanding'])/10000
+		liutong_gb = round(ltgb, 2)
+		zgb = float(row['totals'])/10000
+		zong_gb = round(zgb, 2)
 	elif type==2:
 		name = row[0].decode('utf8')
+		ipo_date = row['timeToMarket']
+		liutong_gb = row['outstanding']
+		zong_gb = row['totals']
 	else:
 		return
-	ipo_date = row['timeToMarket']
-	liutong_gb = row['outstanding']
-	zong_gb = row['totals']
+	#print type(ipo_date), type(liutong_gb), type(zong_gb)
 	#print type(ipo_date) 竟然是 long 类型
+	#print code, ipo_date, liutong_gb, zong_gb
 	if long(ipo_date)==0:
 		return
 	trade_string = str(long(ipo_date))
@@ -126,6 +138,7 @@ def parse_item_data(type, code, row, xg_df, ws):
 			time.sleep(0.5)
 		else:
 			break;
+	#print tddf
 	if tddf is None:
 		print "Timeout to get k data of " + code +", Quit"
 		exit(0)
@@ -315,10 +328,10 @@ excel_row = 2
 for st_item in st_list:
 	row = new_st_dt.ix[st_item]
 	parse_item_data(1, st_item, row, xg_df, ws)
-#
+
 for code,row in df1.iterrows():
 	parse_item_data(2, code, row, xg_df, ws)
-print "Final excel_row=",excel_row
+#print "Final excel_row=",excel_row
 filexlsx = prepath + "cixin_analyze.xlsx"
 wb.save(filexlsx)
 
