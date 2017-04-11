@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding:gbk -*-
 import sys
 import re
@@ -13,7 +14,7 @@ sys.path.append("..")
 from internal.ts_common import *
 
 #获取每天的所有的信息，将new stock选出
-#放到 "..\\Data\\entry\\trade\\ns_info.xlxs"
+#放到 "../Data/entry/trade/ns_info.xlxs"
 
 #'code,name,timeToMarket,outstanding,totals'
 
@@ -70,7 +71,7 @@ def check_new_stk(stk_item, stockInfo):
 
 # Main
 fm_url = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._A&sty=FCOIATA&sortType=A&sortRule=-1&page=%d&pageSize=%d&token=7bc05d0d4c3c22ef9fca8c2a912d779c"
-prepath1 = "..\\Data\\entry\\trade\\"
+prepath1 = "../Data/entry/trade/"
 name = "ns_info.xlsx"
 PAGE_COUNT = 500
 

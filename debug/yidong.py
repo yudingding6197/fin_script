@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding:gbk -*-
 from bs4 import BeautifulSoup as BS
 import urllib.request as ur

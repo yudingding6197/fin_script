@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding:gbk -*-
 import sys
 import os
@@ -5,11 +6,11 @@ import pandas as pd
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
-# 读取..\\Data\\entry\\cixin\\下最新的cixin_***.xlsx文件，得到未打开的次新值
+# 读取../Data/entry/cixin/下最新的cixin_***.xlsx文件，得到未打开的次新值
 # 首先手动执行cixin_data.py得到最新的CX信息，再从中解析
 # Main
-cx_path = "..\\Data\\entry\\_no_open_cx.txt"
-path = "..\\Data\\entry\\cixin\\"
+cx_path = "../Data/entry/_no_open_cx.txt"
+path = "../Data/entry/cixin/"
 file = ''
 for (dirpath, dirnames, filenames) in os.walk(path):
 	if len(filenames)>0:

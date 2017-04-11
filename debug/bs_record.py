@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding:gbk -*-
 import sys
 import os
@@ -13,7 +14,7 @@ if pindex<2:
 	exit(0)
 code = sys.argv[1]
 
-path = "..\\buy_sell\\"
+path = "../buy_sell/"
 file_list = []
 filter_item = "A1:I1"
 for f in os.listdir(path):
@@ -54,5 +55,5 @@ for file in file_list:
 		#print temp_list
 
 if len(df)>0:
-	filename = "%s%s%s%d_%d.xlsx" %(path, "trade\\", "statics_", st_date, ed_date)
+	filename = "%s%s%s%d_%d.xlsx" %(path, "trade/", "statics_", st_date, ed_date)
 	df.to_excel(filename)

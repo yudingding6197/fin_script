@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding:gbk -*-
 import sys
 import re
@@ -12,11 +13,13 @@ sys.path.append(".")
 sys.path.append("..")
 from internal.ts_common import *
 
+#得到所有的股本变动信息，需要得到所有的代码，调用debug/instant_data.py更新数据
+
 url_liut = "http://vip.stock.finance.sina.com.cn/corp/go.php/vCI_StockStructureHistory/stockid/%s/stocktype/LiuTongA.phtml"
 url_totl = "http://vip.stock.finance.sina.com.cn/corp/go.php/vCI_StockStructureHistory/stockid/%s/stocktype/TotalStock.phtml"
 pindex = len(sys.argv)
 if pindex==1:
-	data_path = "..\\Data\\entry\\trade\\trade_last.txt"
+	data_path = "../Data/entry/trade/trade_last.txt"
 	file = open(data_path, 'r')
 	while 1:
 		lines = file.readlines(9000)
@@ -37,6 +40,7 @@ if pindex==1:
 			zgb_list = []
 			gb_str = get_guben_line(url_totl, code)
 			parse_guben(gb_str, zgb_list)
+			#print ltgb_list,zgb_list
 	file.close()
 elif pindex==2:
 	code = sys.argv[1]

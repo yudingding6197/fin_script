@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding:gbk -*-
 import sys
 import re
@@ -15,8 +16,8 @@ from internal.common import *
 #读取表格中的价格
 def get_xg_fx():
 	sheet_st = "Sheet"
-	wkfile = "..\\Data\\entry\\xingu\\faxing.xlsx"
-	wkfile1 = "..\\Data\\entry\\xingu\\faxing_re.xlsx"
+	wkfile = "../Data/entry/xingu/faxing.xlsx"
+	wkfile1 = "../Data/entry/xingu/faxing_re.xlsx"
 
 	wb = load_workbook(wkfile)
 	ws = wb.get_sheet_by_name(sheet_st)	
@@ -65,7 +66,7 @@ def get_xg_fx():
 #得到当天上的Item
 def get_xg_trade(xg_trade_list, xg_df):
 	sheet_st = "Sheet"
-	wkfile = "..\\Data\\entry\\trade\\ns_info.xlsx"
+	wkfile = "../Data/entry/trade/ns_info.xlsx"
 	if os.path.isfile(wkfile) is False:
 		print "Error: No File:", wkfile
 		return None
@@ -274,8 +275,8 @@ def parse_item_data(type, code, row, xg_df, ws):
 cmp_string = "20150201"
 base_date = datetime.datetime.strptime(cmp_string, '%Y%m%d').date()
 
-prepath = "..\\Data\\"
-prepath1 = "..\\Data\\entry\\cixin\\"
+prepath = "../Data/"
+prepath1 = "../Data/entry/cixin/"
 LOOP_COUNT = 0
 df = None
 

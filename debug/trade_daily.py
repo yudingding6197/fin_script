@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding:gbk -*-
 import sys
 import re
@@ -12,7 +13,7 @@ import tushare as ts
 #包含中文
 
 # Main
-path = "..\\Data\\entry\\trade_day\\"
+path = "../Data/entry/trade_day/"
 pindex = len(sys.argv)
 if pindex<2:
 	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 \n")
