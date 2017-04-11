@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding:gbk -*-
 import sys
 import re
@@ -7,8 +8,6 @@ import urllib
 import urllib2
 import datetime
 import shutil
-from openpyxl import Workbook
-from openpyxl.reader.excel  import  load_workbook
 
 #遍历目录下的所有子目录和文件
 path = "."
