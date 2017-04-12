@@ -653,9 +653,9 @@ def list_realtime_info(basic, codeArray):
 		change_h = '%02.02f'%( ((float(high)-pre_close_f)/pre_close_f)*100 )
 		change_o = '%02.02f'%( ((float(open)-pre_close_f)/pre_close_f)*100 )
 
-		#print change
-		print "%-5s	%-6s(%6s%%) (%5.02f%%)	%-6s(%6s) %-6s(%6s)" %(stname, price, change, turnover_rt, low, change_l, high, change_h)
-		#print "%5s	%6s(%6s,%6s,%6s)	%8s(%8s,%8s)" %(stname, change, change_l, change_h, change_o, price, low, high)
+		str_fmt = "%6s %-6s	%-6s(%6s%%) (%5.02f%%)	%-6s(%6s) %-6s(%6s)"
+		print str_fmt%(codeArray[index], stname, price, change, turnover_rt, low, change_l, high, change_h)
+		#print "%6s %5s	%6s(%6s,%6s,%6s)	%8s(%8s,%8s)" %(stname, change, change_l, change_h, change_o, price, low, high)
 		
 def list_latest_news(codeArray, curdate):
 	cur_dt = datetime.datetime.strptime(curdate, '%Y-%m-%d').date()

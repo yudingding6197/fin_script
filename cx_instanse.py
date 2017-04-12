@@ -53,9 +53,16 @@ def output_info(desc, type, stk_list):
 	for index, row in df_tdy1.iterrows():
 		id += 1
 		if type==1:
-			print "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %6d" % (id,row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7])
+			if row[2]=='-':
+				print "%2d %6s %-7s	%8s %8s %8s %8s %8s %6s" % (id,row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7])
+			else:
+				print "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %6d" % (id,row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7])
 		elif type==2:
-			print "%2d %6s %-7s	%8.2f %8.2f %3d %8d" % (id,row[0],row[1],row[2],row[3],row[4],row[5])
+			#trade suspend但是一直YZZT
+			if row[2]=='-':
+				print "%2d %6s %-7s	%8s %8.2f %3d %8s" % (id,row[0],row[1],row[2],row[3],row[4],row[5])
+			else:
+				print "%2d %6s %-7s	%8.2f %8.2f %3d %8d" % (id,row[0],row[1],row[2],row[3],row[4],row[5])
 	print ''
 
 def get_all_stocks(st_list):
@@ -109,13 +116,19 @@ def get_all_stocks(st_list):
 
 
 #Main
-
 today = datetime.date.today()
+#得到ZS的信息，但是当天交易的时候，得不到当天的
+delta1=datetime.timedelta(days=30)
+sdate = today-delta1
+fmt_start = '%d-%02d-%02d' %(sdate.year, sdate.month, sdate.day)
+shzs = ts.get_k_data('000001', index=True, start=fmt_start)
+shzs = shzs.sort_values(['date'], 0, False)
+
 st_list = []
 get_all_stocks(st_list)
 
 '''
-st_list = ['603603','300613','300601','002849','300616','002852','603955','601212']
+st_list = ['603303','603388','002774','002857','300627','002852','002858','603586']
 '''
 
 number = len(st_list)
@@ -167,20 +180,21 @@ for i in range(0, loop_ct):
 		open = float(row['open'])
 		price = float(row['price'])
 		pre_close = float(row['pre_close'])
+		trade_susp = 0
 		if high==0 or low==0:
-			continue
-
-		o_percent = (open-pre_close)*100/pre_close
-		c_percent = (price-pre_close)*100/pre_close
-		h_percent = (high-pre_close)*100/pre_close
-		l_percent = (low-pre_close)*100/pre_close
-		open_percent = float('{:.2f}'.format(Decimal(str(o_percent))))
-		change_percent = float('{:.2f}'.format(Decimal(str(c_percent))))
-		high_zf_percent = float('{:.2f}'.format(Decimal(str(h_percent))))
-		low_df_percent = float('{:.2f}'.format(Decimal(str(l_percent))))
-		by1_vol = 0
-		if row['b1_v'].isdigit():
-			by1_vol = int(row['b1_v'])
+			trade_susp = 1
+		else:
+			o_percent = (open-pre_close)*100/pre_close
+			c_percent = (price-pre_close)*100/pre_close
+			h_percent = (high-pre_close)*100/pre_close
+			l_percent = (low-pre_close)*100/pre_close
+			open_percent = float('{:.2f}'.format(Decimal(str(o_percent))))
+			change_percent = float('{:.2f}'.format(Decimal(str(c_percent))))
+			high_zf_percent = float('{:.2f}'.format(Decimal(str(h_percent))))
+			low_df_percent = float('{:.2f}'.format(Decimal(str(l_percent))))
+			by1_vol = 0
+			if row['b1_v'].isdigit():
+				by1_vol = int(row['b1_v'])
 
 		#通过获得K线数据，判断是否YZZT新股
 		if b_get_data == 1:
@@ -209,18 +223,30 @@ for i in range(0, loop_ct):
 				h_low = tdrow['low']
 				if h_high!=h_low:
 					if yzzt_day!=0:
-						list = []
-						if (yzzt_day+4)>=trade_days:
-							list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, yzzt_day]
+						list1 = []
+						if trade_susp==1:
+							dt_list = list(shzs['date'])
+							for i in range(0, len(dt_list)):
+								if i>3:
+									break
+								if dt_list[i] == tdrow[0] and i<4:
+									yzzt_day = trade_days-i-2
+									if yzzt_day>=0:
+										list1 = [code, name, '-', price, '-', '-', '-', yzzt_day]
+										break
+						else:
+							if (yzzt_day+4)>=trade_days:
+								list1 = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, yzzt_day]
 
-						if (yzzt_day+1)==trade_days:
-							today_open.append(list)
-						elif (yzzt_day+2)==trade_days:
-							two_day_open.append(list)
-						elif (yzzt_day+3)==trade_days:
-							three_day_open.append(list)
-						elif (yzzt_day+4)==trade_days:
-							four_day_open.append(list)
+						if len(list1)>0:
+							if (yzzt_day+1)==trade_days:
+								today_open.append(list1)
+							elif (yzzt_day+2)==trade_days:
+								two_day_open.append(list1)
+							elif (yzzt_day+3)==trade_days:
+								three_day_open.append(list1)
+							elif (yzzt_day+4)==trade_days:
+								four_day_open.append(list1)
 						b_open = 1
 						break
 				#当ZT打开，就会break for 循环
@@ -231,8 +257,11 @@ for i in range(0, loop_ct):
 				cmp_delta = today-last_date
 				if cmp_delta.days==0:
 					stcsItem.s_cx_yzzt += 1
-					list = [code, name, change_percent, price, yzzt_day, by1_vol]
-					new_stk.append(list)
+					list1 = [code, name, change_percent, price, yzzt_day, by1_vol]
+					new_stk.append(list1)
+				#elif trade_susp==1:
+				#	list1 = [code, name, '-', price, yzzt_day, '-']
+				#	new_stk.append(list1)
 
 			#认为YZZT不会超过 33 个交易日
 			if trade_days>33:

@@ -94,6 +94,16 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 			pre_close = float(row['pre_close'])
 			price = float(row['price'])
 			change_perc = (price-pre_close)*100/pre_close
+			today_high = float(row['high'])
+			today_low = float(row['low'])
+			today_b1_p = float(row['b1_p'])
+			today_a1_p = float(row['a1_p'])
+			today_bid = float(row['bid'])
+			#判断今日是否trade suspend
+			if today_high==today_low and today_high==0.0:
+				continue
+			elif today_b1_p==0.0 and today_a1_p==0.0 and today_bid==0.0:
+				continue
 
 			#通过获得K线数据，判断是否YZZT新股
 			yzcx_flag = 0
@@ -126,6 +136,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 					close = tdrow[2]
 					high = tdrow['high']
 					low = tdrow['low']
+					#print tdrow
 					if high!=low:
 						if yzzt_day!=0:
 							if (yzzt_day+1)==trade_days:
@@ -144,6 +155,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 					cmp_delta = idx_date-last_date
 					if cmp_delta.days==0:
 						stcsItem.s_cx_yzzt += 1
+						print code,name
 						yzcx_flag = 1
 
 				#认为YZZT不会超过 33 个交易日
@@ -222,7 +234,7 @@ st_list.extend(st_bas_list)
 
 '''
 st_list = []
-st_list=['603603','603822','300397','600405','600149','300534']
+st_list=['603178','601228','603385','002774','002857','002855','600149','300534']
 #print st_list
 '''
 
@@ -282,7 +294,10 @@ if len(list)>0:
 
 if flag==0:
 	non_cx = len(stcsItem.lst_non_yzcx_yzzt)+len(stcsItem.lst_non_yzcx_zt)
-	print "Total( %d = %d + %d ):"%( stcsItem.s_zt, stcsItem.s_zt-non_cx, non_cx )
+	tol_str = "Total( %d = %d + %d	YZ: %d=%d(%d)+%d):"
+	non_cx_yz = len(stcsItem.lst_non_yzcx_yzzt)
+	cx_yz = stcsItem.s_yzzt-non_cx_yz
+	print tol_str%( stcsItem.s_zt, stcsItem.s_zt-non_cx, non_cx, stcsItem.s_yzzt, cx_yz, stcsItem.s_cx_yzzt, non_cx_yz)
 	print "id %6s %-12s	%-10s %-9s %-8s %-8s %-8s " % ("code","name","change","price","opn_p","hgh_p","low_p")
 	show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT")
 	print "-------------------- %d+%d" % (stcsItem.s_sw_zt, stcsItem.s_xw_zt)
