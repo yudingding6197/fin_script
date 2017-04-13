@@ -10,6 +10,9 @@ import time
 import ctypes
 from internal.ts_common import *
 
+# 依赖../Data/entry/_no_open_cx.txt，需要 debug/sync_cixin.py
+# 但是这个需要 cixin_data.py
+
 ALERT_HIGH = 0
 COND_COUNT = 0
 slpTime=1

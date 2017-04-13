@@ -338,3 +338,6 @@ consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.
 
+monitor_stk.py and watch_yzcx.py 调用 ../Data/entry/_no_open_cx.txt
+debug\sync_cixin.py 生成 _no_open_cx.txt， 这是通过执行 cixin_data.py 生成的文件
+

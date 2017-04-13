@@ -43,5 +43,5 @@ if len(code_list)==0:
 
 cx_file = open(cx_path, 'w')
 for code in code_list:
-	cx_file.write(code + "\r\n")
+	cx_file.write(code + "\n")
 cx_file.close()

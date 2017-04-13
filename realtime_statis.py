@@ -155,7 +155,6 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 					cmp_delta = idx_date-last_date
 					if cmp_delta.days==0:
 						stcsItem.s_cx_yzzt += 1
-						print code,name
 						yzcx_flag = 1
 
 				#认为YZZT不会超过 33 个交易日
