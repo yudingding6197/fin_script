@@ -13,8 +13,8 @@ from openpyxl.reader.excel  import  load_workbook
 from internal.common import *
 from internal.ts_common import *
 
-prepath = "..\\Data\\"
-prepath1 = "..\\Data\\entry\\fupai\\"
+prepath = "../Data/"
+prepath1 = "../Data/entry/fupai/"
 pindex = len(sys.argv)
 today = datetime.date.today()
 curdate = ''

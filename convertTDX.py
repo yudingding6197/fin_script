@@ -53,7 +53,7 @@ def handle_volumn(exVolumn, dataObj, type, flag=0):
 
 			
 addcsv = 0
-prepath = "..\\Data\\TDX\\"
+prepath = "../Data/TDX/"
 convAll = 0
 pindex = len(sys.argv)
 if pindex<2:
@@ -148,7 +148,7 @@ bFtime = 0
 if convAll==0:
 	if convType==0:
 		filename = qdate + "-" + code + ".txt"
-		filepath = path + "\\" + filename
+		filepath = path + "/" + filename
 		countl = 0
 		
 		sarr = ''

@@ -147,7 +147,7 @@ def getSinaData(url, code, sleepTime, inst_info, phase):
 	return status
 
 def get_stk_by_file(stockCode):
-	data_path = "..\\Data\\entry\\_no_open_cx.txt"
+	data_path = "../Data/entry/_no_open_cx.txt"
 	if os.path.isfile(data_path) is False:
 		print "No file:",data_path
 		return

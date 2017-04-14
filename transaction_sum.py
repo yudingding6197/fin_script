@@ -7,7 +7,7 @@ from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
 # Main cc:持仓， last_cc:每天最后一笔的成交总计
-path = "..\\buy_sell\\"
+path = "../buy_sell/"
 file_list = []
 filter_item = "A1:K1"
 c_list = ['date','time','code','name','op','vol','price','amount','cc','last_cc']
@@ -76,5 +76,5 @@ for file in file_list:
 		df = df.append(df1)
 
 if len(df)>0:
-	filename = "%s%s%s%s_%s.xlsx" %(path, "trade\\", "statics_", st_date, ed_date)
+	filename = "%s%s%s%s_%s.xlsx" %(path, "trade/", "statics_", st_date, ed_date)
 	df.to_excel(filename)

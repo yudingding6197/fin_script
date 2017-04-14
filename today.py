@@ -12,7 +12,7 @@ import internal.common
 import internal.ts_common
 
 addcsv = 0
-prepath = "..\\Data\\"
+prepath = "../Data/"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
 pindex = len(sys.argv)
 if pindex<2:

@@ -9,7 +9,7 @@ import datetime
 
 from internal.common import *
 
-prepath = "..\\Data\\"
+prepath = "../Data/"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php"
 
 #向第一页发起HTTP Get请求，获得所有Web数据并写入文件

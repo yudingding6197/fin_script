@@ -12,7 +12,7 @@ from internal.ts_common import *
 
 #如果需要记录到csv文件中，修改addcsv=1
 addcsv = 0
-prepath = "..\\Data\\"
+prepath = "../Data/"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php"
 urlToday = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
 
@@ -64,7 +64,7 @@ else:
 qarr = ''
 if pindex==5:
 	qarr = sys.argv[4]
-prepath = prepath+ code+ "\\"
+prepath = prepath+ code+ "/"
 
 delta = edate - curdate
 while (delta.days>=0):

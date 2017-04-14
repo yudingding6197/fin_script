@@ -339,5 +339,7 @@ library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.
 
 monitor_stk.py and watch_yzcx.py 调用 ../Data/entry/_no_open_cx.txt
-debug\sync_cixin.py 生成 _no_open_cx.txt， 这是通过执行 cixin_data.py 生成的文件
+debug\sync_cixin.py 生成 _no_open_cx.txt
+通过读取"../Data/entry/cixin/..."下的数据，cixin_data.py将会更新
 
+cixin_data.py 调用前执行 debug\newstk_get.py 得到当天上的New

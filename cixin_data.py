@@ -233,6 +233,10 @@ def parse_item_data(type, code, row, xg_df, ws):
 			fengban_vol = int(volstr)
 			fengliu_prop = fengban_vol/(liutong_gb*10000)
 			turnover = last_day_vol/(liutong_gb*10000)
+		#判断名字，避免CX还是 N...格式
+		rt_name = trdf.iloc[0,0]
+		if name!=rt_name:
+			name = rt_name
 
 	#追加数据,流通市值、总市值
 	liutong_sz = liutong_gb*last_close
@@ -302,7 +306,7 @@ df1 = df[df.timeToMarket>0]
 df1 = df1.sort_values(['timeToMarket'], 0, False)
 st_index = df1.index
 st_bas_list=list(st_index)
-#df1 = df1[332:333]
+#df1 = df1[:10]
 
 st_list = []
 for i in range(0, len(new_st_list)):
