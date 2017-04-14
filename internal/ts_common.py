@@ -57,6 +57,7 @@ class statisticsItem:
 	s_high_zf = 0		#最高涨幅
 	s_low_df = 0		#最低跌幅
 	s_cx_yzzt = 0		#次新YZZT
+	s_open_dt_dk = 0	#开盘跌停打开
 	s_new = 0			#上市新股
 	s_total = 0			#总计所有交易票
 	s_sw_zt = 0			#上午ZT
@@ -96,6 +97,7 @@ class statisticsItem:
 		self.s_high_zf = 0
 		self.s_low_df = 0
 		self.s_cx_yzzt = 0
+		self.s_open_dt_dk = 0
 		self.s_new = 0
 		self.s_total = 0
 		self.s_sw_zt = 0
@@ -872,19 +874,22 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 
 		if low==dt_price:
 			if b_ST==0:
+				if open==dt_price:
+					stcsItem.s_open_dt += 1
+					status |= STK_OPEN_DT
+					if price!=dt_price:
+						stcsItem.s_open_dt_dk += 1
+
 				if price==dt_price:
 					stcsItem.s_dt += 1
 					status |= STK_DT
-					if open==dt_price:
-						stcsItem.s_open_dt += 1
-						status |= STK_OPEN_DT
-
 					#DT Data
 					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
 					stcsItem.lst_dt.append(list)
 				else:
 					stcsItem.s_dtft += 1
 					status |= STK_DTFT
+					
 
 					#DTFT Data
 					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]

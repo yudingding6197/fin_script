@@ -233,7 +233,7 @@ st_list.extend(st_bas_list)
 
 '''
 st_list = []
-st_list=['603178','601228','603385','002774','002857','002855','600149','300534']
+st_list=['603322','002747','300312','002578','002351','002278','002143','000158','600747']
 #print st_list
 '''
 
@@ -245,7 +245,7 @@ if status==-1:
 
 #获取数据进行打印
 str_opn = "[%d %d %d %d] %3d上,%3d下" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
-print "			ST(%d ZT %d DT)		DTKP:%d YZDT:%d" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, stcsItem.s_open_dt, stcsItem.s_yzdt)
+print "			ST(%d ZT %d DT)		DTKP:%d YZDT:%d DTDK:%d" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, stcsItem.s_open_dt, stcsItem.s_yzdt,stcsItem.s_open_dt_dk)
 print "%4d-ZT	%4d-DT		%d-X %d--%s" % (stcsItem.s_zt,stcsItem.s_dt,stcsItem.s_new,stcsItem.s_yzzt, str_opn)
 print "%4d-CG	%4d-FT		KD:[%s]  %2d-YIN" %(stcsItem.s_zthl,stcsItem.s_dtft,','.join(stcsItem.lst_kd),stcsItem.s_zt_o_gt_c)
 print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_open_sz, stcsItem.s_open_dz, stcsItem.s_open_pp, stcsItem.s_open_xd, stcsItem.s_open_dd)
