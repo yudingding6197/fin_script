@@ -826,10 +826,10 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 						stcsItem.lst_non_yzcx_yzzt.append(list)
 					#print stcsItem.s_zt,code,name,price,change_percent,open
 		elif open<pre_close:
-			if b_ST==1:
+			if b_ST==1 and low==dt_price:
 				stcsItem.s_st_yzdt += 1
 				status |= STK_ST_YZDT
-			else:
+			elif b_ST==0 and low==dt_price:
 				stcsItem.s_yzdt += 1
 				status |= STK_YZDT
 				stcsItem.s_dt += 1

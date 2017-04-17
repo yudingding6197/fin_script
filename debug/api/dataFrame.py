@@ -122,4 +122,15 @@ print df1
 df2 = df.loc[df['B']>30]
 print df2
 
+# df['date'] = df['date'].map(lambda x : x[:5] )
 
+'''
+pd.set_option('display.height',1000)
+pd.set_option('display.max_rows',500)
+pd.set_option('display.max_columns',500)
+pd.set_option('display.width',1000)
+pd.set_option('max_colwidth', 200)
+
+²»ÏÔÊ¾Ë÷Òý index
+print df.to_string(index=False)
+'''
