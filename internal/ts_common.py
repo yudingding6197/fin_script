@@ -68,6 +68,7 @@ class statisticsItem:
 	lst_non_yzcx_zt = []		#非次新涨停
 	lst_non_yzcx_yzzt = []		#非次新一字涨停
 	lst_dt = []					#跌停
+	lst_yzdt = []				#YZ跌停
 	lst_dtft = []				#跌停反弹
 	def __init__(self):
 		self.s_zt = 0
@@ -108,6 +109,7 @@ class statisticsItem:
 		self.lst_non_yzcx_zt = []
 		self.lst_non_yzcx_yzzt = []
 		self.lst_dt = []
+		self.lst_yzdt = []
 		self.lst_dtft = []
 
 def spc_round(value,bit):
@@ -755,6 +757,34 @@ def zt_time_point(code, zt_price, trade_date, stcsItem):
 			j += 1
 	return
 
+def get_zf_days(code, type, trade_date):
+	excecount=0
+	df = None
+	while excecount<=3:
+		try:
+			df = ts.get_hist_data(code)
+		except:
+			excecount += 1
+		else:
+			break
+	if df is None:
+		return 0
+	count = 0
+	for index,row in df.iterrows():
+		val = float(row['p_change'])
+		bflag = 0
+		if type==1:
+			if val>9.9:
+				count += 1
+				bflag = 1
+		elif type==2:
+			if val<-9.88:
+				count += 1
+				bflag = 1
+		if bflag==0:
+			break
+	return count
+
 #分析此单的状态：ZT、DT、ZTHL、DTFT...，详见 statisticsItem 定义
 def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 	if len(code)!=6:
@@ -821,8 +851,9 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 					stcsItem.s_close_zt += 1
 					#list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
 					#pd_list.append(list)
+					count = get_zf_days(code, 1, trade_date)
 					if yzcx_flag==0:
-						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count+1]
 						stcsItem.lst_non_yzcx_yzzt.append(list)
 					#print stcsItem.s_zt,code,name,price,change_percent,open
 		elif open<pre_close:
@@ -836,9 +867,9 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 				status |= STK_DT
 				stcsItem.s_open_dt += 1
 				status |= STK_OPEN_DT
-
-				list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
-				stcsItem.lst_dt.append(list)
+				count = get_zf_days(code, 2, trade_date)
+				list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count+1]
+				stcsItem.lst_yzdt.append(list)
 		#print code,name,open,low,high,price,pre_close
 	else:
 		if high==zt_price:
@@ -856,8 +887,9 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 							stcsItem.s_open_T_zt += 1
 					#list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
 					#pd_list.append(list)
+					count = get_zf_days(code, 1, trade_date)
 					if yzcx_flag==0:
-						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count+1]
 						stcsItem.lst_non_yzcx_zt.append(list)
 				else:
 					stcsItem.s_zthl += 1
@@ -883,8 +915,10 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 				if price==dt_price:
 					stcsItem.s_dt += 1
 					status |= STK_DT
+					count = get_zf_days(code, 2, trade_date)
+
 					#DT Data
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count+1]
 					stcsItem.lst_dt.append(list)
 				else:
 					stcsItem.s_dtft += 1
