@@ -163,5 +163,5 @@ filexlsx1 = prepath1 + "xg_fx"+ qdate
 filexlsx1 = '%s_%02d-%02d.xlsx' %(filexlsx1, cur.hour, cur.minute)
 wb.save(filexlsx1)
 
-file2 = prepath1 + "last_xg.xlsx"
+file2 = prepath1 + "faxing.xlsx"
 shutil.copy(filexlsx1, file2)

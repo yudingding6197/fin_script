@@ -38,7 +38,7 @@ def show_dt_info(dt_list, desc):
 	number = len(dt_list)
 	endstr = ''
 	str = "%s [%d]:" % (desc, number)
-	if number<0:
+	if number<=0:
 		return
 	elif number>30:
 		number = 30
@@ -266,7 +266,7 @@ st_list.extend(st_bas_list)
 
 '''
 st_list = []
-st_list=['603628','300521','603555','300629','603726','002735','603088','600793','600550']
+st_list=['603225','002050','002282','002423','603555','603628','603859','600793','000520']
 #print st_list
 '''
 
@@ -275,6 +275,9 @@ stcsItem=statisticsItem()
 status = get_all_stk_info(st_list, today_open, stcsItem)
 if status==-1:
 	exit(0)
+
+non_cx_yz = len(stcsItem.lst_non_yzcx_yzzt)
+cx_yz = stcsItem.s_yzzt-non_cx_yz
 
 #获取数据进行打印
 str_opn = "[%d %d %d %d] %3d上,%3d下" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
@@ -290,8 +293,8 @@ if DaoT>0:
 print "			ST(%d ZT %d DT)		%s" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, str_dt)
 #print "			ST(%d ZT %d DT)		DTKP:%d YZDT:%d DTDK:%d" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, stcsItem.s_open_dt, stcsItem.s_yzdt,stcsItem.s_open_dt_dk)
 
-print "%4d-ZT	%4d-DT		%d-X %d--%s" % (stcsItem.s_zt,stcsItem.s_dt,stcsItem.s_new,stcsItem.s_yzzt, str_opn)
-print "%4d-CG	%4d-FT		KD:[%s]  %2d-YIN" %(stcsItem.s_zthl,stcsItem.s_dtft,','.join(stcsItem.lst_kd),stcsItem.s_zt_o_gt_c)
+print "%4d-ZT	%4d-DT		%d-X %d--(%d+%d) %s" % (stcsItem.s_zt,stcsItem.s_dt,stcsItem.s_new,stcsItem.s_yzzt, cx_yz, non_cx_yz, str_opn)
+print "%4d-CG	%4d-FT		%2d-YIN  KD:[%s]" %(stcsItem.s_zthl,stcsItem.s_dtft,stcsItem.s_zt_o_gt_c,','.join(stcsItem.lst_kd))
 print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_open_sz, stcsItem.s_open_dz, stcsItem.s_open_pp, stcsItem.s_open_xd, stcsItem.s_open_dd)
 print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_close_sz, stcsItem.s_close_dz, stcsItem.s_close_pp, stcsItem.s_close_xd, stcsItem.s_close_dd)
 print "4%%:%4d	%4d" %(stcsItem.s_high_zf,stcsItem.s_low_df)
@@ -338,8 +341,6 @@ if len(list)>0:
 if flag==0:
 	non_cx = len(stcsItem.lst_non_yzcx_yzzt)+len(stcsItem.lst_non_yzcx_zt)
 	tol_str = "Total( %d = %d + %d	YZ: %d=%d(%d)+%d):"
-	non_cx_yz = len(stcsItem.lst_non_yzcx_yzzt)
-	cx_yz = stcsItem.s_yzzt-non_cx_yz
 	print tol_str%( stcsItem.s_zt, stcsItem.s_zt-non_cx, non_cx, stcsItem.s_yzzt, cx_yz, stcsItem.s_cx_yzzt, non_cx_yz)
 	print "id %6s %-12s	%-10s %-9s %-8s %-8s %-8s %-8s" % ("code","name","change","price","opn_p","hgh_p","low_p","z_d")
 	show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT")
