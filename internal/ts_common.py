@@ -239,7 +239,6 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			df = ts.get_today_ticks(curcode)
 		else:
 			df = ts.get_tick_data(curcode, qdate)
-			print df
 		#print df
 		if df is None:
 			excecount += 1
