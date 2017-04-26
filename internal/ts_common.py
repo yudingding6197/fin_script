@@ -231,13 +231,15 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			stockInfo.append(row['high'])
 			stockInfo.append(row['low'])
 			stockInfo.append(row['volume'])
-			stockInfo.append(row['turnover'])
+			#stockInfo.append(row['turnover'])
+			stockInfo.append('')
 
 	while excecount<=3:
 		if bhist==0:
 			df = ts.get_today_ticks(curcode)
 		else:
 			df = ts.get_tick_data(curcode, qdate)
+			print df
 		#print df
 		if df is None:
 			excecount += 1
@@ -993,7 +995,7 @@ def get_guben_line(url_str, code):
 		else:
 			break
 	if guben_info is None:
-		print "Fail to get data"
+		print "Fail to get guben data"
 		return None
 	#ÕÒµ½Æ¥ÅäÊý¾Ý
 	start = guben_info.find("<set name='")
