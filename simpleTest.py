@@ -8,50 +8,15 @@ import os
 import time
 import datetime
 import ctypes
-
+import sqlite3
 from internal.common import *
 
-def fun(list):
-	del list[:]
+def fun1():
+	print "we are in %s"%__name__ 
+
+if __name__ == '__main__':
+	file = open('D:/work/vxWork/script/c1.bat','r')
+	print file
+	file.close()
+	fun1()
 	
-tmpContPrice = ['Buy', 1, 302, 232, 22, 42, 54,856, 545, 432, 355, 655]
-#tmpContPrice = ['Buy', 1, 302, 232, 22]
-contPrice = [302, 232, 22]
-tmpPriceLen = len(tmpContPrice)
-contPriceLen = len(contPrice)
-bChange = 0
-
-msgstr = u"Continued value:%d"%(contPriceLen)
-ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
-print tmpPriceLen, contPriceLen
-if tmpPriceLen>0:
-	if contPriceLen==0:
-		for k in range(2,tmpPriceLen):
-			contPrice.append(tmpContPrice[k])
-	else:
-		if (tmpPriceLen-2)<contPriceLen:
-			del contPrice[:]
-			for k in range(2,tmpPriceLen):
-				contPrice.append(tmpContPrice[k])
-			bChange = 1
-		else:
-			bAllMatch = 1
-			for k in range(0, contPriceLen):
-				if (tmpContPrice[k+2]!=contPrice[k]):
-					bAllMatch = 0
-			if bAllMatch==0:
-				del contPrice[:]
-				for k in range(2,tmpPriceLen):
-					contPrice.append(tmpContPrice[k])
-				bChange = 1
-			else:
-				if (tmpPriceLen-2)>contPriceLen:
-					for k in range(contPriceLen+2,tmpPriceLen):
-						contPrice.append(tmpContPrice[k])
-					bChange = 1
-	print "CCCCCCCCCCCC", contPrice
-	if (len(contPrice)>=6 and bChange==1):
-		msgstr = "Continued value:%d"%(contPriceLen)
-		#ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
-		#os.system(msgstr)
-
