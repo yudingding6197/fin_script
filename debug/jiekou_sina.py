@@ -51,4 +51,5 @@ else:
 		exit(0)
 
 	for i in range(0, stockLen):
-		print "%02d:	%s" % (i, stockObj[i])
+		sobj = stockObj[i].decode('gbk')
+		print u"%02d:	%s" % (i, sobj)
