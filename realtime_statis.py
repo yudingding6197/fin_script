@@ -63,6 +63,16 @@ def show_dt_info(dt_list, desc):
 			break
 	print endstr
 
+def filter_dtft(dtft_list, perc):
+	if len(dtft_list)==0:
+		return 0
+	count = 0
+	for item in dtft_list:
+		if item[2]>perc:
+			print item[0],item[2]
+			count += 1
+	return count
+
 def get_all_stk_info(st_list, today_open, stcsItem):
 	today = datetime.date.today()
 	number = len(st_list)
@@ -281,7 +291,7 @@ non_cx_yz = len(stcsItem.lst_non_yzcx_yzzt)
 cx_yz = stcsItem.s_yzzt-non_cx_yz
 
 #获取数据进行打印
-str_opn = "[%d %d %d %d] %3d上,%3d下" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
+str_opn = u"[%d %d %d %d] %3d上,%3d下" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
 
 str_dt = "DTKP:%d" % (stcsItem.s_open_dt)
 if stcsItem.s_yzdt>0:
@@ -294,8 +304,9 @@ if DaoT>0:
 print "			ST(%d ZT %d DT)		%s" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, str_dt)
 #print "			ST(%d ZT %d DT)		DTKP:%d YZDT:%d DTDK:%d" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, stcsItem.s_open_dt, stcsItem.s_yzdt,stcsItem.s_open_dt_dk)
 
-print "%4d-ZT	%4d-DT		%d-X %d--(%d+%d) %s" % (stcsItem.s_zt,stcsItem.s_dt,stcsItem.s_new,stcsItem.s_yzzt, cx_yz, non_cx_yz, str_opn)
-print "%4d-CG	%4d-FT		%2d-YIN  KD:[%s]" %(stcsItem.s_zthl,stcsItem.s_dtft,stcsItem.s_zt_o_gt_c,','.join(stcsItem.lst_kd))
+dtft_qiang = filter_dtft(stcsItem.lst_dtft, -3)
+print "%4d-ZT		%4d-DT		%d-X %d--(%d+%d) %s" % (stcsItem.s_zt,stcsItem.s_dt,stcsItem.s_new,stcsItem.s_yzzt, cx_yz, non_cx_yz, str_opn)
+print "%4d-CG(%d)	%4d-FT(%d)	%2d-YIN  KD:[%s]" %(stcsItem.s_zthl,len(stcsItem.lst_kd),stcsItem.s_dtft,dtft_qiang,stcsItem.s_zt_o_gt_c,','.join(stcsItem.lst_kd))
 print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_open_sz, stcsItem.s_open_dz, stcsItem.s_open_pp, stcsItem.s_open_xd, stcsItem.s_open_dd)
 print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_close_sz, stcsItem.s_close_dz, stcsItem.s_close_pp, stcsItem.s_close_xd, stcsItem.s_close_dd)
 print "4%%:%4d	%4d" %(stcsItem.s_high_zf,stcsItem.s_low_df)

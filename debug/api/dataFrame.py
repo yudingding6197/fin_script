@@ -32,25 +32,31 @@ print df2
 
 print "3) ____________________"
 s1=[]
-s1.append(['a',32,533,4])
-s1.append(['f',6,147,118])
-s1.append(['c',0,23,32])
-s1.append(['v',76,923,62])
+s1.append(['ab',32,533,4])
+s1.append(['fv',6,147,118])
+s1.append(['ce',0,23,32])
+s1.append(['vwq',76,923,62])
 print s1
 df1 = pd.DataFrame(s1, columns=list('ABCD'))
-print df1.sort_values(['B'], 0, False)
+#print df1.sort_values(['B'], 0, False)
 
 df2 = pd.DataFrame(s1)
-print df2.sort_values([2], 0, False)
+#print df2.sort_values([2], 0, False)
 
 df1 = df1.set_index('A')
 print df1
 
-print "f_C==",df1.ix['f']['C'], type(df1.ix['f']['C'])
-print list(df1.ix['f'])
+print "f_C==",df1.ix['fv']['C']
+#iloc是索引的index取一行，显示这一行： 'fv',6,147,118
+#print (df1.iloc[[0]])
+#loc是针对具体索引的值取一行，显示这一行： 'fv',6,147,118
+#print  df1.loc[['fv']]
+
+d2=df1.iloc[[0]]
+d3=d2.reset_index(drop = False)
+print list(d3.iloc[0])
 print "---"
-for idx,row in df1.iterrows():
-	print idx
+
 #得到索引，转为list
 dfidx=df1.index
 df_list = list(dfidx)
