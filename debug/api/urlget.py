@@ -4,6 +4,7 @@ import sys
 import os
 import time
 import urllib2
+from urllib2 import urlopen, Request
 
 if __name__ == '__main__':
 	#headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'}
@@ -24,3 +25,9 @@ if __name__ == '__main__':
 	while line:
 		print line
 		line = res_data.readline()
+
+	request = Request("https://www.baidu.com/")
+	text = urlopen(request,timeout=10).read()
+	print "==================== GET LINK FROM:", request.get_full_url()
+	print text
+
