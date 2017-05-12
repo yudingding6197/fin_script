@@ -119,7 +119,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 			try:
 				stdf = ts.get_realtime_quotes(cur_list)
 			except:
-				print "Get real time except:"
+				print cur_list, "Get real time except:", LOOP_COUNT
 				time.sleep(0.5)
 				LOOP_COUNT += 1
 				stdf = None

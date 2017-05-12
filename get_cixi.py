@@ -277,12 +277,17 @@ def parse_item_data(type, code, row, xg_df, ws, hist_df):
 	if b_open==0:
 		LOOP_COUNT = 0
 		trdf = None
+
+		start=time.clock()
 		while LOOP_COUNT<3:
 			try:
 				trdf = ts.get_realtime_quotes(code)
 			except:
 				LOOP_COUNT += 1
 				time.sleep(0.5)
+
+				end = time.clock()
+				print code,"Exception=",LOOP_COUNT," ",end-start
 			else:
 				break
 		if trdf is None:
