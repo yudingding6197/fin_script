@@ -144,7 +144,54 @@ def append_stk_info(stockInfo, ws):
 		cell = chr(ascid+k) + str(excel_row)
 		ws[cell] = stockInfo[k]
 	excel_row += 1
-	
+
+def get_stock_data(code):
+	ret, pcode = parseCode(code)
+	if ret==-1:
+		print code, "Parse it fail"
+		return (-1, "", "")
+
+	start=time.clock()
+	LOOP_COUNT = 0
+	while LOOP_COUNT<2:
+		try:
+			trdf = ts.get_realtime_quotes(code)
+		except:
+			LOOP_COUNT += 1
+			time.sleep(0.5)
+			end = time.clock()
+			print code,"Exception=",LOOP_COUNT," ",end-start
+		else:
+			break
+	if trdf is not None:
+		volstr = trdf.iloc[0,10]
+		rt_name = trdf.iloc[0,0]
+		return (0, volstr, rt_name)
+
+	urllink = "http://push2.gtimg.cn/q=" + pcode
+	LOOP_COUNT = 0
+	stockData = None
+	while LOOP_COUNT<2:
+		try:
+			req = urllib2.Request(urllink)
+			stockData = urllib2.urlopen(req, timeout=5).read()
+		except:
+			LOOP_COUNT += 1
+			end = time.clock()
+			print code,"push2 gtimg Exception=",LOOP_COUNT," ",end-start
+		else:
+			break;
+	if stockData is None:
+		return (-1, "", "")
+	stockObj = stockData.split('~')
+	if len(stockObj)<2:
+		return (-1, "", "")
+
+	v1 = stockObj[1].decode('gbk')
+	v2 = stockObj[6]
+	print code, v1, v2
+	return (0, v2, v1)
+
 def parse_item_data(type, code, row, xg_df, ws, hist_df):
 	stockInfo = []
 	if type==1:
@@ -278,29 +325,18 @@ def parse_item_data(type, code, row, xg_df, ws, hist_df):
 		LOOP_COUNT = 0
 		trdf = None
 
-		start=time.clock()
-		while LOOP_COUNT<3:
-			try:
-				trdf = ts.get_realtime_quotes(code)
-			except:
-				LOOP_COUNT += 1
-				time.sleep(0.5)
-
-				end = time.clock()
-				print code,"Exception=",LOOP_COUNT," ",end-start
-			else:
-				break
-		if trdf is None:
-			print code, "Timeout to get real time quotes"
+		ret, volstr, rt_name = get_stock_data(code)
+		if ret==-1:
+			print code, "Timeout to get item data"
 			exit(0)
 
-		volstr = trdf.iloc[0,10]
+		#volstr = trdf.iloc[0,10]
 		if volstr.isdigit() is True:
 			fengban_vol = int(volstr)
 			fengliu_prop = fengban_vol/(liutong_gb*10000)
 			turnover = last_day_vol/(liutong_gb*10000)
 		#判断名字，避免CX还是 N...格式
-		rt_name = trdf.iloc[0,0]
+		#rt_name = trdf.iloc[0,0]
 		if name!=rt_name:
 			name = rt_name
 
