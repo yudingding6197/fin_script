@@ -69,7 +69,7 @@ def filter_dtft(dtft_list, perc):
 	count = 0
 	for item in dtft_list:
 		if item[2]>perc:
-			print item[0],item[2]
+			#print item[0],item[2]
 			count += 1
 	return count
 
