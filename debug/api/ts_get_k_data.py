@@ -59,4 +59,8 @@ if df is None:
 	print "Timeout to get hist data"
 	exit(0)
 
-print df.head(6)
+print df.head(10)
+
+df1 = df.sort_index(ascending=False)
+print "\nReverse:"
+print df1.head(10)

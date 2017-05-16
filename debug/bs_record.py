@@ -26,7 +26,7 @@ c_list = ['date','time','code','name','op','vol','price','amount']
 df = pd.DataFrame()
 st_date = file_list[0][6:12]
 ed_date = file_list[-1][6:12]
-print st_data,ed_date
+print st_date,ed_date
 for file in file_list:
 	dt_str = file[6:12]
 	if dt_str.isdigit() is False:
@@ -37,10 +37,6 @@ for file in file_list:
 	wb = load_workbook(path+file)
 	ws = wb.get_sheet_by_name(sheet_st)
 	for rx in range(2, ws.max_row+1):
-		w2 = "%06d" % (w2)
-		if w2!=code:
-			continue
-
 		w1 = ws.cell(row = rx, column = 1).value
 		w2 = ws.cell(row = rx, column = 2).value
 		w3 = ws.cell(row = rx, column = 3).value
@@ -48,6 +44,9 @@ for file in file_list:
 		w5 = ws.cell(row = rx, column = 5).value
 		w6 = ws.cell(row = rx, column = 6).value
 		w7 = ws.cell(row = rx, column = 7).value
+		w2 = "%06d" % (w2)
+		if w2!=code:
+			continue
 
 		temp_list = [int(dt_str),w1,w2,w3,w4,w5,w6,w7]
 		df1 = pd.DataFrame([temp_list], columns=c_list)
@@ -55,5 +54,5 @@ for file in file_list:
 		#print temp_list
 
 if len(df)>0:
-	filename = "%s%s%s%d_%d.xlsx" %(path, "trade/", "statics_", st_date, ed_date)
+	filename = "%s%s_S%s-%s_%s.xlsx" %(path, "trade/", code, st_date, ed_date)
 	df.to_excel(filename)
