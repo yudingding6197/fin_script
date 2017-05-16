@@ -153,7 +153,8 @@ def get_stock_data(code):
 
 	start=time.clock()
 	LOOP_COUNT = 0
-	while LOOP_COUNT<2:
+	trdf = None
+	while LOOP_COUNT<3:
 		try:
 			trdf = ts.get_realtime_quotes(code)
 		except:
@@ -171,7 +172,7 @@ def get_stock_data(code):
 	urllink = "http://push2.gtimg.cn/q=" + pcode
 	LOOP_COUNT = 0
 	stockData = None
-	while LOOP_COUNT<2:
+	while LOOP_COUNT<3:
 		try:
 			req = urllib2.Request(urllink)
 			stockData = urllib2.urlopen(req, timeout=5).read()
