@@ -161,7 +161,8 @@ def get_stock_data(code):
 			LOOP_COUNT += 1
 			time.sleep(0.5)
 			end = time.clock()
-			print code,"Exception=",LOOP_COUNT," ",end-start
+			if LOOP_COUNT==3:
+				print code,"Exception=",LOOP_COUNT," ",end-start
 		else:
 			break
 	if trdf is not None:
@@ -179,7 +180,8 @@ def get_stock_data(code):
 		except:
 			LOOP_COUNT += 1
 			end = time.clock()
-			print code,"push2 gtimg Exception=",LOOP_COUNT," ",end-start
+			if LOOP_COUNT==3:
+				print code,"push2 gtimg Exception=",LOOP_COUNT," ",end-start
 		else:
 			break;
 	if stockData is None:
@@ -190,7 +192,7 @@ def get_stock_data(code):
 
 	v1 = stockObj[1].decode('gbk')
 	v2 = stockObj[6]
-	print code, v1, v2
+	#print code, v1, v2
 	return (0, v2, v1)
 
 def parse_item_data(type, code, row, xg_df, ws, hist_df):
