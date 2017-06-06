@@ -42,6 +42,9 @@ def check_new_stk(stk_item, stockInfo):
 	url_liut = "http://vip.stock.finance.sina.com.cn/corp/go.php/vCI_StockStructureHistory/stockid/%s/stocktype/LiuTongA.phtml"
 	url_totl = "http://vip.stock.finance.sina.com.cn/corp/go.php/vCI_StockStructureHistory/stockid/%s/stocktype/TotalStock.phtml"
 	ltgb_list = []
+	#通过SINA得到流通股本和总股本的变化信息，返回信息为一个或者多个类似结构
+	#<set name='96/07' value='0' hoverText='1996-07-22'/>
+	#<set name='...' value='...' hoverText='...'/>
 	gb_str = get_guben_line(url_liut, code)
 	parse_guben(gb_str, ltgb_list)
 
@@ -53,20 +56,24 @@ def check_new_stk(stk_item, stockInfo):
 	if gb_len != len(zgb_list):
 		print code, name, "guben not match"
 		return 0
+	#如果是暂停上市后重组，作为新股上市，需要特殊处理
+	#所以从最后一列开始计算，得到有效值后返回
 	for i in range(0, gb_len):
-		ltobj = ltgb_list[i]
-		zobj = zgb_list[i]
+		ltobj = ltgb_list[gb_len-i-1]
+		zobj = zgb_list[gb_len-i-1]
 		if ltobj[0] != zobj[0]:
 			print code, "guben date not match", ltobj[0], zobj[0]
 			return 0
 		if ltobj[1]==0:
 			continue
+
 		sdate = ''.join(ltobj[0].split('-'))
 		stockInfo.append(code)
 		stockInfo.append(name)
 		stockInfo.append(long(sdate))
 		stockInfo.append(ltobj[1])
 		stockInfo.append(zobj[1])
+		break;
 	return 1
 
 # Main
@@ -144,7 +151,6 @@ for i in range(1, 35):
 			if firstln==1:
 				str_arr = stk_item.split(',')
 				code = str_arr[1]
-				#print "%d '%s'=='%s' "%(i,first_code,code)
 				if first_code==code:
 					repeat_flag = 1
 					break
@@ -154,14 +160,20 @@ for i in range(1, 35):
 			ret = check_new_stk(stk_item, stockInfo)
 			if ret==0:
 				continue
-			#print stk_item
 			print stockInfo
 			#添加到表格中
 			k = 0
 			ascid = 65
 			number = len(stockInfo)
 			for k in range(0,number):
-				cell = chr(ascid+k) + str(excel_row)
+				#FK,处理超过26个字母的例子，通过AA1,AA2...递增,此处无用
+				l = k
+				dv = l/26
+				md = l%26
+				if dv==0:
+					cell = chr(ascid+k) + str(excel_row)
+				else:
+					cell = chr(ascid+dv-1) + chr(ascid+md) + str(excel_row)
 				ws[cell] = stockInfo[k]
 			excel_row += 1
 			total_item += 1
