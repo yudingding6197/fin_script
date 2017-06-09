@@ -25,7 +25,7 @@ def list_stock_news_sum(codeArray, curdate, file):
 		except:
 			pass
 		if df is None:
-			df = ts.get_notices(code)
+			df = ts.get_notices(codeArray[j])
 		for index,row in df.iterrows():
 			file.write("%s,%s"%(row['date'],row['title'].encode('gbk') ))
 			file.write("\r\n")
