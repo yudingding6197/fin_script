@@ -154,7 +154,7 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		fctime = '%02d:%02d' %(cur.hour, cur.minute)
 		filename = '%s_%02d-%02d' %(filename, cur.hour, cur.minute)
 		bGetToday = 1
-	if (bhist==2 and cur.hour>=15 and cur.minute>0):
+	if bhist==2:
 		bGetToday = 1
 	if (bGetToday==1):
 		try:
@@ -162,13 +162,14 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			stockData = urllib2.urlopen(req, timeout=5).read()
 		except:
 			loginfo(1)
-			print "URL timeout"
+			print todayUrl, " request timeout"
+			return -1
 		else:
 			stockObj = stockData.split(',')
 			if len(stockObj)<10:
 				print code, ": No trade data"
 				return -1
-			
+
 			closePrice = float(stockObj[3])
 			lastClsPrice = float(stockObj[2])
 			last_close = lastClsPrice
@@ -177,6 +178,9 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			lowPrice = float(stockObj[5])
 			exVolume = int(stockObj[8])/100
 			exAmount = float(stockObj[9])
+			if closePrice==0.0 and highPrice==0.0:
+				print code, ": Today TingPai ?"
+				return -1
 			f1 = '%02.02f'%( ((closePrice-lastClsPrice)/lastClsPrice)*100 )
 			exFluc = float(f1)
 			
@@ -234,21 +238,27 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			#stockInfo.append(row['turnover'])
 			stockInfo.append('')
 
+	get_api = 0
+	if bhist!=0:
+		get_api = 1
 	while excecount<=3:
-		if bhist==0:
+		if get_api==0:
 			df = ts.get_today_ticks(curcode)
 		else:
+			print curcode, qdate
 			df = ts.get_tick_data(curcode, qdate)
 		#print df
 		if df is None:
 			excecount += 1
 			continue;
 		if df.size==18:
+			if bhist==2:
+				get_api = 0
 			excecount += 1
 			continue;
 		else:
 			break;
-		
+
 	#尝试3次，检查结果
 	if df is None:
 		print qdate, ": None Object"
@@ -268,11 +278,10 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		curvol = int(row['volume'])
 		volume = curvol
 		amount = row['amount']
-		if bhist==0:
+		if get_api==0:
 			state = row['type']
 		else:
 			state = row['type'].decode('utf-8')
-		#print state.decode('utf8')
 
 		ret,hour,minute,second = parseTime(curtime)
 		if (ret==-1):
@@ -322,7 +331,7 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		cell = 'D' + str(row)
 		ftfluct = fluctuate
 		if (fluctuate=='--'):
-			ws[cell] = fluctuate
+			ws[cell] = 0
 		else:
 			ftfluct = float(fluctuate)
 			ws[cell] = ftfluct
@@ -334,12 +343,21 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		s1 = stateStr
 		ws[cell] = s1
 
-		#将当天的数据在Sheet页面更新
-		if (row==2 and (bhist==0 or bhist==1 or (bhist==2 and cur.hour>=15)) and todayDataLen>0):
-			ascid = 72
-			for k in range(0, todayDataLen):
-				cell = chr(ascid+k) + str(row)
-				ws[cell] = todayData[k]
+		if hour==9 and minute<30:
+			flct = round(float(curprice)-last_close, 2)
+			if fluctuate!=flct:
+				cell = 'D' + str(row)
+				ws[cell] = flct
+			if bGetToday==1:
+				if flct > 0:
+					stateStr = '买盘'.decode('gbk')
+				elif flct < 0:
+					stateStr = 'SELL卖盘'.decode('gbk')
+				else:
+					stateStr = '中性盘'.decode('gbk')
+				if state == '0':
+					cell = 'G' + str(row)
+					ws[cell] = stateStr
 
 		#将开始和最后成交数据保存
 		bSaveFlag = 0
@@ -373,12 +391,18 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 			rowData.append(s1)
 			largeTrasData.append(rowData)
 
-		if (row==2 and bhist==1):
-			ascid = 72
-			number = len(stockInfo)
-			for k in range(0,number):
-				cell = chr(ascid+k) + str(row)
-				ws[cell] = stockInfo[k]
+	#将当天的数据在Sheet页面更新
+	ascid = 72
+	row2 = 2
+	if ((bhist==0 or bhist==2) and todayDataLen>0):
+		for k in range(0, todayDataLen):
+			cell = chr(ascid+k) + str(row2)
+			ws[cell] = todayData[k]
+	elif bhist==1:
+		number = len(stockInfo)
+		for k in range(0,number):
+			cell = chr(ascid+k) + str(row2)
+			ws[cell] = stockInfo[k]
 
 	ws.auto_filter.ref = "A1:G1"
 

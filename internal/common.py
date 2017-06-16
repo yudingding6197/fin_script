@@ -148,6 +148,7 @@ def time_range(firstHour, firstMinute, hour, minute, interval):
 #type:
 #	1:Buy,	2:Sell
 #当第4个参数设置为1，进行折半处理
+#某个时刻的成交量，满足条件时，求和计算总成交量
 def handle_volumn(exVolumn, dataObj, type, flag=0):
 	dataObjLen = len(dataObj)
 	chgVolumn = exVolumn
