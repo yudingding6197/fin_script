@@ -47,6 +47,8 @@ qarr = ''
 if pindex==4:
 	qarr = sys.argv[3]
 
+init_trade_obj()
+
 edate = datetime.datetime.strptime(stdate, '%Y-%m-%d').date()
 delta = edate - today
 if (delta.days>=0):
