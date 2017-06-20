@@ -67,6 +67,8 @@ if pindex==5:
 	qarr = sys.argv[4]
 prepath = prepath+ code+ "/"
 
+init_trade_obj()
+
 delta = edate - curdate
 while (delta.days>=0):
 	dltoday = curdate - today
@@ -83,3 +85,4 @@ if cmp(sys.argv[3], '.')==0:
 	if (t.hour>=15 and t.minute>0):
 		qdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
 		ts_handle_data(addcsv, prepath, 2, urlToday, code, qdate, qarr)
+print "Batch History Done"

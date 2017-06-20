@@ -28,6 +28,7 @@ STK_OPEN_ZT = 1<<6
 STK_OPEN_DT = 1<<7
 STK_ST_YZZT = 1<<8
 STK_ST_YZDT = 1<<9
+trade_data= None
 
 class statisticsItem:
 	s_zt = 0
@@ -119,6 +120,29 @@ def spc_round(value,bit):
 		if int(value*100)%2==0:
 			rd_val+=0.01
 	return round(rd_val,2)
+
+def init_trade_obj():
+	global trade_data
+	trade_data = pd.read_csv("internal/trade_date.csv")
+def get_trade_obj():
+	global trade_data
+	return trade_data
+
+def chk_holiday(date):
+	'''
+	判断是否为交易日，返回True or False
+	'''
+	df = get_trade_obj()
+	if df is None:
+		return False
+	holiday = df[df.isOpen == 0]['calendarDate'].values
+	if isinstance(date, str):
+		today = datetime.datetime.strptime(date, '%Y-%m-%d')
+
+	if today.isoweekday() in [6, 7] or date in holiday:
+		return True
+	else:
+		return False
 
 def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	todayUrl = "http://hq.sinajs.cn/list=" + code
@@ -223,7 +247,8 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 	if bhist==1:
 		df = ts.get_hist_data(curcode, start=qdate, end=qdate)
 		if df is None or df.empty or len(df)!=1:
-			print qdate, ": No data"
+			if chk_holiday(qdate) is False:
+				print qdate, ": No data"
 			return -1
 		#print qdate, df
 		for index,row in df.iterrows():
