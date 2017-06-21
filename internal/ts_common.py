@@ -798,7 +798,13 @@ def zt_time_point(code, zt_price, trade_date, stcsItem):
 	for index,row in df_today.iterrows():
 		high = row['high']
 		if high==zt_price:
-			if j<3:
+			timeObj = re.match(r'.* (\d{2}):(\d{2})', row['date'])
+			if (timeObj is None):
+				print "非法时间格式：" +str(row['date'])+ ", 期望格式: HH:MM"
+				continue
+			hour = int(timeObj.group(1))
+			minute = int(timeObj.group(2))
+			if hour<=11:
 				stcsItem.s_sw_zt += 1
 			else:
 				stcsItem.s_xw_zt += 1
@@ -980,10 +986,10 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 				else:
 					stcsItem.s_dtft += 1
 					status |= STK_DTFT
-					
 
 					#DTFT Data
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+					count = get_zf_days(code, 2, trade_date)
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count]
 					stcsItem.lst_dtft.append(list)
 
 	#统计开盘涨跌幅度

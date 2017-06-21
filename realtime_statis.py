@@ -56,7 +56,7 @@ def show_dt_info(dt_list, desc):
 		if desc=="DT" or desc=="YZDT":
 			str = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d" % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
 		else:
-			str = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f" % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6])
+			str = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d" % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
 		print str
 		i += 1
 		if i>number:
