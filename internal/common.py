@@ -629,6 +629,12 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 				else:
 					volume = int(key.group(5))
 					curprice = key.group(2)
+					p_change = key.group(3)
+					obj = re.match (r'([+-]?\d{1,3}.\d{1,3})\%', p_change)
+					if obj is None:
+						print "Warning: Invalid change ", curtime, p_change
+						continue
+					change = float(obj.group(1))
 					fluctuate = key.group(4)
 					lasttime = curtime
 					lastvol = curvol
@@ -659,7 +665,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					#目前中性盘没有处理
 					elif cmp(state, '中性盘')==0:
 						if bAddVolumn==1:
-							ret = handle_middle_volumn(volume, dataObj, curtime, fluctuate, key.group(3))
+							ret = handle_middle_volumn(volume, dataObj, curtime, fluctuate, change)
 						else:
 							ret = 0
 						if ret==1:
@@ -679,7 +685,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 					cell = 'B' + str(row)
 					ws[cell] = price
 					cell = 'C' + str(row)
-					ws[cell] = key.group(3)
+					ws[cell] = change
 					cell = 'D' + str(row)
 					ftfluct = fluctuate
 					if (fluctuate=='--'):
@@ -712,7 +718,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 						rowData = []
 						rowData.append(curtime)
 						rowData.append(price)
-						rowData.append(key.group(3))
+						rowData.append(change)
 						rowData.append(ftfluct)
 						rowData.append(curvol)
 						rowData.append(int(amount))
@@ -727,7 +733,7 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 						rowData = []
 						rowData.append(curtime)
 						rowData.append(price)
-						rowData.append(key.group(3))
+						rowData.append(change)
 						rowData.append(ftfluct)
 						rowData.append(curvol)
 						rowData.append(int(amount))

@@ -120,5 +120,4 @@ stws.auto_filter.ref = "A1:M1"
 filexlsx = statis +code+ '.xlsx'
 stwb.save(filexlsx)
 filexlsx = dpath + 'hd_tl_trade.xlsx'
-print filexlsx
 stwb.save(filexlsx)
