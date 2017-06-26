@@ -18,7 +18,7 @@ url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory
 
 pindex = len(sys.argv)
 if pindex<3:
-	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 时间<YYYY-MM-DD or MM-DD> [arr=[number, number...]]\n")
+	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 时间<YYYY-MM-DD or MM-DD> 强制替换<0 or 1> [arr=[number, number...]]\n")
 	exit(1);
 
 code = sys.argv[1]
@@ -43,9 +43,13 @@ ret,stdate = parseDate(sys.argv[2], today)
 if ret==-1:
 	exit(1)
 
+replace=0
+if pindex>=4:
+	replace = int(sys.argv[3])
+
 qarr = ''
-if pindex==4:
-	qarr = sys.argv[3]
+if pindex==5:
+	qarr = sys.argv[4]
 
 init_trade_obj()
 
@@ -54,4 +58,4 @@ delta = edate - today
 if (delta.days>=0):
 	print "Warning:日期可能不正确，导致数据错误！"
 
-ts_handle_data(addcsv, prepath, 1, url, code, stdate, qarr)
+ts_handle_data(addcsv, prepath, 1, url, code, stdate, replace, qarr)

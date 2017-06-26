@@ -121,6 +121,7 @@ def spc_round(value,bit):
 			rd_val+=0.01
 	return round(rd_val,2)
 
+#从文件中读取某一天是否是交易日
 def init_trade_obj():
 	global trade_data
 	trade_data = pd.read_csv("internal/trade_date.csv")
@@ -139,12 +140,19 @@ def chk_holiday(date):
 	if isinstance(date, str):
 		today = datetime.datetime.strptime(date, '%Y-%m-%d')
 
-	if today.isoweekday() in [6, 7] or date in holiday:
+	#去掉月和日前面的'0'
+	obj = re.match(r'^(\d{4})-(\d{2})-(\d{2})', date)
+	year = int(obj.group(1))
+	month = int(obj.group(2))
+	day = int(obj.group(3))
+	ndate = '%4d-%d-%d' %(year, month, day)
+
+	if today.isoweekday() in [6, 7] or ndate in holiday:
 		return True
 	else:
 		return False
 
-def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
+def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 	todayUrl = "http://hq.sinajs.cn/list=" + code
 	#if Handle_Mid==0:
 	#	print "Message: Ignore 中性盘"
@@ -161,10 +169,6 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		obj = fitItem(int(volObj[i]))
 		dataObj.append(obj)
 
-	wb = Workbook()
-	# grab the active worksheet
-	ws = wb.active
-
 	totalline = 0
 	filename = code+ '_' + qdate
 	fctime = ''
@@ -178,6 +182,13 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		fctime = '%02d:%02d' %(cur.hour, cur.minute)
 		filename = '%s_%02d-%02d' %(filename, cur.hour, cur.minute)
 		bGetToday = 1
+	else:
+		#检查文件是否存在
+		filexlsx = prepath +filename+ '.xlsx'
+		if os.path.exists(filexlsx) and replace==0:
+			#print "File Exist at:", filexlsx
+			return
+
 	if bhist==2:
 		bGetToday = 1
 	if (bGetToday==1):
@@ -225,6 +236,10 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		fcsv.write(strline)
 		fcsv.write("\n")
 
+	wb = Workbook()
+	# grab the active worksheet
+	ws = wb.active
+
 	strline = u'成交时间,成交价,涨跌幅,价格变动,成交量,成交额,性质,收盘价,涨跌幅,前收价,开盘价,最高价,最低价,成交量,成交额'
 	strObj = strline.split(u',')
 	ws.append(strObj)
@@ -270,7 +285,6 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		if get_api==0:
 			df = ts.get_today_ticks(curcode)
 		else:
-			print curcode, qdate
 			df = ts.get_tick_data(curcode, qdate)
 		#print df
 		if df is None:

@@ -10,7 +10,7 @@ import urllib2
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 import tushare as ts
-#包含中文
+#针对某一只的每天数据，包括开、收、最高、最低等信息
 
 # Main
 path = "../Data/entry/trade_day/"

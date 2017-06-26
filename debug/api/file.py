@@ -25,6 +25,13 @@ if(os.path.isdir(path + '/' + f)):
 if(os.path.isfile(path + '/' + f)):
 	pass
 
+#得到文件内容以后，可以通过sort or reverse 进行顺序/倒序
+objs = os.listdir(path)
+objs.sort()
+objs.reverse()
+#将排序结果传给b
+b = sorted(objs)
+
 #拷贝文件
 filetxt = "a.txt"
 file2 = "file2.txt"
