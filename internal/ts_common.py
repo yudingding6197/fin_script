@@ -152,6 +152,74 @@ def chk_holiday(date):
 	else:
 		return False
 
+MAX_COL = 15
+vol_array = [30, 60, 100, 200, 300, 500]
+marked = [0, 0, 0, 0, 0, 0]
+
+def get_range(c_volumn, vol_array):
+	length = len(vol_array)
+	if c_volumn<vol_array[0]:
+		return -1
+	if c_volumn>=vol_array[length-1]:
+		return length-1
+	for i in range(0, length):
+		if c_volumn>=vol_array[i] and c_volumn<vol_array[i+1]:
+			return i
+	return -1
+
+#满足条件的row，添加数据
+def update_row_data(ws, f):
+	if ws.max_column!=MAX_COL:
+		print "Warning: Check the column:", f, ws.max_column
+		return
+	if ws.max_row < 2:
+		print "Warning: max row less than 2>", f, ws.max_column
+		return
+
+	index = 2
+	c_volumn = ws.cell(row=index, column=5).value
+
+	fin_list = []
+	for j in range(8, MAX_COL+1):
+		item = ws.cell(row=index, column=j).value
+		if item is None or item=='':
+			fin_list.append(item)
+			continue
+		fin_list.append(round(item, 2))
+	#print fin_list
+
+	#找到符合条件的row，并记录行号
+	for index in range(2, ws.max_row):
+		c_volumn = ws.cell(row=index, column=5).value
+		pos = get_range(c_volumn, vol_array)
+		if pos<-1:
+			continue
+		if marked[pos]==0:
+			marked[pos]=index
+	#最后一行加上数据，如果最后一行vol太小，还加上>vol_array[0]的行
+	mx_row = ws.max_row
+	marked.append(mx_row)
+	if ws.cell(row=mx_row, column=5).value<vol_array[0]:
+		index = mx_row
+		while index>=3:
+			c_volumn = ws.cell(row=index, column=5).value
+			if c_volumn>=vol_array[0]:
+				marked.append(index)
+				break;
+			index -= 1
+
+	for value in marked:
+		if value==0:
+			continue
+		k = 7
+		ascid = 65
+		for item in fin_list:
+			cell = chr(ascid+k) + str(value)
+			k += 1
+			#print cell, item
+			ws[cell] = item
+	# update_row_data END
+
 def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 	todayUrl = "http://hq.sinajs.cn/list=" + code
 	#if Handle_Mid==0:
@@ -188,6 +256,7 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 		if os.path.exists(filexlsx) and replace==0:
 			#print "File Exist at:", filexlsx
 			return
+	filexlsx = prepath +filename+ '.xlsx'
 
 	if bhist==2:
 		bGetToday = 1
@@ -218,7 +287,7 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 				return -1
 			f1 = '%02.02f'%( ((closePrice-lastClsPrice)/lastClsPrice)*100 )
 			exFluc = float(f1)
-			
+
 			todayData.append(closePrice)
 			todayData.append(exFluc)
 			todayData.append(lastClsPrice)
@@ -444,6 +513,7 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 			ws[cell] = stockInfo[k]
 
 	ws.auto_filter.ref = "A1:G1"
+	update_row_data(ws, filexlsx)
 
 	if addcsv==1:
 		fcsv.close()
@@ -461,7 +531,6 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 		ws = wb.create_sheet()
 		write_statics(ws, fctime, dataObj, qdate, savedTrasData, largeTrasData)
 
-	filexlsx = prepath +filename+ '.xlsx'
 	if (os.path.exists(filexlsx) and bhist==0):
 		j = 1
 		while True:
