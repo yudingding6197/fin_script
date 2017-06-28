@@ -154,7 +154,6 @@ def chk_holiday(date):
 
 MAX_COL = 15
 vol_array = [30, 60, 100, 200, 300, 500]
-marked = [0, 0, 0, 0, 0, 0]
 
 def get_range(c_volumn, vol_array):
 	length = len(vol_array)
@@ -176,6 +175,7 @@ def update_row_data(ws, f):
 		print "Warning: max row less than 2>", f, ws.max_column
 		return
 
+	marked = [0, 0, 0, 0, 0, 0]
 	index = 2
 	c_volumn = ws.cell(row=index, column=5).value
 
