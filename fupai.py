@@ -109,7 +109,7 @@ while line:
 			codename = key.group(1)
 			fl.write(codename)
 			fl.write("\n")
-			print stockCode[stockIdx],codename
+			print "====",stockCode[stockIdx],codename.decode('gbk')
 			#list_stock_news(stockCode[stockIdx], curdate, None)
 			totalline += 1
 		count = 0
