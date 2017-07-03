@@ -20,6 +20,8 @@ import internal.common
 addcsv = 0
 prepath = "../Data/"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
+xmlfile = "internal/array.xml"
+
 pindex = len(sys.argv)
 if pindex<2:
 	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " ДњТы [arr=[number, number...]]\n")
@@ -55,6 +57,8 @@ if pindex==3:
 		if val is False:
 			print "Invalide parameter:" + sarr
 			exit(1)
+else:
+	sarr = get_data_array(sys.argv[1], xmlfile)
 
 ret = internal.common.handle_data(addcsv, prepath, 0, url, code, qdate, sarr)
 if ret==0:

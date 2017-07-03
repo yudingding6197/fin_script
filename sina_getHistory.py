@@ -14,6 +14,7 @@ from internal.common import *
 addcsv = 0
 prepath = "../Data/"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php"
+xmlfile = "internal/array.xml"
 
 pindex = len(sys.argv)
 if pindex<3:
@@ -43,15 +44,17 @@ ret,stdate = parseDate(sys.argv[2], today)
 if ret==-1:
 	exit(1)
 
-qarr = ''
+sarr = ''
 if pindex==4:
-	qarr = sys.argv[3]
+	sarr = sys.argv[3]
+else:
+	sarr = get_data_array(sys.argv[1], xmlfile)
 
 edate = datetime.datetime.strptime(stdate, '%Y-%m-%d').date()
 delta = edate - today
 if (delta.days>=0):
 	print "Warning:日期可能不正确，导致数据错误！"
 
-handle_data(addcsv, prepath, 1, url, code, stdate, qarr)
+handle_data(addcsv, prepath, 1, url, code, stdate, sarr)
 
 

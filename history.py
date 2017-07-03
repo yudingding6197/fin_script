@@ -15,6 +15,7 @@ from internal.ts_common import *
 addcsv = 0
 prepath = "../Data/"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php"
+xmlfile = "internal/array.xml"
 
 pindex = len(sys.argv)
 if pindex<3:
@@ -47,9 +48,11 @@ replace=0
 if pindex>=4:
 	replace = int(sys.argv[3])
 
-qarr = ''
+sarr = ''
 if pindex==5:
-	qarr = sys.argv[4]
+	sarr = sys.argv[4]
+else:
+	sarr = get_data_array(sys.argv[1], xmlfile)
 
 init_trade_obj()
 
@@ -58,4 +61,4 @@ delta = edate - today
 if (delta.days>=0):
 	print "Warning:日期可能不正确，导致数据错误！"
 
-ts_handle_data(addcsv, prepath, 1, url, code, stdate, replace, qarr)
+ts_handle_data(addcsv, prepath, 1, url, code, stdate, replace, sarr)

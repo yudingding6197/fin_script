@@ -33,7 +33,7 @@ class fitItem:
 		self.sellct = 0
 		self.sellavg = 0
 
-dftsarr = "0,200,300,600,900"
+dftsarr = "0,100,200,300,600,900"
 Handle_Mid = 0
 Large_Volume = 2000
 Tras_Count = 5
@@ -412,6 +412,9 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 		obj = fitItem(int(volObj[i]))
 		dataObj.append(obj)
 	dataObjLen = len(dataObj)
+	check_vol1 = int(volObj[1])
+	check_vol2 = int(volObj[3])
+	Large_Volume = int(volObj[arrlen-1])*2
 
 	wb = Workbook()
 	# grab the active worksheet
@@ -710,9 +713,9 @@ def handle_data(addcsv, prepath, bhist, url, code, qdate, sarr):
 
 					#将开始和最后成交数据保存
 					bSaveFlag = 0
-					if (totalline==1 or (totalline<4 and curvol>100)):
+					if (totalline==1 or (totalline<4 and curvol>check_vol1)):
 						bSaveFlag = 1
-					elif (hour==9 and minute==30 and curvol>300) or (hour==9 and minute<30):
+					elif (hour==9 and minute==30 and curvol>check_vol2) or (hour==9 and minute<30):
 						bSaveFlag = 2
 					if bSaveFlag==1 or bSaveFlag==2:
 						rowData = []
@@ -864,6 +867,9 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 		obj = fitItem(int(volObj[i]))
 		dataObj.append(obj)
 	dataObjLen = len(dataObj)
+	check_vol1 = int(volObj[1])
+	check_vol2 = int(volObj[3])
+	Large_Volume = int(volObj[arrlen-1])*2
 
 	wb = Workbook()
 	# grab the active worksheet
@@ -1016,9 +1022,9 @@ def handle_his_data(addcsv, prepath, url, code, qdate, stockInfo, sarr):
 
 						#将开始和最后成交数据保存
 						bSaveFlag = 0
-						if (totalline==1 or (totalline<4 and curvol>100)):
+						if (totalline==1 or (totalline<4 and curvol>check_vol1)):
 							bSaveFlag = 1
-						elif (hour==9 and minute==30 and curvol>300) or (hour==9 and minute<30):
+						elif (hour==9 and minute==30 and curvol>check_vol2) or (hour==9 and minute<30):
 							bSaveFlag = 2
 						if bSaveFlag==1 or bSaveFlag==2:
 							rowData = []
@@ -1100,6 +1106,7 @@ def analyze_data(url, code, sarr, priceList, contPrice):
 		obj = fitItem(int(volObj[i]))
 		dataObj.append(obj)
 	dataObjLen = len(dataObj)
+	Large_Volume = int(volObj[arrlen-1])*2
 
 	totalline = 0
 	#可能数据在不同的页面，同时存在，这是重复数据需要过滤重复结果
@@ -1291,7 +1298,7 @@ def analyze_data(url, code, sarr, priceList, contPrice):
 								if not bBigChange:
 									msgstr = u'Hello Big_DT (%s	%s:%d)'%(curtime, sv, curvol)
 									ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
-					if curvol>=300:
+					if curvol>=check_vol2:
 						if (len(tmpContPrice)==0):
 							if (state=='卖盘' or state=='买盘'):
 								tmpContPrice.append(state)

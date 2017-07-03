@@ -22,6 +22,7 @@ addcsv = 0
 prepath = "../Data/"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradehistory.php"
 urlToday = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
+xmlfile = "internal/array.xml"
 
 pindex = len(sys.argv)
 if pindex<4:
@@ -68,9 +69,12 @@ else:
 	edate = datetime.datetime.strptime(eddate, '%Y-%m-%d').date()
 #print sdate, edate
 
-qarr = ''
+sarr = ''
 if pindex==5:
-	qarr = sys.argv[4]
+	sarr = sys.argv[4]
+else:
+	sarr = get_data_array(sys.argv[1], xmlfile)
+
 prepath = prepath+ code+ "/"
 
 delta = edate - curdate
@@ -80,7 +84,7 @@ while (delta.days>=0):
 		print "当前日期(" +curdate.strftime("%Y-%m-%d")+ ")超过当天日期了！"
 		break
 	qdate = curdate.strftime("%Y-%m-%d")
-	handle_data(addcsv, prepath, 1, url, code, qdate, qarr)
+	handle_data(addcsv, prepath, 1, url, code, qdate, sarr)
 	curdate = curdate + delta1
 	delta = edate - curdate
 
@@ -88,4 +92,4 @@ if cmp(sys.argv[3], '.')==0:
 	t = datetime.datetime.now()
 	if (t.hour>=15 and t.minute>0):
 		qdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
-		handle_data(addcsv, prepath, 2, urlToday, code, qdate, qarr)
+		handle_data(addcsv, prepath, 2, urlToday, code, qdate, sarr)

@@ -10,6 +10,7 @@ import urllib2
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
+from xml.etree import ElementTree as ET
 from common import *
 from decimal import Decimal
 import ctypes
@@ -152,6 +153,7 @@ def chk_holiday(date):
 	else:
 		return False
 
+#准备在第一页插入成交数据，在第一次出现vol_array的地方
 MAX_COL = 15
 vol_array = [30, 60, 100, 200, 300, 500]
 
@@ -220,6 +222,38 @@ def update_row_data(ws, f):
 			ws[cell] = item
 	# update_row_data END
 
+#通过xml解析数组信息
+def print_node(node):
+	'''打印结点基本信息'''
+	print "=============================================="
+	print "node.attrib:%s" % node.attrib
+	if node.attrib.has_key("id") is True:
+		print "node.attrib['id']:%s" % node.attrib['id']
+	print "node.tag:%s" % node.tag
+	print "node.text:%s" % node.text
+
+def get_data_array(code, xmlfile):
+	try:
+		tree = ET.parse(xmlfile)
+		root = tree.getroot()
+	except Exception, e: 
+		print "Parse file fail:", xmlfile
+		return ""
+	lst_node = root.getiterator("code")
+	for node in lst_node:
+		#print_node(node)
+		if node.attrib.has_key("id") is False:
+			continue
+		id = node.attrib['id']
+		if id!=code:
+			continue
+		#找出节点的子节点
+		for child in node.getchildren():
+			#print child.tag,':',child.text
+			if child.tag=='array':
+				return child.text
+	return ""
+
 def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 	todayUrl = "http://hq.sinajs.cn/list=" + code
 	#if Handle_Mid==0:
@@ -236,6 +270,10 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 	for i in range(0,arrlen):
 		obj = fitItem(int(volObj[i]))
 		dataObj.append(obj)
+	#检查实时记录，是否出现大单
+	check_vol1 = int(volObj[1])
+	check_vol2 = int(volObj[3])
+	Large_Volume = int(volObj[arrlen-1])*2
 
 	totalline = 0
 	filename = code+ '_' + qdate
@@ -255,7 +293,7 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 		filexlsx = prepath +filename+ '.xlsx'
 		if os.path.exists(filexlsx) and replace==0:
 			#print "File Exist at:", filexlsx
-			return
+			return -1
 	filexlsx = prepath +filename+ '.xlsx'
 
 	if bhist==2:
@@ -318,6 +356,7 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 	#count为0，重新加载尝试再次获取；如果解析到数据的页面，如果count为0就不再继续解析数据
 	matchDataFlag = 0
 	excecount = 0
+	#保存9:30左右的大单和实时附近的大单
 	savedTrasData = []
 	savedTrasData2 = []
 	largeTrasData = []
@@ -333,6 +372,8 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 		if df is None or df.empty or len(df)!=1:
 			if chk_holiday(qdate) is False:
 				print qdate, ": No data"
+			else:
+				print qdate, "is holiday or weekend"
 			return -1
 		#print qdate, df
 		for index,row in df.iterrows():
@@ -468,10 +509,12 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 					ws[cell] = stateStr
 
 		#将开始和最后成交数据保存
+		#实时的最新大单，保存在savedTrasData
+		#9:30左右的大单，保存在savedTrasData1
 		bSaveFlag = 0
-		if (totalline==1 or (totalline<4 and curvol>100)):
+		if (totalline==1 or (totalline<4 and curvol>check_vol1)):
 			bSaveFlag = 1
-		elif (hour==9 and minute==30 and curvol>300) or (hour==9 and minute<30):
+		elif (hour==9 and minute==30 and curvol>check_vol2) or (hour==9 and minute<30):
 			bSaveFlag = 2
 		if bSaveFlag==1 or bSaveFlag==2:
 			rowData = []
@@ -553,6 +596,9 @@ def ts_analyze_data(url, code, sarr, priceList, contPrice):
 		obj = fitItem(int(volObj[i]))
 		dataObj.append(obj)
 	dataObjLen = len(dataObj)
+	check_vol1 = int(volObj[1])
+	check_vol2 = int(volObj[3])
+	Large_Volume = int(volObj[arrlen-1])*2
 
 	totalline = 0
 	#可能数据在不同的页面，同时存在，这是重复数据需要过滤重复结果
@@ -680,7 +726,7 @@ def ts_analyze_data(url, code, sarr, priceList, contPrice):
 						msgstr = u'Hello Big_DT (%s	%s:%d)'%(curtime, sv, curvol)
 						ctypes.windll.user32.MessageBoxW(0, msgstr, '', 0)
 
-		if curvol>=300:
+		if curvol>=check_vol2:
 			if (len(tmpContPrice)==0):
 				if (state==st_sell or state==st_buy):
 					tmpContPrice.append(state)

@@ -8,12 +8,13 @@ import datetime
 import urllib
 import urllib2
 from openpyxl import Workbook
-from openpyxl.reader.excel  import  load_workbook
+from openpyxl.reader.excel import load_workbook
 import internal.common
 import internal.ts_common
 
 addcsv = 0
 prepath = "../Data/"
+xmlfile = "internal/array.xml"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
 pindex = len(sys.argv)
 if pindex<2:
@@ -49,10 +50,10 @@ if pindex==3:
 		if val is False:
 			print "Invalide parameter:" + sarr
 			exit(1)
+else:
+	sarr = internal.ts_common.get_data_array(sys.argv[1], xmlfile)
 
 internal.ts_common.init_trade_obj()
 ret = internal.ts_common.ts_handle_data(addcsv, prepath, 0, url, code, qdate, 0, sarr)
 if ret==0:
 	print "Get %s:%s OK!"%(code, qdate)
-
-
