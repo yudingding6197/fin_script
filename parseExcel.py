@@ -10,11 +10,14 @@ from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 from internal.common import *
 
+#将指定日期的 statistics 的B/S的统计数据，放到对应代码_parser目录，
+#如000520，放到 ../Data/sz000520_parser/下的文件中
 prepath = '../Data/'
 sheetName = "statistics"
 allFileNum = 0
-volumeList = [200, 300, 600, 900]
-volumeList1 = [0,200, 300, 600, 900]
+upd_flag = 0
+volumeList = []
+volumeList1 = []
 
 def printPath(level, path,fileList):
 	global allFileNum
@@ -77,8 +80,8 @@ data_dic = []
 bCheckDate = 0
 
 def parseFile(path, filename):
+	global upd_flag
 	wkfile = path +"/"+ filename
-	print wkfile
 
 	wb = load_workbook(wkfile)
 	#print "Worksheet range(s):", wb.get_named_ranges()
@@ -116,9 +119,19 @@ def parseFile(path, filename):
 		temp_list = [w1,w2,w3,w4,w5,w6,w7,w8,w9]
 		if rx==1:
 			pid = w1
+			continue
+		#print temp_list
+		data_list.append(temp_list)
+		if upd_flag==0:
+			if w1!=0:
+				volumeList.append(w1)
+			volumeList1.append(w1)
 		else:
-			#print temp_list
-			data_list.append(temp_list)
+			if volumeList1[rx-2]!=w1:
+				print "Warning: Line(%d) value not match (%d,%d)" %(rx, volumeList1[rx-1],w1)
+	if upd_flag==0:
+		upd_flag=1
+	#print volumeList, volumeList1
 
 	#得到交易信息，开盘价，收盘价等
 	ws = wb.get_sheet_by_name(name='Sheet')
@@ -210,9 +223,11 @@ def addStatVolume(ws, flag):
 		cell = chr(ascid+i) + str(row)
 		ws[cell] = title[i]
 
-	buy = [0,0,0,0,0]
-	sell = [0,0,0,0,0]
-	stat = [0,0,0,0,0]
+	#两种方式定义 list 长度
+	dlen = len(volumeList1)
+	buy  = [0 for x in range(dlen)]
+	sell = [0 for x in range(dlen)]
+	stat = [0] * dlen
 	index = dataObjLen-1
 	row += 1
 	while index>=0:
@@ -507,7 +522,7 @@ if __name__ == '__main__':
 
 				if curObj<startObj or curObj>endObj:
 					continue
-			#print filename
+			#print path, filename
 			parseFile(path, filename)
 			i += 1
 		#仅仅得到父文件夹的文件，忽略子文件夹下文件

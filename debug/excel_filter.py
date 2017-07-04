@@ -8,6 +8,7 @@ import datetime
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
+#此文件意义不大，将../Data/s****/的一个xlsx文件A1-G1添加Filter
 prepath = '../Data/'
 allFileNum = 0
 volumnList = [200, 300, 600, 900]
@@ -63,10 +64,7 @@ def updateFile(path, filename):
 
 	ws = wb.get_sheet_by_name(sheet_st)
 	ws.auto_filter.ref = "A1:F1"
-	
-	
 	wb.save(path +"/bk_"+ filename)
-
 
 if __name__ == '__main__':
 	pindex = len(sys.argv)
@@ -102,6 +100,7 @@ if __name__ == '__main__':
 		i = 0
 		for filename in filenames:
 			extname = filename.split('.')[-1]
+			print filename, extname
 			if cmp(extname,"xlsx")!=0:
 				continue
 			prename = code+"__"
@@ -111,6 +110,6 @@ if __name__ == '__main__':
 			print filename
 			updateFile(path, filename)
 			break
-			
+
 		#仅仅得到父文件夹的文件，忽略子文件夹下文件
 		break;
