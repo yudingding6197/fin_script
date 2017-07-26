@@ -233,7 +233,8 @@ def parse_item_data(type, code, row, xg_df, ws, hist_df):
 			tmpInfo = hist_df[j]
 			break
 		if len(tmpInfo)==0:
-			print code, "Not find data"
+			#可能昨天数据没有保存，有新上市
+			print code, "latest data not include the stk"
 		elif tmpInfo[3]==0:
 			pass
 		else:
@@ -388,7 +389,8 @@ if __name__ =='__main__':
 
 	new_st_list = []
 	new_st_dt = get_xg_trade(new_st_list, xg_df)
-	
+
+	#从最新的新股交易中获得数据
 	hist_df = get_hist_cx()
 	#print hist_df.head(15)
 
