@@ -250,7 +250,8 @@ while True:
 			if not bBigChange:
 				value = internal.ts_common.ts_analyze_data(exUrl, code, sarr, priceList, contPrice)
 				if value==-1:
-					break
+					time.sleep(slpTime)
+					continue
 				handle_price(priceList)
 			exgCount += slpTime
 		elif exgCount>=30:

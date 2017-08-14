@@ -658,7 +658,11 @@ def ts_analyze_data(url, code, sarr, priceList, contPrice):
 	if len(code)==8:
 		curcode=code[2:8]
 	while excecount<=3:
-		df = ts.get_today_ticks(curcode)
+		df = None
+		try:
+			df = ts.get_today_ticks(curcode)
+		except:
+			pass
 		if df is None:
 			excecount += 1
 			continue
@@ -766,6 +770,7 @@ def ts_analyze_data(url, code, sarr, priceList, contPrice):
 	priceList[1] = int(curValue*100)
 	priceList[2] = minValue
 	priceList[3] = maxValue
+	return 0
 
 def list_stock_news(code, curdate, file):
 	df = None
