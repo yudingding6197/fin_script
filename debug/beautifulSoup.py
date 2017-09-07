@@ -51,10 +51,14 @@ if res_data is None:
 	exit(0)
 
 content = res_data.read()
+#print content
 #content1 = content.decode('utf-8', 'ignore')
 #soup = BeautifulSoup(content, 'lxml', from_encoding='utf8')
 soup = BeautifulSoup(content, 'lxml')
 #print (soup.title.string)
+#print soup.head
+#print soup.head.contents
+
 item = soup.select('div.transaction')
 n = 0
 while n<len(item):
@@ -72,17 +76,43 @@ while n<len(item):
 	break
 	n += 1
 
-item = soup.select('suspensionAndResumption1')
+
+#item = soup.find_all('div', id='suspensionAndResumption1')
+#print "suppppppppppppppp1:"
+#chd = item[0].children
+#for child in  item[0].children:
+#	print '==========='
+#	print child
+
 n = 0
-print item
-while n<len(item):
+item = soup.find('div', class_='column2')
+#print item
+for divitem in item:
 	#print item[n].text.encode('utf8')
 	#str = item[n].text
 	#tf_fl.write( item[n].text.encode('utf8') )
 	#tf_fl.write( '\n' )
+	if n>0:
+		print "BRKKKKK", n
+		break
 
-	item1 = item[n].find('div')
-	print "111:",item1
+	#item1 = item[n].find('div')
+	print "<<<", divitem, ">>>"
+	str = divitem.stripped_strings
+	print "str:::", str, ":>"
+	if str is None or str=='':
+		n += 1
+		print "CCCCCCCC", n
+		continue
+	n += 1
+	print "ccc",n
+	continue
+	
+	
+	tfp = u'½ñÆðÍ£ÅÆ'
+	if str.find(tfp) == 0:
+		print 111111
+	#print divitem
 	#break
 	n += 1
 
