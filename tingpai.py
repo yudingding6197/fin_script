@@ -8,8 +8,6 @@ import urllib2
 import datetime
 import bs4
 from bs4 import BeautifulSoup
-sys.path.append(".")
-sys.path.append("..")
 from internal.ts_common import *
 
 '''
@@ -35,24 +33,6 @@ print soup.select("head > title")
 print soup.select('a[href="http://example.com/elsie"]')
 print soup.select('p a[href="http://example.com/elsie"]')
 '''
-
-def list_stock_news_sum(codeArray, curdate, file):
-	codeLen = len(codeArray)
-	for j in range(0, codeLen):
-		if file is None:
-			continue
-		df = None
-		try:
-			df = ts.get_notices(codeArray[j],curdate)
-		except:
-			pass
-		if df is None:
-			df = ts.get_notices(codeArray[j])
-		for index,row in df.iterrows():
-			file.write("%s,%s"%(row['date'],row['title'].encode('gbk') ))
-			file.write("\r\n")
-		file.write("\r\n")
-
 prepath = "../Data/"
 filetxt = prepath + 'tingpai.txt'
 
@@ -104,16 +84,22 @@ soup = BeautifulSoup(content, 'lxml')
 
 stockCode = []
 #首先找到此节点
-item = soup.find(id='suspensionAndResumption1')
-if item is None:
+sritem = soup.find(id='suspensionAndResumption1')
+if sritem is None:
 	print "Not find node suspensionAndResumption1"
 	exit(0)
-item = item.find(class_='column2')
-if item is None:
-	print "Not find node column2"
+clmitem = sritem.find(class_='column2')
+if clmitem is None:
+	nodata = u'没有数据'
+	str = sritem.text
+	if str.find(nodata)==-1:
+		print curdate, "Not find node column2"
+	else:
+		print curdate, nodata
 	exit(0)
+
 #将 column2 下的节点遍历
-for child in item.children:
+for child in clmitem.children:
 	#推荐使用isinstance， 代替 type
 	#if type(child)==bs4.element.NavigableString:
 	#	continue
@@ -157,100 +143,4 @@ for child in item.children:
 		tf_fl.write('\n')
 		print info
 
-#将所有的数据汇总输出
-#list_stock_rt(stockCode, curdate, tf_fl)
-tf_fl.write("\n====================================================================================\n")
-#list_stock_rt(stockCode, curdate, tf_fl)
-list_stock_news_sum(stockCode, curdate, tf_fl)
-
 tf_fl.close()
-
-
-'''
-item = soup.select('div.transaction')
-n = 0
-while n<len(item):
-	#print item[n].text.encode('utf8')
-	str = item[n].text
-	tf_fl.write( item[n].text.encode('utf8') )
-	tf_fl.write( '\n' )
-
-	tfp = u'深沪停复牌'
-	print n, item[n].encode('gbk')
-	if str.find(tfp) == -1:
-		print n
-		n += 1
-		continue
-	item1 = item[n].div
-	print n, item1
-	#break
-	n += 1
-
-
-#item = soup.find_all('div', id='suspensionAndResumption1')
-#print "suppppppppppppppp1:"
-#chd = item[0].children
-#for child in  item[0].children:
-#	print '==========='
-#	print child
-
-n = 0
-item = soup.find('div', class_='column2')
-#print item
-for divitem in item:
-	#print item[n].text.encode('utf8')
-	#str = item[n].text
-	#tf_fl.write( item[n].text.encode('utf8') )
-	#tf_fl.write( '\n' )
-	if n>0:
-		print "BRKKKKK", n
-		break
-
-	#item1 = item[n].find('div')
-	print "<<<", divitem, ">>>"
-	str = divitem.stripped_strings
-	print "str:::", str, ":>"
-	if str is None or str=='':
-		n += 1
-		print "CCCCCCCC", n
-		continue
-	n += 1
-	print "ccc",n
-	continue
-	
-	
-	tfp = u'今起停牌'
-	if str.find(tfp) == 0:
-		print 111111
-	#print divitem
-	#break
-	n += 1
-'''
-
-'''
-flag = 0
-count = 0
-ignore = 0
-line = res_data.readline()
-checkStr = '复牌日'
-stockCode = []
-stockIdx = -1
-while line:
-	try:
-		l = line.decode('utf8')
-		print "============",l
-		tf_fl.write(line)
-		#tf_fl.write(line)
-	except:
-		print "?????????????",line.decode('utf8')
-		#l = line.decode('gbk', 'ignore')
-		#tf_fl.write(l)
-	#else
-	#print line.decode('utf8')
-	line = res_data.readline()
-	continue
-'''
-
-
-tf_fl.close()
-exit(0)
