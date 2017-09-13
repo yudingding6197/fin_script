@@ -787,6 +787,7 @@ def list_stock_news(code, curdate, file):
 		print row['date'],row['title']
 	print ''
 
+#将该票实时行情输出，不保存到文件
 def list_stock_rt(codeArray, curdate, file):
 	if len(codeArray)==0:
 		return

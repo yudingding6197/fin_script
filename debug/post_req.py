@@ -11,13 +11,19 @@ import json
 from bs4 import BeautifulSoup
 
 
-#urlall = "http://www.cninfo.com.cn/cninfo-new/memo-2"
+urlall = "http://www.cninfo.com.cn/cninfo-new/memo-2"
 #urlall = "http://www.cninfo.com.cn/information/companyinfo_n.html?fulltext?szmb000615"
-urlall = "http://www.cninfo.com.cn/cninfo-new/disclosure/szse/fulltext"
+#urlall = "http://www.cninfo.com.cn/cninfo-new/disclosure/szse/fulltext"
 filename = 'debug/_html.txt'
 
-values = {'stock':'300418','searchkey':'','category':'','pageNum':'1','pageSize':'15','column':'szse_gem','tabName':'latest','sortName':'','sortType':'','limit':'','seDate':''}
-data = urllib.urlencode(values)
+dict = {'stock':'300418','searchkey':'','category':'','pageNum':'1','pageSize':'15','column':'szse_gem','tabName':'latest','sortName':'','sortType':'','limit':'','seDate':''}
+data = urllib.urlencode(dict)
+#print dict
+#dict['stock']='600060'
+#print dict['aaa']
+#for k,v in dict.items():
+#	print k,v
+#exit(0)
 
 tf_fl = open(filename, 'w+')
 try:
@@ -34,11 +40,21 @@ content = res_data.read()
 tf_fl.write(content)
 
 s = json.loads(content)
-obj = s['classifiedAnnouncements']
-print (len(obj))
-print obj[0][0]
-print type(obj[0][0])
-print s.keys()
+clsAnno = s['classifiedAnnouncements']
+annoLen = len(clsAnno)
+if annoLen==0:
+	print "classifiedAnnouncements No Data"
+	exit(0)
+items = clsAnno[0]
+count = 0
+for item in items:
+	#print type(item)
+	#print item
+	for k,v in item.items():
+		print k,v
+	break
+#print clsAnno[0][0]
+#print type(clsAnno[0][0])
 
 '''
 line = res_data.readline()

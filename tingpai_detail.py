@@ -7,6 +7,7 @@ import string
 import urllib2
 import datetime
 import bs4
+import json
 from bs4 import BeautifulSoup
 from internal.ts_common import *
 
@@ -33,8 +34,76 @@ print soup.select("head > title")
 print soup.select('a[href="http://example.com/elsie"]')
 print soup.select('p a[href="http://example.com/elsie"]')
 '''
+
+def list_ting_pai_news(stockCode, stockName, curdate, file):
+	if len(stockCode)==0:
+		return
+
+	#stockCode = ['600136']
+	index = 0
+	urlall = "http://www.cninfo.com.cn/cninfo-new/disclosure/szse/fulltext"
+	dict = {'searchkey':'','category':'','pageNum':'1','pageSize':'15','column':'szse_gem','tabName':'latest','sortName':'','sortType':'','limit':'','seDate':''}
+	for stkcode in stockCode:
+		dict['stock']=stkcode.encode('ascii')
+		name = stockName[index]
+		print stkcode, stockName[index]
+		str = u'%s	' % (stkcode)
+		file.write(str)
+		file.write(name.encode('utf8'))
+		file.write("\n")
+		index += 1
+
+		data = urllib.urlencode(dict)
+		LOOP_COUNT = 0
+		res_data = None
+		while LOOP_COUNT<3:
+			try:
+				#req : urllib2.Request(urlall)
+				res_data = urllib2.urlopen(urlall, data)
+			except:
+				print "Error fupai urlopen"
+				LOOP_COUNT = LOOP_COUNT+1
+			else:
+				break
+		if res_data is None:
+			print stkcode, "Fail to get latest news"
+			continue
+
+		content = res_data.read()
+		s = json.loads(content)
+		clsAnno = s['classifiedAnnouncements']
+		annoLen = len(clsAnno)
+		if annoLen==0:
+			print stkcode, "classifiedAnnouncements No Data"
+			break
+		#items = clsAnno[0]
+		for items in clsAnno:
+			count = 0
+			for info in items:
+				issuedt = info['adjunctUrl']
+				if issuedt.find(curdate)!=-1:
+					str = info['announcementTitle']
+					if str.find(u'自查')!=-1 or str.find(u'核查')!=-1:
+						prom = "************  "
+						print prom, str
+						file.write(prom)
+						file.write(str.encode('utf8'))
+					else:
+						print str
+						file.write(str.encode('utf8'))
+					file.write("\n")
+					count += 1
+			if count>0:
+				break
+		print ""
+		file.write("\n")
+					
+		
+
+
+#main Main
 prepath = "../Data/"
-filetxt = prepath + 'tingpai.txt'
+filetxt = prepath + 'tingpai_detail.txt'
 ball = 0
 headlist = ['600','601','603','000','002','300']
 
@@ -85,6 +154,7 @@ soup = BeautifulSoup(content, 'lxml')
 #print soup.head.contents
 
 stockCode = []
+stockName = []
 #首先找到此节点
 sritem = soup.find(id='suspensionAndResumption1')
 if sritem is None:
@@ -137,6 +207,8 @@ for child in clmitem.children:
 					ignore=1
 			elif liattr=='ta-2':
 				value = "%-8s"%(value)
+				if ignore==0:
+					stockName.append(value)
 			elif liattr=='ta-4':
 				if value=='&nbsp':
 					value = "%16s"%(" ")
@@ -151,4 +223,8 @@ for child in clmitem.children:
 		if ignore==0:
 			print info
 
+print ""
+tf_fl.write("\n====================================================================================\n")
+list_ting_pai_news(stockCode, stockName, curdate, tf_fl)
+	
 tf_fl.close()
