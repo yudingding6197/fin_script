@@ -115,7 +115,7 @@ class statisticsItem:
 		self.lst_dtft = []
 
 def spc_round(value,bit):
-	b = int(value*1000)%10
+	b = int(value*10000)%100
 	rd_val=float( '{:.2f}'.format(Decimal(str(value))) )
 	if b==5:
 		if int(value*100)%2==0:
