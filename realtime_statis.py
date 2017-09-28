@@ -226,25 +226,7 @@ if pindex==2:
 #得到所有交易item的code
 new_st_list = []
 
-LOOP_COUNT=0
-st_today_base = None
-while LOOP_COUNT<3:
-	try:
-		st_today_base = ts.get_today_all()
-	except:
-		LOOP_COUNT += 1
-		time.sleep(0.5)
-	else:
-		break
-if st_today_base is None:
-	print "Timeout to get stock basic info, check new stk info manually!!!"
-else:
-	st_today_df = st_today_base.sort_values(['changepercent'], 0, False)
-	for index,row in st_today_df.iterrows():
-		code = row[0].encode('gbk')
-		if row['changepercent']>11:
-			new_st_list.append(code)
-print ''
+get_today_new_stock(new_st_list)
 
 LOOP_COUNT=0
 st_bas = None
@@ -276,7 +258,7 @@ st_list.extend(st_bas_list)
 
 '''
 st_list = []
-st_list=['603225','002050','002282','002423','603555','603628','603859','600654','000520']
+st_list=['603225','002050','002282','300597']
 #print st_list
 '''
 

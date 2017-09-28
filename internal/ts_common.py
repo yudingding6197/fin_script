@@ -115,7 +115,12 @@ class statisticsItem:
 		self.lst_dtft = []
 
 def spc_round(value,bit):
-	b = int(value*10000)%100
+	delen = len(str(value).split('.')[1])
+	if delen==4:
+		b = int(value*10000)%100
+	else:
+		b = int(value*1000)%10
+
 	rd_val=float( '{:.2f}'.format(Decimal(str(value))) )
 	if b==5:
 		if int(value*100)%2==0:
@@ -1007,7 +1012,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 		return 0
 
 	b_ST = 0
-	if name.find("ST")>=0 or name.find("st")>=0:
+	if name.find("ST")>=0 or name[0:1]=="S":
 		b_ST = 1
 		#print code,name
 
@@ -1029,6 +1034,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 		dt_price1 = pre_close * 0.9
 	zt_price = spc_round(zt_price1,2)
 	dt_price = spc_round(dt_price1,2)
+	#print name, zt_price1, zt_price
 
 	#YZ状态处理
 	if high==low:
@@ -1207,4 +1213,54 @@ def parse_guben(gb_str, gb_list):
 			rec.append(float(obj.group(1)))
 		gb_list.append(rec)
 		gb_str = obj.group(3)
+	return
+
+#不通过get_today_all()接口，使用东财接口
+def get_today_new_stock(new_st_list):
+	'''
+	LOOP_COUNT=0
+	st_today_base = None
+	while LOOP_COUNT<3:
+		try:
+			st_today_base = ts.get_today_all()
+		except:
+			LOOP_COUNT += 1
+			time.sleep(0.5)
+		else:
+			break
+	if st_today_base is None:
+		print "Timeout to get stock basic info, check new stk info manually!!!"
+	else:
+		st_today_df = st_today_base.sort_values(['changepercent'], 0, False)
+		for index,row in st_today_df.iterrows():
+			code = row[0].encode('gbk')
+			if row['changepercent']>11:
+				new_st_list.append(code)
+	print ''
+	'''
+
+	url = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._A&sty=FCOIATA&sortType=C&sortRule=-1&page=1&pageSize=20&js={rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c"
+	LOOP_COUNT = 0
+	while LOOP_COUNT<3:
+		try:
+			req = urllib2.Request(url)
+			response = urllib2.urlopen(req, timeout=5)
+		except:
+			LOOP_COUNT += 1
+			print "URL request timeout"
+		else:
+			break
+	if response is None:
+		print "Please check no data from DongCai"
+		return
+
+	line = response.read()
+	obj = re.match(r'{rank:\["(.*)"\].*', line)
+	rank = obj.group(1)
+	array = rank.split('","')
+	for i in range(0, len(array)):
+		props = array[i].split(',')
+		if props[2][0]=='N':
+			code = props[1]
+			new_st_list.append(code)
 	return

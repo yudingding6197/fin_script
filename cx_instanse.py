@@ -67,27 +67,8 @@ def output_info(desc, type, stk_list):
 	print ''
 
 def get_all_stocks(st_list):
-	LOOP_COUNT=0
-	st_today_base = None
-	while LOOP_COUNT<3:
-		try:
-			st_today_base = ts.get_today_all()
-		except:
-			LOOP_COUNT += 1
-			time.sleep(0.5)
-		else:
-			break;
-	if st_today_base is None:
-		print "Timeout to get stock basic info"
-		return
-	st_today = st_today_base.sort_values(['changepercent'], 0, False)
-	#new_st_list = list(st_today[st_today.changepercent>11]['code'])
 	new_st_list = []
-	for index,row in st_today.iterrows():
-		code = row[0].encode('gbk')
-		if row['changepercent']>11:
-			new_st_list.append(code)
-	print ''
+	get_today_new_stock(new_st_list)
 	#print new_st_list
 
 	LOOP_COUNT=0
