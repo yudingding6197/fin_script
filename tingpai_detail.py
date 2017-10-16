@@ -39,7 +39,7 @@ def list_ting_pai_news(stockCode, stockName, curdate, file):
 	if len(stockCode)==0:
 		return
 
-	#stockCode = ['600136']
+	#stockCode = ['000526','002398']
 	index = 0
 	urlall = "http://www.cninfo.com.cn/cninfo-new/disclosure/szse/fulltext"
 	dict = {'searchkey':'','category':'','pageNum':'1','pageSize':'15','column':'szse_gem','tabName':'latest','sortName':'','sortType':'','limit':'','seDate':''}
@@ -77,11 +77,21 @@ def list_ting_pai_news(stockCode, stockName, curdate, file):
 			print stkcode, "classifiedAnnouncements No Data"
 			break
 		#items = clsAnno[0]
+		matchdate = curdate
+		currentdate = datetime.datetime.strptime(curdate, '%Y-%m-%d').date()
 		for items in clsAnno:
 			count = 0
 			for info in items:
 				issuedt = info['adjunctUrl']
-				if issuedt.find(curdate)!=-1:
+				obj = re.match(r'.*/(.*)/.*', issuedt)
+				if obj is None:
+					continue
+				issuedate = datetime.datetime.strptime(obj.group(1), '%Y-%m-%d').date()
+				delta = currentdate-issuedate
+				if delta.days>0:
+					if count==0:
+						matchdate = obj.group(1)
+				if issuedt.find(matchdate)!=-1:
 					str = info['announcementTitle']
 					if str.find(u'×Ô²é')!=-1 or str.find(u'ºË²é')!=-1:
 						prom = "************  "
