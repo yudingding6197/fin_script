@@ -847,7 +847,7 @@ def list_realtime_info(basic, codeArray):
 		change_h = '%02.02f'%( ((float(high)-pre_close_f)/pre_close_f)*100 )
 		change_o = '%02.02f'%( ((float(open)-pre_close_f)/pre_close_f)*100 )
 
-		str_fmt = "%6s %-6s	%-6s(%6s%%) (%5.02f%%)	%-6s(%6s) %-6s(%6s)"
+		str_fmt = "%6s %-8s	%-6s(%6s%%) (%5.02f%%)	%-6s(%6s) %-6s(%6s)"
 		print str_fmt%(codeArray[index], stname, price, change, turnover_rt, low, change_l, high, change_h)
 		#print "%6s %5s	%6s(%6s,%6s,%6s)	%8s(%8s,%8s)" %(stname, change, change_l, change_h, change_o, price, low, high)
 		
@@ -884,6 +884,16 @@ def show_index_info(df, show_idx):
 		close = float(row['close'])
 		preclose = float(row['preclose'])
 		print "%8.2f(%6s)"%(close, row[2])
+
+def show_extra_index(codeArray):
+	df = ts.get_realtime_quotes(codeArray)
+	for index,row in df.iterrows():
+		pre_close = row['pre_close']
+		price = row['price']
+		f_pclose = float(pre_close)
+		f_price = float(price)
+		value =  (f_price-f_pclose)*100/f_pclose
+		print "%8.2f( %3.2f)"%(f_price, round(value,2))
 
 def check_cx(code):
 	if len(code)!=6:

@@ -56,6 +56,9 @@ show_idx = ['000001', '399001', '399005', '399006']
 idx_df=ts.get_index()
 show_index_info(idx_df, show_idx)
 
+codeArray = ['399678']
+show_extra_index(codeArray)
+
 st_bas = None
 if show_flag==2:
 	st_bas=ts.get_stock_basics()

@@ -218,6 +218,9 @@ show_idx = ['000001', '399001', '399005', '399006']
 idx_df=ts.get_index()
 show_index_info(idx_df, show_idx)
 
+codeArray = ['399678']
+show_extra_index(codeArray)
+
 flag = 0
 pindex = len(sys.argv)
 if pindex==2:
