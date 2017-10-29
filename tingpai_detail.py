@@ -170,14 +170,40 @@ sritem = soup.find(id='suspensionAndResumption1')
 if sritem is None:
 	print "Not find node suspensionAndResumption1"
 	exit(0)
-clmitem = sritem.find(class_='column2')
-if clmitem is None:
+clmitems = sritem.find_all(class_='column2')
+if clmitems is None:
 	nodata = u'没有数据'
 	str = sritem.text
 	if str.find(nodata)==-1:
 		print curdate, "Not find node column2"
 	else:
 		print curdate, nodata
+	exit(0)
+
+bmatch = 0
+for clmitem in clmitems:
+	if clmitem is None:
+		continue
+	for child in clmitem.children:
+		if isinstance(child, bs4.element.Tag) is False:
+			continue
+		#child['class'],如果没有'class'属性就会出错
+		clslist = child.get('class')
+		if clslist is None:
+			continue
+
+		clsattr = ''.join(clslist)
+		if clsattr=='column2-right':
+			obj = child.find(class_='column2-left')
+			value = obj.string
+			if value==u'今起停牌':
+				bmatch=1
+			break
+	if bmatch==1:
+		break
+
+if bmatch==0:
+	print curdate, 'No data'
 	exit(0)
 
 #将 column2 下的节点遍历
