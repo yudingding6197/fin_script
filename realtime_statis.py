@@ -6,6 +6,7 @@ import os
 import time
 import string
 import datetime
+import platform
 import tushare as ts
 import internal.common
 from internal.ts_common import *
@@ -152,7 +153,10 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 			stockInfo = []
 			code = cur_list[index]
 			index += 1
-			name = row[0].encode('gbk')
+			if sysstr=="Windows":
+				name = row[0].encode('gbk')
+			elif sysstr == "Linux":
+				name = row[0].encode('utf8')
 			pre_close = float(row['pre_close'])
 			price = float(row['price'])
 			change_perc = (price-pre_close)*100/pre_close
@@ -228,6 +232,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 #Main Start:
 pindex = len(sys.argv)
 prepath = "../Data/"
+sysstr = platform.system()
 cur=datetime.datetime.now()
 fmt_time = '%d-%02d-%02d %02d:%02d' %(cur.year, cur.month, cur.day, cur.hour, cur.minute)
 flname = prepath + "realtime.txt"
@@ -386,6 +391,7 @@ path = '../Data/entry/realtime/'
 fl = "rt_"
 flname = path + "rt_" + fmt_time + ".txt"
 baklog = open(flname, 'a')
-baklog.write('\n##############################################################\n')
+baklog.write('##############################################################\n')
 baklog.write(content)
+baklog.write('\n\n')
 baklog.close()
