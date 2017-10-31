@@ -10,6 +10,19 @@ import tushare as ts
 import internal.common
 from internal.ts_common import *
 
+class Logger_IO(object): 
+	def __init__(self, filename="Default.log"):
+		self.terminal = sys.stdout
+		self.log = open(filename, "a")
+
+	def write(self, message):
+		self.terminal.write(message)
+		self.log.write(message)
+
+	def flush(self):
+		self.log.flush()
+		pass
+
 def show_zt_info(zt_list, desc):
 	number = len(zt_list)
 	endstr = ''
@@ -17,6 +30,8 @@ def show_zt_info(zt_list, desc):
 		return
 	elif number>30:
 		number = 30
+		if desc=="ZTHL":
+			number = 10
 		endstr = '......'
 	'''
 	for i in range(0, number):
@@ -25,7 +40,10 @@ def show_zt_info(zt_list, desc):
 		print str
 	'''
 	df = pd.DataFrame(zt_list)
-	df = df.sort_values([7], 0, False)
+	if desc=="ZTHL":
+		df = df.sort_values([2], 0, False)
+	else:
+		df = df.sort_values([7], 0, False)
 	i = 1
 	for index,itm_lst in df.iterrows():
 		str = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d" % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
@@ -134,7 +152,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 			stockInfo = []
 			code = cur_list[index]
 			index += 1
-			name = row[0]
+			name = row[0].encode('gbk')
 			pre_close = float(row['pre_close'])
 			price = float(row['price'])
 			change_perc = (price-pre_close)*100/pre_close
@@ -209,8 +227,15 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 
 #Main Start:
 pindex = len(sys.argv)
+prepath = "../Data/"
 cur=datetime.datetime.now()
 fmt_time = '%d-%02d-%02d %02d:%02d' %(cur.year, cur.month, cur.day, cur.hour, cur.minute)
+flname = prepath + "realtime.txt"
+if os.path.isfile(flname):
+	os.remove(flname)
+#重定向同时输出到console和文件
+sys.stdout = Logger_IO(flname)
+
 print "TIME:",fmt_time
 
 #show index information
@@ -275,7 +300,8 @@ non_cx_yz = len(stcsItem.lst_non_yzcx_yzzt)
 cx_yz = stcsItem.s_yzzt-non_cx_yz
 
 #获取数据进行打印
-str_opn = u"[%d %d %d %d] %3d上,%3d下" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
+#str_opn = "[%d %d %d %d] %3d上,%3d下" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
+str_opn = "[%d %d %d %d] %3d上,%3d下" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
 
 str_dt = "DTKP:%d" % (stcsItem.s_open_dt)
 if stcsItem.s_yzdt>0:
@@ -286,6 +312,7 @@ DaoT = stcsItem.s_open_dt-stcsItem.s_yzdt-stcsItem.s_open_dt_dk
 if DaoT>0:
 	str_dt = "%s DaoT:%d" % (str_dt, DaoT)
 print "			ST(%d ZT %d DT)		%s" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, str_dt)
+
 #print "			ST(%d ZT %d DT)		DTKP:%d YZDT:%d DTDK:%d" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, stcsItem.s_open_dt, stcsItem.s_yzdt,stcsItem.s_open_dt_dk)
 
 dtft_qiang = filter_dtft(stcsItem.lst_dtft, -3)
@@ -294,7 +321,6 @@ print "%4d-CG(%d)	%4d-FT(%d)	%2d-YIN  KD:[%s]" %(stcsItem.s_zthl,len(stcsItem.ls
 print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_open_sz, stcsItem.s_open_dz, stcsItem.s_open_pp, stcsItem.s_open_xd, stcsItem.s_open_dd)
 print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_close_sz, stcsItem.s_close_dz, stcsItem.s_close_pp, stcsItem.s_close_xd, stcsItem.s_close_dd)
 print "4%%:%4d	%4d" %(stcsItem.s_high_zf,stcsItem.s_low_df)
-#print today_open
 
 str = ''
 list = today_open
@@ -342,8 +368,24 @@ if flag==0:
 	show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT")
 	print "-------------------- %d+%d" % (stcsItem.s_sw_zt, stcsItem.s_xw_zt)
 	show_zt_info(stcsItem.lst_non_yzcx_zt, "ZT")
+	print "-------------------- %d" % (stcsItem.s_zthl)
+	show_zt_info(stcsItem.lst_non_yzcx_zthl, "ZTHL")
 	print "==================================================="
 
 	show_dt_info(stcsItem.lst_yzdt, "YZDT")
 	show_dt_info(stcsItem.lst_dt, "DT")
 	show_dt_info(stcsItem.lst_dtft, "DTFT")
+
+sys.stdout.flush()
+log = open(flname, 'r')
+content = log.read()
+log.close()
+
+fmt_time = '%d-%02d-%02d' %(cur.year, cur.month, cur.day)
+path = '../Data/entry/realtime/'
+fl = "rt_"
+flname = path + "rt_" + fmt_time + ".txt"
+baklog = open(flname, 'a')
+baklog.write('\n##############################################################\n')
+baklog.write(content)
+baklog.close()

@@ -69,6 +69,7 @@ class statisticsItem:
 	lst_jc = []			#韭菜了，严重坑人
 	lst_non_yzcx_zt = []		#非次新涨停
 	lst_non_yzcx_yzzt = []		#非次新一字涨停
+	lst_non_yzcx_zthl = []		#非次新涨停回落
 	lst_dt = []					#跌停
 	lst_yzdt = []				#YZ跌停
 	lst_dtft = []				#跌停反弹
@@ -1106,6 +1107,9 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count]
 						stcsItem.lst_non_yzcx_zt.append(list)
 				else:
+					count = get_zf_days(code, 1, trade_date)
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count]
+					stcsItem.lst_non_yzcx_zthl.append(list)
 					stcsItem.s_zthl += 1
 					status |= STK_ZTHL
 					if open==zt_price:
