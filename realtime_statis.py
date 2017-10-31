@@ -305,8 +305,7 @@ non_cx_yz = len(stcsItem.lst_non_yzcx_yzzt)
 cx_yz = stcsItem.s_yzzt-non_cx_yz
 
 #获取数据进行打印
-#str_opn = "[%d %d %d %d] %3d上,%3d下" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
-str_opn = "[%d %d %d %d] %3d上,%3d下" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
+str_opn = "[%d %d %d %d] %3d Up,%3d Dw" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
 
 str_dt = "DTKP:%d" % (stcsItem.s_open_dt)
 if stcsItem.s_yzdt>0:
