@@ -24,7 +24,7 @@ class Logger_IO(object):
 		self.log.flush()
 		pass
 
-def show_zt_info(zt_list, desc):
+def show_zt_info(zt_list, desc, fmt):
 	number = len(zt_list)
 	endstr = ''
 	if number<=0:
@@ -47,14 +47,18 @@ def show_zt_info(zt_list, desc):
 		df = df.sort_values([7], 0, False)
 	i = 1
 	for index,itm_lst in df.iterrows():
-		str = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d" % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
+		#str = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d" % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
+		if desc=="YZZT":
+			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
+		else:
+			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],itm_lst[8])
 		print str
 		i += 1
 		if i>number:
 			break
 	print endstr
 
-def show_dt_info(dt_list, desc):
+def show_dt_info(dt_list, desc, fmt):
 	number = len(dt_list)
 	endstr = ''
 	str = "%s [%d]:" % (desc, number)
@@ -72,10 +76,10 @@ def show_dt_info(dt_list, desc):
 	i = 1
 	print str
 	for index,itm_lst in df.iterrows():
-		if desc=="DT" or desc=="YZDT":
-			str = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d" % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
+		if desc=="YZDT":
+			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
 		else:
-			str = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d" % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
+			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],itm_lst[8])
 		print str
 		i += 1
 		if i>number:
@@ -256,6 +260,7 @@ pindex = len(sys.argv)
 if pindex==2:
 	flag = int(sys.argv[1])
 
+#comment加在这里便于调试
 #得到所有交易item的code
 new_st_list = []
 
@@ -291,7 +296,7 @@ st_list.extend(st_bas_list)
 
 '''
 st_list = []
-st_list=['603225','002050','002282','300597']
+st_list=['603225','600965','002621','300474']
 #print st_list
 '''
 
@@ -369,16 +374,20 @@ if flag==0:
 	tol_str = "Total( %d = %d + %d	YZ: %d=%d(%d)+%d):"
 	print tol_str%( stcsItem.s_zt, stcsItem.s_zt-non_cx, non_cx, stcsItem.s_yzzt, cx_yz, stcsItem.s_cx_yzzt, non_cx_yz)
 	print "id %6s %-12s	%-10s %-9s %-8s %-8s %-8s %-8s" % ("code","name","change","price","opn_p","hgh_p","low_p","z_d")
-	show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT")
+
+	fmt1 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %9s"
+	fmt2 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d"
+
+	show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT", fmt2)
 	print "-------------------- %d+%d" % (stcsItem.s_sw_zt, stcsItem.s_xw_zt)
-	show_zt_info(stcsItem.lst_non_yzcx_zt, "ZT")
+	show_zt_info(stcsItem.lst_non_yzcx_zt, "ZT", fmt1)
 	print "-------------------- %d" % (stcsItem.s_zthl)
-	show_zt_info(stcsItem.lst_non_yzcx_zthl, "ZTHL")
+	show_zt_info(stcsItem.lst_non_yzcx_zthl, "ZTHL", fmt1)
 	print "==================================================="
 
-	show_dt_info(stcsItem.lst_yzdt, "YZDT")
-	show_dt_info(stcsItem.lst_dt, "DT")
-	show_dt_info(stcsItem.lst_dtft, "DTFT")
+	show_dt_info(stcsItem.lst_yzdt, "YZDT", fmt2)
+	show_dt_info(stcsItem.lst_dt, "DT", fmt1)
+	show_dt_info(stcsItem.lst_dtft, "DTFT", fmt1)
 
 sys.stdout.flush()
 log = open(flname, 'r')

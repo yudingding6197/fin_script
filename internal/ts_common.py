@@ -999,6 +999,92 @@ def get_zf_days(code, type, trade_date):
 		count += 1
 	return count
 
+def handle_today_ticks(df, code, trade_date, chk_price, type):
+	tmstr = '??:??'
+	return tmstr
+
+def handle_kdata(df, code, trade_date, chk_price, type):
+	tmstr = '??:??'
+	df_today = df.loc[df['date'].str.contains(str(trade_date))]
+	if len(df_today)<=0:
+		print code, trade_date, "No data"
+		#print "Not find data"
+		return
+
+	tmobj = ''
+	mx_prc = 0
+	#读出的数据就是float类型
+	for index,row in df_today.iterrows():
+		if type==0:
+			price = row['high']
+			if mx_prc<price:
+				mx_prc = price
+				tmobj = row['date']
+		else:
+			price = row['low']
+			if mx_prc==0:
+				mx_prc = price
+			if mx_prc>price:
+				mx_prc = price
+				tmobj = row['date']
+
+		if price==chk_price:
+			timeObj = re.match(r'.* (\d{2}):(\d{2})', row['date'])
+			if (timeObj is None):
+				print "非法时间格式：" +str(row['date'])+ ", 期望格式: HH:MM"
+				continue
+			hour = int(timeObj.group(1))
+			minute = int(timeObj.group(2))
+			if hour<=11:
+				tmstr = "%02d:%02d" %(hour, minute)
+			else:
+				tmstr = "-%02d:%02d" %(hour, minute)
+			break
+	if mx_prc!=chk_price:
+		timeObj = re.match(r'.* (\d{2}):(\d{2})', tmobj)
+		if (timeObj is None):
+			print "非法时间格式：" +str(row['date'])+ ", 期望格式: HH:MM"
+		else:
+			hour = int(timeObj.group(1))
+			minute = int(timeObj.group(2))
+			if hour<=11:
+				tmstr = "%02d:%02d??" %(hour, minute)
+			else:
+				tmstr = "-%02d:%02d??" %(hour, minute)
+			#print code, tmobj
+	return tmstr
+
+#获取首次触板ZT or DT的时间
+def get_zdt_time(code, trade_date, chk_price, type):
+	tmstr = '??:??'
+	excecount=0
+	df = None
+	flag = 0
+	today = datetime.date.today()
+	if (today-trade_date).days>0:
+		flag = 1
+	#修改一下这里，是否k_data就可以得到当天K线了
+	flag = 1
+	while excecount<=3:
+		try:
+			if flag == 0:
+				df = ts.get_today_ticks(code)
+			else:
+				df = ts.get_k_data(code, ktype='5')
+		except:
+			excecount += 1
+		else:
+			break
+	if df is None:
+		return tmstr
+
+	if flag == 0:
+		tmstr = handle_today_ticks(df, code, trade_date, chk_price, type)
+	else:
+		tmstr = handle_kdata(df, code, trade_date, chk_price, type)
+	#print code, type, tmstr
+	return tmstr
+
 #分析此单的状态：ZT、DT、ZTHL、DTFT...，详见 statisticsItem 定义
 def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 	if len(code)!=6:
@@ -1089,6 +1175,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 	else:
 		if high==zt_price:
 			if b_ST==0:
+				chuban = get_zdt_time(code, trade_date, zt_price, 0)
 				if price==zt_price:
 					#仅仅计算最后还是ZT的item
 					zt_time_point(code, zt_price, trade_date, stcsItem)
@@ -1104,11 +1191,11 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 					#pd_list.append(list)
 					count = get_zf_days(code, 1, trade_date)
 					if yzcx_flag==0:
-						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count]
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, chuban]
 						stcsItem.lst_non_yzcx_zt.append(list)
 				else:
 					count = get_zf_days(code, 1, trade_date)
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count]
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, chuban]
 					stcsItem.lst_non_yzcx_zthl.append(list)
 					stcsItem.s_zthl += 1
 					status |= STK_ZTHL
@@ -1124,6 +1211,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 
 		if low==dt_price:
 			if b_ST==0:
+				chuban = get_zdt_time(code, trade_date, dt_price, 1)
 				if open==dt_price:
 					stcsItem.s_open_dt += 1
 					status |= STK_OPEN_DT
@@ -1136,7 +1224,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 					count = get_zf_days(code, 2, trade_date)
 
 					#DT Data
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count]
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, chuban]
 					stcsItem.lst_dt.append(list)
 				else:
 					stcsItem.s_dtft += 1
@@ -1144,7 +1232,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 
 					#DTFT Data
 					count = get_zf_days(code, 2, trade_date)
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count]
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, chuban]
 					stcsItem.lst_dtft.append(list)
 
 	#统计开盘涨跌幅度
