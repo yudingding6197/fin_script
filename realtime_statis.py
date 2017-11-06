@@ -379,12 +379,13 @@ if flag==0:
 	fmt2 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d"
 
 	show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT", fmt2)
-	print "-------------------- %d+%d" % (stcsItem.s_sw_zt, stcsItem.s_xw_zt)
+	print "ZT  [%d+%d]:" % (stcsItem.s_sw_zt, stcsItem.s_xw_zt)
 	show_zt_info(stcsItem.lst_non_yzcx_zt, "ZT", fmt1)
-	print "-------------------- %d" % (stcsItem.s_zthl)
+	print "ZTHL [%d]:" % (stcsItem.s_zthl)
 	show_zt_info(stcsItem.lst_non_yzcx_zthl, "ZTHL", fmt1)
-	print "==================================================="
 
+	fmt3 = "Total DT (%d)		DTFT (%d)==================================="
+	print fmt3 %(len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt), len(stcsItem.lst_dtft))
 	show_dt_info(stcsItem.lst_yzdt, "YZDT", fmt2)
 	show_dt_info(stcsItem.lst_dt, "DT", fmt1)
 	show_dt_info(stcsItem.lst_dtft, "DTFT", fmt1)
@@ -401,5 +402,5 @@ flname = path + "rt_" + fmt_time + ".txt"
 baklog = open(flname, 'a')
 baklog.write('##############################################################\n')
 baklog.write(content)
-baklog.write('\n\n')
+baklog.write('\n')
 baklog.close()
