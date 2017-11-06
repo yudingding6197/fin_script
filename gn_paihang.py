@@ -69,12 +69,17 @@ if line is None:
 #Flag(0)板块号 板块名称(2)涨幅 总市值 换手率 上涨家数|平盘家数|下跌家数|停牌家数(6),个股代码(7)Flag 个股名称(9)价格 涨幅(11),个股代码(12)Flag 个股名称(14)价格 跌幅(16),Flag 最新值(18)涨跌额(19) 
 #1,BK0891,国产芯片,2.53,493268904578,2.28,35|1|4|1,300708,2,聚灿光电,17.01,10.03,300613,2,富瀚微,206.99,-2.31,3,1239.97,30.55
 #1,BK0706,人脑工程,-0.15,70185675359,0.28,4|1|3|0,300238,2,冠昊生物,24.18,1.00,300244,2,迪安诊断,27.20,-2.30,3,1667.64,-2.57
+
 rank = 0
 strline = u'排名,板块名称,板块涨幅,家数,领涨个股,涨幅,领跌个股,跌幅'
 #print strline
 listobj = []
 increase = 0
 fall = 0
+zt_count = 0
+zt_list = []
+dt_count = 0
+dt_list = []
 while 1:
 	obj = re.match(r'"(.*?)",?(.*)', line)
 	if obj is None:
@@ -102,6 +107,9 @@ while 1:
 	lz_change_f = float(lz_change)
 	if lz_change_f>=9.9:
 		lz_change = '##' + lz_change
+		if lz_code not in zt_list:
+			zt_count += 1
+			zt_list.append(lz_code)
 	else:
 		lz_change = '  ' + lz_change
 	ld_code = str_arr[12]
@@ -113,6 +121,9 @@ while 1:
 	ld_change_f = float(ld_change)
 	if ld_change_f<=-9.9:
 		ld_change = '**' + ld_change
+		if ld_code not in dt_list:
+			dt_count += 1
+			dt_list.append(ld_code)
 	else:
 		ld_change = '  ' + ld_change
 	bk_price = str_arr[18]
@@ -130,7 +141,7 @@ while 1:
 		fall += 1
 
 listlen = len(listobj)
-logging.info( "[%02d:%02d] Increase:%d,  Fall:%d,  PING:%d" %(cur.hour, cur.minute, increase, fall, listlen-increase-fall))
+logging.info( "[%02d:%02d] Increase:%d,  Fall:%d,  PING:%d, (ZT:%d  DT:%d)" %(cur.hour, cur.minute, increase, fall, listlen-increase-fall, zt_count, dt_count))
 for i in range(0, listlen):
 	if i<30:
 		#print listobj[i]
