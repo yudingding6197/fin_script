@@ -10,11 +10,15 @@ import platform
 import tushare as ts
 import internal.common
 from internal.ts_common import *
+from internal.dfcf_interface import *
+
+#reload(sys) 
+#sys.setdefaultencoding('utf8')
 
 class Logger_IO(object): 
 	def __init__(self, filename="Default.log"):
 		self.terminal = sys.stdout
-		self.log = open(filename, "a")
+		self.log = open(filename, "w")
 
 	def write(self, message):
 		self.terminal.write(message)
@@ -298,6 +302,27 @@ st_list.extend(st_bas_list)
 st_list = []
 st_list=['603225','600965','002621','300474']
 #print st_list
+'''
+
+'''
+listobj = []
+bkInfo=bkStatInfo()
+query_gainianbankuai1(listobj, bkInfo)
+listlen = len(listobj)
+increase = bkInfo.increase
+fall = bkInfo.fall
+zt_count = bkInfo.zt_count
+dt_count = bkInfo.dt_count
+
+fmt = "[%02d:%02d] Increase:%d,  Fall:%d,  PING:%d, (ZT:%d  DT:%d)"
+print( fmt %(cur.hour, cur.minute, increase, fall, listlen-increase-fall, zt_count, dt_count))
+for i in range(0, listlen):
+	if i<5:
+		print( listobj[i] )
+	elif i==5:
+		print( "......")
+	elif i>=listlen-5:
+		print(listobj[i])
 '''
 
 today_open = []
