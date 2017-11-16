@@ -951,7 +951,7 @@ def zt_time_point(code, zt_price, trade_date, stcsItem):
 		if high==zt_price:
 			timeObj = re.match(r'.* (\d{2}):(\d{2})', row['date'])
 			if (timeObj is None):
-				print "非法时间格式：" +str(row['date'])+ ", 期望格式: HH:MM"
+				print code, "非法时间格式1：" +str(row['date'])+ ", 期望格式: HH:MM"
 				continue
 			hour = int(timeObj.group(1))
 			minute = int(timeObj.group(2))
@@ -1003,6 +1003,7 @@ def handle_today_ticks(df, code, trade_date, chk_price, type):
 	tmstr = '??:??'
 	return tmstr
 
+#type  0:ZT  1:DT
 def handle_kdata(df, code, trade_date, chk_price, type):
 	tmstr = '??:??'
 	df_today = df.loc[df['date'].str.contains(str(trade_date))]
@@ -1024,14 +1025,21 @@ def handle_kdata(df, code, trade_date, chk_price, type):
 			price = row['low']
 			if mx_prc==0:
 				mx_prc = price
+				tmobj = row['date']
 			if mx_prc>price:
 				mx_prc = price
 				tmobj = row['date']
 
 		if price==chk_price:
-			timeObj = re.match(r'.* (\d{2}):(\d{2})', row['date'])
+			tmobj = row['date']
+			#将当前时间减去5分钟
+			dt = datetime.datetime.strptime(tmobj, "%Y-%m-%d %H:%M")
+			newdt = dt - datetime.timedelta(minutes=5)
+			tmobj = newdt.strftime("%Y-%m-%d %H:%M")
+
+			timeObj = re.match(r'.* (\d{2}):(\d{2})', tmobj)
 			if (timeObj is None):
-				print "非法时间格式：" +str(row['date'])+ ", 期望格式: HH:MM"
+				print code, "非法时间格式2：" +str(row['date'])+ ", 期望格式: HH:MM"
 				continue
 			hour = int(timeObj.group(1))
 			minute = int(timeObj.group(2))
@@ -1040,10 +1048,15 @@ def handle_kdata(df, code, trade_date, chk_price, type):
 			else:
 				tmstr = "-%02d:%02d" %(hour, minute)
 			break
+
 	if mx_prc!=chk_price:
+		#将当前时间减去5分钟
+		dt = datetime.datetime.strptime(tmobj, "%Y-%m-%d %H:%M")
+		newdt = dt - datetime.timedelta(minutes=5)
+		tmobj = newdt.strftime("%Y-%m-%d %H:%M")
 		timeObj = re.match(r'.* (\d{2}):(\d{2})', tmobj)
 		if (timeObj is None):
-			print "非法时间格式：" +str(row['date'])+ ", 期望格式: HH:MM"
+			print code, "非法时间格式3：'" +str(row['date'])+ "', 期望格式: HH:MM"
 		else:
 			hour = int(timeObj.group(1))
 			minute = int(timeObj.group(2))
@@ -1051,10 +1064,10 @@ def handle_kdata(df, code, trade_date, chk_price, type):
 				tmstr = "%02d:%02d??" %(hour, minute)
 			else:
 				tmstr = "-%02d:%02d??" %(hour, minute)
-			#print code, tmobj
 	return tmstr
 
 #获取首次触板ZT or DT的时间
+#type  0:ZT  1:DT
 def get_zdt_time(code, trade_date, chk_price, type):
 	tmstr = '??:??'
 	excecount=0
