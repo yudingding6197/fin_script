@@ -8,8 +8,8 @@ import datetime
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
-#此文件意义不大，将../Data/s****/的一个xlsx文件A1-G1添加Filter
-prepath = '../Data/'
+#此文件意义不大，将../data/s****/的一个xlsx文件A1-G1添加Filter
+prepath = '../data/'
 allFileNum = 0
 volumnList = [200, 300, 600, 900]
 sheet_st = "Sheet"

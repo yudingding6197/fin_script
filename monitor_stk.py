@@ -10,7 +10,7 @@ from internal.ts_common import *
 
 '''
 curdate = ''
-data_path = "../Data/_tmp1.txt"
+data_path = "../data/_tmp1.txt"
 stockCode = []
 
 today = datetime.date.today()
@@ -98,7 +98,7 @@ def get_new_stk_by_ts(yzzt_list, today_open):
 				yzzt_list.append(code)
 
 def get_new_stk_by_file(yzzt_list, today_open):			
-	data_path = "../Data/entry/_no_open_cx.txt"
+	data_path = "../data/entry/_no_open_cx.txt"
 
 	if os.path.isfile(data_path) is False:
 		print "No file:",data_path

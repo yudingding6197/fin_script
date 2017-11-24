@@ -112,7 +112,7 @@ def list_ting_pai_news(stockCode, stockName, curdate, file):
 
 
 #main Main
-prepath = "../Data/"
+prepath = "../data/"
 filetxt = prepath + 'tingpai_detail.txt'
 ball = 0
 headlist = ['600','601','603','000','002','300']

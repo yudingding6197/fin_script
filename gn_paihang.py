@@ -5,10 +5,11 @@ import urllib2
 import re
 import datetime
 import logging
+import shutil
 from internal.dfcf_interface import *
 
 #Main 开始
-flname = '../Data/gnbk.log'
+flname = '../data/gnbk.log'
 logging.basicConfig(level=logging.DEBUG,
     format='',
     filename=flname,
@@ -50,10 +51,13 @@ log.close()
 updateLog = 1
 if updateLog==1:
 	fmt_time = '%d-%02d-%02d' %(cur.year, cur.month, cur.day)
-	path = '../Data/entry/realtime/'
+	path = '../data/entry/realtime/'
 	flname = path + "gainian_" + fmt_time + ".txt"
 	baklog = open(flname, 'a')
 	baklog.write('##############################################################\n')
 	baklog.write(content)
 	baklog.write('\n\n')
 	baklog.close()
+
+	tmp_file = path + "a_gainian.txt"
+	shutil.copy(flname, tmp_file)

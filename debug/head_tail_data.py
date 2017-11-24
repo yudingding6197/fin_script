@@ -17,8 +17,8 @@ from internal.ts_common import *
 #某一只每天的开收集合价信息
 
 # Main
-dpath = "../Data/"
-statis = "../Data/entry/stat/"
+dpath = "../data/"
+statis = "../data/entry/stat/"
 pindex = len(sys.argv)
 if pindex<2:
 	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码\n")

@@ -13,7 +13,7 @@ import internal.common
 import internal.ts_common
 
 addcsv = 0
-prepath = "../Data/"
+prepath = "../data/"
 xmlfile = "internal/array.xml"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
 pindex = len(sys.argv)

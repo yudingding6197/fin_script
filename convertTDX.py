@@ -54,7 +54,7 @@ def handle_volumn(exVolumn, dataObj, type, flag=0):
 
 			
 addcsv = 0
-prepath = "../Data/TDX/"
+prepath = "../data/TDX/"
 convAll = 0
 pindex = len(sys.argv)
 if pindex<2:

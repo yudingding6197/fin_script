@@ -18,7 +18,7 @@ import internal.common
 #<tr ><th>11:29:21</th><td>14.56</td><td>-3.13%</td><td>-0.02</td><td>10</td><td>14,560</td><th><h6>бТел</h6></th></tr>
 
 addcsv = 0
-prepath = "../Data/"
+prepath = "../data/"
 url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php"
 pindex = len(sys.argv)
 if pindex<2:

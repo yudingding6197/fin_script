@@ -12,7 +12,7 @@ from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
 fm_url = "http://datainterface.eastmoney.com/EM_DataCenter/JS.aspx?type=NS&sty=NSSTV5&st=12&sr=-1&p=%d&ps=50"
-prepath1 = "../Data/entry/xingu/"
+prepath1 = "../data/entry/xingu/"
 #得到最新的发行信息生成last_xg.xlsx文件，将其改名为faxing.xlsx
 
 def handle_stk_data(stk_item, stockInfo):

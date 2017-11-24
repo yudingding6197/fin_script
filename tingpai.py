@@ -33,7 +33,7 @@ print soup.select("head > title")
 print soup.select('a[href="http://example.com/elsie"]')
 print soup.select('p a[href="http://example.com/elsie"]')
 '''
-prepath = "../Data/"
+prepath = "../data/"
 filetxt = prepath + 'tingpai.txt'
 ball = 0
 headlist = ['600','601','603','000','002','300']

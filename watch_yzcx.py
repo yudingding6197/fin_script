@@ -11,7 +11,7 @@ import time
 import ctypes
 from internal.ts_common import *
 
-# 依赖../Data/entry/_no_open_cx.txt，需要 debug/sync_cixin.py
+# 依赖../data/entry/_no_open_cx.txt，需要 debug/sync_cixin.py
 # 但是这个需要 cixin_data.py
 
 ALERT_HIGH = 0
@@ -148,7 +148,7 @@ def getSinaData(url, code, sleepTime, inst_info, phase):
 	return status
 
 def get_stk_by_file(stockCode):
-	data_path = "../Data/entry/_no_open_cx.txt"
+	data_path = "../data/entry/_no_open_cx.txt"
 	if os.path.isfile(data_path) is False:
 		print "No file:",data_path
 		return

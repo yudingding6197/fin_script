@@ -11,8 +11,8 @@ from openpyxl.reader.excel  import  load_workbook
 from internal.common import *
 
 #将指定日期的 statistics 的B/S的统计数据，放到对应代码_parser目录，
-#如000520，放到 ../Data/sz000520_parser/下的文件中
-prepath = '../Data/'
+#如000520，放到 ../data/sz000520_parser/下的文件中
+prepath = '../data/'
 sheetName = "statistics"
 allFileNum = 0
 upd_flag = 0

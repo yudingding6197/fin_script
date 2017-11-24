@@ -19,7 +19,7 @@ url_liut = "http://vip.stock.finance.sina.com.cn/corp/go.php/vCI_StockStructureH
 url_totl = "http://vip.stock.finance.sina.com.cn/corp/go.php/vCI_StockStructureHistory/stockid/%s/stocktype/TotalStock.phtml"
 pindex = len(sys.argv)
 if pindex==1:
-	data_path = "../Data/entry/trade/trade_last.txt"
+	data_path = "../data/entry/trade/trade_last.txt"
 	file = open(data_path, 'r')
 	while 1:
 		lines = file.readlines(9000)

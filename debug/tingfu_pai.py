@@ -44,7 +44,7 @@ def get_tingfu_item(child, tf_fl):
 		print info
 
 
-prepath = "../Data/"
+prepath = "../data/"
 filetxt = prepath + 'tingfu_pai.txt'
 ball = 0
 headlist = ['600','601','603','000','002','300']

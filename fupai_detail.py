@@ -31,8 +31,8 @@ def list_stock_news_sum(codeArray, curdate, file):
 			file.write("\r\n")
 		file.write("\r\n")
 
-prepath = "../Data/"
-prepath1 = "../Data/entry/fupai/"
+prepath = "../data/"
+prepath1 = "../data/entry/fupai/"
 pindex = len(sys.argv)
 today = datetime.date.today()
 curdate = ''

@@ -53,7 +53,7 @@ def list_stock_news_sum(codeArray, curdate, file):
 			file.write("\r\n")
 		file.write("\r\n")
 
-prepath = "../Data/"
+prepath = "../data/"
 filetxt = prepath + 'tingpai.txt'
 
 pindex = len(sys.argv)

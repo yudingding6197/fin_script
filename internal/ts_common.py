@@ -1290,7 +1290,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 			stcsItem.lst_jc.append(list)
 	return status
 
-#建议在之前调用debug\instant_data.py更新所有数据，在Data\entry\trade\trade_last.txt保存
+#建议在之前调用debug\instant_data.py更新所有数据，在data\entry\trade\trade_last.txt保存
 def get_guben_line(url_str, code):
 	url = url_str % (code)
 	#print url

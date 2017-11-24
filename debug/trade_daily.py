@@ -13,7 +13,7 @@ import tushare as ts
 #针对某一只的每天数据，包括开、收、最高、最低等信息
 
 # Main
-path = "../Data/entry/trade_day/"
+path = "../data/entry/trade_day/"
 pindex = len(sys.argv)
 if pindex<2:
 	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 \n")

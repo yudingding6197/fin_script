@@ -17,8 +17,8 @@ from internal.common import *
 #读取表格中的价格
 def get_xg_fx():
 	sheet_st = "Sheet"
-	wkfile = "../Data/entry/xingu/faxing.xlsx"
-	wkfile1 = "../Data/entry/xingu/faxing_re.xlsx"
+	wkfile = "../data/entry/xingu/faxing.xlsx"
+	wkfile1 = "../data/entry/xingu/faxing_re.xlsx"
 
 	wb = load_workbook(wkfile)
 	ws = wb.get_sheet_by_name(sheet_st)	
@@ -67,7 +67,7 @@ def get_xg_fx():
 #得到以前保存次新数据
 def get_hist_cx():
 	sheet_st = "Sheet"
-	wkfile = "../Data/entry/cixin/cx_anly_latest.xlsx"
+	wkfile = "../data/entry/cixin/cx_anly_latest.xlsx"
 	if os.path.isfile(wkfile) is False:
 		return None
 
@@ -101,7 +101,7 @@ def get_hist_cx():
 #得到当天上的Item
 def get_xg_trade(xg_trade_list, xg_df):
 	sheet_st = "Sheet"
-	wkfile = "../Data/entry/trade/ns_info.xlsx"
+	wkfile = "../data/entry/trade/ns_info.xlsx"
 	if os.path.isfile(wkfile) is False:
 		print "Error: No File:", wkfile
 		return None
@@ -379,8 +379,8 @@ if __name__ =='__main__':
 	cmp_string = "20150201"
 	base_date = datetime.datetime.strptime(cmp_string, '%Y%m%d').date()
 
-	prepath = "../Data/"
-	prepath1 = "../Data/entry/cixin/"
+	prepath = "../data/"
+	prepath1 = "../data/entry/cixin/"
 	LOOP_COUNT = 0
 	df = None
 

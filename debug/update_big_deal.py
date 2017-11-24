@@ -15,7 +15,7 @@ from internal.ts_common import *
 
 #添加trade data，在满足条件的行中
 
-dpath = "../Data/"
+dpath = "../data/"
 
 # Main
 pindex = len(sys.argv)

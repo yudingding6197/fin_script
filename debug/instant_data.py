@@ -12,7 +12,7 @@ from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
 #获取每天的所有STK信息，包含trade和停牌的
-#放到 "../Data/entry/trade/trade_****.xlxs"
+#放到 "../data/entry/trade/trade_****.xlxs"
 
 #'code,名称,涨跌幅,收盘价,涨跌价,振幅,成交量,成交额,昨收,今开,最高,最低,5分钟幅,Item1,Item2,Item3'
 
@@ -109,7 +109,7 @@ def handle_stk_data(stk_item, stockInfo):
 
 # Main
 fm_url = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._A&sty=FCOIATA&sortType=A&sortRule=-1&page=%d&pageSize=%d&token=7bc05d0d4c3c22ef9fca8c2a912d779c"
-prepath1 = "../Data/entry/trade/"
+prepath1 = "../data/entry/trade/"
 name = "trade"
 PAGE_COUNT = 500
 

@@ -7,6 +7,7 @@ import time
 import string
 import datetime
 import platform
+import shutil
 import tushare as ts
 import internal.common
 from internal.ts_common import *
@@ -239,7 +240,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 
 #Main Start:
 pindex = len(sys.argv)
-prepath = "../Data/"
+prepath = "../data/"
 sysstr = platform.system()
 cur=datetime.datetime.now()
 fmt_time = '%d-%02d-%02d %02d:%02d' %(cur.year, cur.month, cur.day, cur.hour, cur.minute)
@@ -421,7 +422,7 @@ content = log.read()
 log.close()
 
 fmt_time = '%d-%02d-%02d' %(cur.year, cur.month, cur.day)
-path = '../Data/entry/realtime/'
+path = '../data/entry/realtime/'
 fl = "rt_"
 flname = path + "rt_" + fmt_time + ".txt"
 baklog = open(flname, 'a')
@@ -429,3 +430,6 @@ baklog.write('##############################################################\n')
 baklog.write(content)
 baklog.write('\n')
 baklog.close()
+
+tmp_file = path + "b_rt.txt"
+shutil.copy(flname, tmp_file)

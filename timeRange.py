@@ -9,7 +9,7 @@ from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 from internal.common import *
 
-prepath = '../Data/'
+prepath = '../data/'
 allFileNum = 0
 dftArray = [0,200,300,600,900]
 g_sttime = ''
