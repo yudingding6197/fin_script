@@ -13,9 +13,6 @@ import internal.common
 from internal.ts_common import *
 from internal.dfcf_interface import *
 
-#reload(sys) 
-#sys.setdefaultencoding('utf8')
-
 class Logger_IO(object): 
 	def __init__(self, filename="Default.log"):
 		self.terminal = sys.stdout
@@ -301,7 +298,7 @@ st_list.extend(st_bas_list)
 
 '''
 st_list = []
-st_list=['603225','600965','002621','300474']
+st_list=['603225','600965','002621','300474', '002110', '002302']
 #print st_list
 '''
 
@@ -336,7 +333,9 @@ non_cx_yz = len(stcsItem.lst_non_yzcx_yzzt)
 cx_yz = stcsItem.s_yzzt-non_cx_yz
 
 #获取数据进行打印
-str_opn = "[%d %d %d %d] %3d Up,%3d Dw" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
+str_opn = "[%d %d %d %d] %3d 上,%3d 下" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
+if sysstr == "Linux":
+	str_opn = str_opn.decode('gbk').encode('utf-8')
 
 str_dt = "DTKP:%d" % (stcsItem.s_open_dt)
 if stcsItem.s_yzdt>0:
@@ -423,7 +422,6 @@ log.close()
 
 fmt_time = '%d-%02d-%02d' %(cur.year, cur.month, cur.day)
 path = '../data/entry/realtime/'
-fl = "rt_"
 flname = path + "rt_" + fmt_time + ".txt"
 baklog = open(flname, 'a')
 baklog.write('##############################################################\n')
