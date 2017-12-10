@@ -13,6 +13,7 @@ from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 from internal.common import *
 from internal.ts_common import *
+from fupai import *
 
 def list_stock_news_sum(codeArray, curdate, file):
 	codeLen = len(codeArray)
@@ -31,28 +32,9 @@ def list_stock_news_sum(codeArray, curdate, file):
 			file.write("\r\n")
 		file.write("\r\n")
 
+#Main
 prepath = "../data/"
 prepath1 = "../data/entry/fupai/"
-pindex = len(sys.argv)
-today = datetime.date.today()
-curdate = ''
-if (pindex == 1):
-	curdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
-	edate = datetime.datetime.strptime(curdate, '%Y-%m-%d').date()
-	#如果是当日的数据通过history链接目前不能得到，所以暂时得到前一天的数据
-	#今日数据通过getToday获取
-	#edate = edate - delta1
-else:
-	curdate = sys.argv[1]
-	if curdate=='.':
-		curdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
-	else:
-		ret,curdate = parseDate(sys.argv[1], today)
-		if ret==-1:
-			exit(1)
-#print curdate
-
-url = "http://www.cninfo.com.cn/information/memo/jyts_more.jsp?datePara="
 
 totalline = 0
 lasttime = ''
@@ -60,87 +42,24 @@ filename = prepath + 'fupai' + '_detail'
 filetxt = filename + '.txt'
 fl = open(filetxt, 'w')
 
-urlall = url + curdate
+curdate = ''
+bLast = 0
+curdate, bLast = get_date_with_last()
+print curdate, bLast
 
-LOOP_COUNT = 0
-res_data=None
-while LOOP_COUNT<3:
-	try:
-		req = urllib2.Request(urlall)
-		res_data = urllib2.urlopen(req)
-	except:
-		print "Error fupai urlopen"
-		LOOP_COUNT = LOOP_COUNT+1
-	else:
-		break
+res_data = get_tingfupai_res(curdate)
 if res_data is None:
 	exit(0)
 
-flag = 0
-count = 0
-ignore = 0
-line = res_data.readline()
-checkStr = '复牌日'
-stockCode = []
-stockIdx = -1
-while line:
-#	print line
-	if flag==0:
-		index = line.find(checkStr)
-		if (index>=0):
-			flag = 1
-		line = res_data.readline()
-		continue
-
-	key = re.match(r'.+fulltext.+\'(\d+)\',\'(\d+)\'', line)
-	if key:
-		#print key.groups()
-		#读取每一行，首先得到ST代码
-		code = key.group(1)
-		if (len(code) == 6):
-			head3 = code[0:3]
-			result = (cmp(head3, "000")==0) or (cmp(head3, "002")==0) or (cmp(head3, "300")==0)
-			if result is True:
-				stockCode.append(code)
-				stockIdx += 1
-				fl.write(code + ' ')
-			else:
-				result = (cmp(head3, "600")==0) or (cmp(head3, "601")==0) or (cmp(head3, "603")==0)
-				if result is True:
-					stockCode.append(code)
-					stockIdx += 1
-					fl.write(code + ' ')
-				else:
-					ignore = 1
-		else:
-			print "Invalid code:" +code
-
-		#解析完此行，继续下一行
-		line = res_data.readline()
-		continue
-	key = re.match(r'(.+)(</a></td>)', line)
-	if key:
-		#print key.groups()
-		#再读取代码对应的名字
-		if ignore==0:
-			codename = key.group(1)
-			fl.write(codename)
-			fl.write("\n")
-			print stockCode[stockIdx],codename.decode('gbk')
-			list_stock_news(stockCode[stockIdx], curdate, fl)
-			totalline += 1
-		count = 0
-		ignore = 0
-		line = res_data.readline()
-		continue
-	count += 1
-	if (count>2):
-		break;
-	line = res_data.readline()
+totalline = get_all_fupai_data(res_data, fl, detail, stockCode, stockName)
 
 #将所有的数据汇总输出
 fl.write("\n====================================================================================\n")
-list_stock_rt(stockCode, curdate, fl)
+#list_stock_rt(stockCode, curdate, fl)
+if bLast==1:
+	list_stock_rt(stockCode, curdate, fl)
+else:
+	list_fupai_trade(stockCode, stockName, curdate, fl)
 list_stock_news_sum(stockCode, curdate, fl)
 
 fl.close()

@@ -52,6 +52,24 @@ print "f_C==",df1.ix['fv']['C']
 #loc是针对具体索引的值取一行，显示这一行： 'fv',6,147,118
 #print  df1.loc[['fv']]
 
+#返回类型是Serial,class 'pandas.core.series.Series'
+print type(df1.iloc[-1])
+#这两个含义一样，都是DataFrame,
+print type(df1.iloc[[-1]])
+print type(df1.iloc[-1:])
+#显示A和C列
+print df1.ix[:,['A','C']]
+#显示第二行的 A和C列
+print df1.ix[1,['A','C']]
+#显示第三行
+print df1.ix[1:,].iloc[[1]]
+#print df1.ix[1:].iloc[[1]]
+
+
+aa={'one':[1,2,3,4,5],'two':[2,3,4,5,6],'three':[3,4,5,11,22],'four':[31,41,51,61,71]}
+df4=pd.DataFrame(aa, index=['a','b','c','d'])
+
+
 d2=df1.iloc[[0]]
 d3=d2.reset_index(drop = False)
 print list(d3.iloc[0])

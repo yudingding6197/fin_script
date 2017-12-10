@@ -793,8 +793,24 @@ def list_stock_news(code, curdate, file):
 		print row['date'],row['title']
 	print ''
 
+def get_zdt_st(p_change, change_l, change_h, change_o):
+	st=''
+	#print p_change, change_l, change_h, change_o
+	if change_l==change_h:
+		if p_change>0:
+			st = 'YZZZZT'
+		else:
+			st = 'YZDDDT'
+	elif p_change==change_h:
+		if p_change>9.9:
+			st = 'ZT'
+	elif p_change==change_l:
+		if p_change<-9.9:
+			st = 'DT'
+	return st
+	
 #将该票实时行情输出，不保存到文件
-def list_stock_rt(codeArray, curdate, file):
+def list_stock_rt(codeArray, curdate, file=None):
 	if len(codeArray)==0:
 		return
 	df = ts.get_realtime_quotes(codeArray)
@@ -816,7 +832,34 @@ def list_stock_rt(codeArray, curdate, file):
 		change_o = '%02.02f'%( ((float(open)-pre_close_f)/pre_close_f)*100 )
 		#print change
 		#print "%10s	" %(stname, change)
-		print "%-8s	%6s(%6s,%6s,%6s)	%8s(%8s,%8s)" %(stname, change, change_l, change_h, change_o, price, low, high)
+		st = get_zdt_st(float(change), float(change_l), float(change_h), float(change_o))
+		print "%-8s	%6s(%6s,%6s,%6s)	%8s(%8s,%8s)	%8s" %(stname, change, change_l, change_h, change_o, price, low, high, st)
+
+def list_fupai_trade(codeArray, nameArray, curdate, file=None):
+	if len(codeArray)==0:
+		return
+	i = 0
+	for code in codeArray:
+		stname = nameArray[i]
+		i += 1
+
+		df = ts.get_hist_data(code)
+		row=df.ix[[curdate]]
+		open = row['open']
+		price = row.ix[0,'close']
+		high = row.ix[0,'high']
+		low = row.ix[0,'low']
+		p_change = row.ix[0,'p_change']
+		turnover = row.ix[0,'turnover']
+		pre_close_f = round(price/(1+p_change/100), 2)
+		#print pre_close
+		change_l = '%02.02f'%( ((float(low)-pre_close_f)/pre_close_f)*100 )
+		change_h = '%02.02f'%( ((float(high)-pre_close_f)/pre_close_f)*100 )
+		change_o = '%02.02f'%( ((float(open)-pre_close_f)/pre_close_f)*100 )
+		change = p_change
+		
+		st = get_zdt_st(float(p_change), float(change_l), float(change_h), float(change_o))
+		print "%-8s	%6s(%6s,%6s,%6s)	%8s(%8s,%8s)	%8s" %(stname, change, change_l, change_h, change_o, price, low, high, st)
 
 def list_realtime_info(basic, codeArray):
 	if len(codeArray)==0:
@@ -1380,3 +1423,19 @@ def get_today_new_stock(new_st_list):
 			code = props[1]
 			new_st_list.append(code)
 	return
+
+def get_trade_date(zsidx='sh'):
+	df = ts.get_k_data(zsidx)
+	if df is None:
+		print "ts get k data fail"
+		return None
+	list = df['date'].tolist()
+	ll = sorted(list, reverse=True)
+	return ll
+	
+
+def get_last_trade_dt(zsidx='sh'):
+	list = get_trade_date(zsidx)
+	if len(list)>0:
+		return list[0]
+	return None
