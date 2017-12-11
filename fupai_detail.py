@@ -36,6 +36,8 @@ def list_stock_news_sum(codeArray, curdate, file):
 prepath = "../data/"
 prepath1 = "../data/entry/fupai/"
 
+stockCode = []
+stockName = []
 totalline = 0
 lasttime = ''
 filename = prepath + 'fupai' + '_detail'
@@ -51,7 +53,7 @@ res_data = get_tingfupai_res(curdate)
 if res_data is None:
 	exit(0)
 
-totalline = get_all_fupai_data(res_data, fl, detail, stockCode, stockName)
+totalline = get_all_fupai_data(res_data, fl, 1, curdate, stockCode, stockName)
 
 #将所有的数据汇总输出
 fl.write("\n====================================================================================\n")

@@ -58,7 +58,7 @@ def get_tingfupai_res(curdate):
 			break
 	return res_data
 
-def get_all_fupai_data(res_data, fl, detail, stockCode, stockName):
+def get_all_fupai_data(res_data, fl, detail, curdate, stockCode, stockName):
 	totalline = 0
 	flag = 0
 	count = 0
@@ -145,7 +145,7 @@ if __name__=="__main__":
 	filetxt = filename + '.txt'
 	fl = open(filetxt, 'w')
 
-	totalline = get_all_fupai_data(res_data, fl, 0, stockCode, stockName)
+	totalline = get_all_fupai_data(res_data, fl, 0, curdate, stockCode, stockName)
 
 	#将所有的数据汇总输出
 	if bLast==1:
