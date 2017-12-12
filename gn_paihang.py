@@ -59,5 +59,5 @@ if updateLog==1:
 	baklog.write('\n\n')
 	baklog.close()
 
-	tmp_file = path + "a_gainian.txt"
+	tmp_file = path + "a_gn.txt"
 	shutil.copy(flname, tmp_file)

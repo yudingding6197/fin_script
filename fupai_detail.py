@@ -13,7 +13,7 @@ from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 from internal.common import *
 from internal.ts_common import *
-from fupai import *
+from internal.tingfupai import *
 
 def list_stock_news_sum(codeArray, curdate, file):
 	codeLen = len(codeArray)

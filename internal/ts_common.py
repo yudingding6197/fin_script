@@ -967,6 +967,16 @@ def check_cx(code):
 			break
 	return b_match
 
+#分析时间得到ZT时间，上午or下午
+def zt_time_analyze(chuban, stcsItem):
+	timeObj = re.match(r'(\d{2}):(\d{2})', chuban)
+	hour = int(timeObj.group(1))
+	minute = int(timeObj.group(2))
+	if hour<=11:
+		stcsItem.s_sw_zt += 1
+	else:
+		stcsItem.s_xw_zt += 1
+
 #通过分时得到ZT时间，上午or下午
 def zt_time_point(code, zt_price, trade_date, stcsItem):
 	excecount = 0
@@ -1028,6 +1038,8 @@ def get_zf_days(code, type, trade_date):
 		bflag = 0
 		if str(index)==str(trade_date):
 			b_add_one = 0
+			count += 1
+			continue
 		if type==1:
 			if val>9.9:
 				count += 1
@@ -1046,8 +1058,38 @@ def handle_today_ticks(df, code, trade_date, chk_price, type):
 	tmstr = '??:??'
 	return tmstr
 
+# minute: 期望减去几分钟，如果是涨跌停开板时间不用减
+# flag: 是否加上？号，有的涨跌停就是一瞬间，意义不大
+def covert_time_fmt(tmobj, minute, flag):
+	#将当前时间减去5分钟
+	dt = datetime.datetime.strptime(tmobj, "%Y-%m-%d %H:%M")
+	newdt = dt - datetime.timedelta(minutes=minute)
+	tmobj = newdt.strftime("%Y-%m-%d %H:%M")
+
+	timeObj = re.match(r'.* (\d{2}):(\d{2})', tmobj)
+	if (timeObj is None):
+		print code, "非法时间格式2：" +str(row['date'])+ ", 期望格式: HH:MM"
+		return ''
+	hour = int(timeObj.group(1))
+	minute = int(timeObj.group(2))
+	if hour<=11:
+		if flag==1:
+			tmstr = "%02d:%02d??" %(hour, minute)
+		else:
+			tmstr = "%02d:%02d" %(hour, minute)
+	else:
+		if flag==1:
+			tmstr = "%02d:%02d--??" %(hour, minute)
+		else:
+			tmstr = "%02d:%02d--" %(hour, minute)
+	#if hour<=11:
+	#	tmstr = "%02d:%02d??" %(hour, minute)
+	#else:
+	#	tmstr = "%02d:%02d--??" %(hour, minute)
+	return tmstr
+
 #type  0:ZT  1:DT
-def handle_kdata(df, code, trade_date, chk_price, type):
+def handle_kdata(df, code, trade_date, chk_price, type, tm_array):
 	tmstr = '??:??'
 	df_today = df.loc[df['date'].str.contains(str(trade_date))]
 	if len(df_today)<=0:
@@ -1056,62 +1098,47 @@ def handle_kdata(df, code, trade_date, chk_price, type):
 		return
 
 	tmobj = ''
+	tmend = ''
 	mx_prc = 0
 	#读出的数据就是float类型
 	for index,row in df_today.iterrows():
+		close = row['close']
 		if type==0:
 			price = row['high']
 			if mx_prc<price:
 				mx_prc = price
 				tmobj = row['date']
+				tmend = row['date']
+			elif mx_prc==price:
+				tmend = row['date']
 		else:
 			price = row['low']
 			if mx_prc==0:
 				mx_prc = price
 				tmobj = row['date']
+				tmend = row['date']
 			if mx_prc>price:
 				mx_prc = price
 				tmobj = row['date']
+				tmend = row['date']
+			elif mx_prc==price:
+				tmend = row['date']
 
-		if price==chk_price:
-			tmobj = row['date']
-			#将当前时间减去5分钟
-			dt = datetime.datetime.strptime(tmobj, "%Y-%m-%d %H:%M")
-			newdt = dt - datetime.timedelta(minutes=5)
-			tmobj = newdt.strftime("%Y-%m-%d %H:%M")
-
-			timeObj = re.match(r'.* (\d{2}):(\d{2})', tmobj)
-			if (timeObj is None):
-				print code, "非法时间格式2：" +str(row['date'])+ ", 期望格式: HH:MM"
-				continue
-			hour = int(timeObj.group(1))
-			minute = int(timeObj.group(2))
-			if hour<=11:
-				tmstr = "%02d:%02d" %(hour, minute)
-			else:
-				tmstr = "-%02d:%02d" %(hour, minute)
-			break
-
+	binst = 0
 	if mx_prc!=chk_price:
-		#将当前时间减去5分钟
-		dt = datetime.datetime.strptime(tmobj, "%Y-%m-%d %H:%M")
-		newdt = dt - datetime.timedelta(minutes=5)
-		tmobj = newdt.strftime("%Y-%m-%d %H:%M")
-		timeObj = re.match(r'.* (\d{2}):(\d{2})', tmobj)
-		if (timeObj is None):
-			print code, "非法时间格式3：'" +str(row['date'])+ "', 期望格式: HH:MM"
-		else:
-			hour = int(timeObj.group(1))
-			minute = int(timeObj.group(2))
-			if hour<=11:
-				tmstr = "%02d:%02d??" %(hour, minute)
-			else:
-				tmstr = "-%02d:%02d??" %(hour, minute)
+		binst = 1
+
+	if tmobj!='':
+		tmstr = covert_time_fmt(tmobj, 5, binst)
+		tm_array.append(tmstr)
+	if tmend!='':
+		tmstr = covert_time_fmt(tmend, 0, binst)
+		tm_array.append(tmstr)
 	return tmstr
 
 #获取首次触板ZT or DT的时间
 #type  0:ZT  1:DT
-def get_zdt_time(code, trade_date, chk_price, type):
+def get_zdt_time(code, trade_date, chk_price, type, tm_array):
 	tmstr = '??:??'
 	excecount=0
 	df = None
@@ -1137,7 +1164,7 @@ def get_zdt_time(code, trade_date, chk_price, type):
 	if flag == 0:
 		tmstr = handle_today_ticks(df, code, trade_date, chk_price, type)
 	else:
-		tmstr = handle_kdata(df, code, trade_date, chk_price, type)
+		tmstr = handle_kdata(df, code, trade_date, chk_price, type, tm_array)
 	#print code, type, tmstr
 	return tmstr
 
@@ -1231,10 +1258,14 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 	else:
 		if high==zt_price:
 			if b_ST==0:
-				chuban = get_zdt_time(code, trade_date, zt_price, 0)
+				tmArr = []
+				get_zdt_time(code, trade_date, zt_price, 0, tmArr)
+				chuban = tmArr[0]
+				openban = tmArr[1]
 				if price==zt_price:
 					#仅仅计算最后还是ZT的item
-					zt_time_point(code, zt_price, trade_date, stcsItem)
+					#zt_time_point(code, zt_price, trade_date, stcsItem)
+					zt_time_analyze(chuban, stcsItem)
 					stcsItem.s_zt += 1
 					status |= STK_ZT
 					if open==zt_price:
@@ -1251,7 +1282,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 						stcsItem.lst_non_yzcx_zt.append(list)
 				else:
 					count = get_zf_days(code, 1, trade_date)
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, chuban]
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, chuban, openban]
 					stcsItem.lst_non_yzcx_zthl.append(list)
 					stcsItem.s_zthl += 1
 					status |= STK_ZTHL
@@ -1267,7 +1298,10 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 
 		if low==dt_price:
 			if b_ST==0:
-				chuban = get_zdt_time(code, trade_date, dt_price, 1)
+				tmArr = []
+				get_zdt_time(code, trade_date, dt_price, 1, tmArr)
+				chuban = tmArr[0]
+				openban = tmArr[1]
 				if open==dt_price:
 					stcsItem.s_open_dt += 1
 					status |= STK_OPEN_DT
@@ -1288,7 +1322,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 
 					#DTFT Data
 					count = get_zf_days(code, 2, trade_date)
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, chuban]
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, chuban, openban]
 					stcsItem.lst_dtft.append(list)
 
 	#统计开盘涨跌幅度

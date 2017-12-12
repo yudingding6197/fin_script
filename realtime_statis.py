@@ -8,6 +8,7 @@ import string
 import datetime
 import platform
 import shutil
+import getopt
 import tushare as ts
 import internal.common
 from internal.ts_common import *
@@ -26,62 +27,76 @@ class Logger_IO(object):
 		self.log.flush()
 		pass
 
-def show_zt_info(zt_list, desc, fmt):
+def show_zt_info(zt_list, desc, fmt, pconfig):
 	number = len(zt_list)
 	endstr = ''
 	if number<=0:
 		return
+	elif pconfig['AllInfo']==1:
+		number = 10000
 	elif number>30:
 		number = 30
 		if desc=="ZTHL":
 			number = 10
 		endstr = '......'
-	'''
-	for i in range(0, number):
-		itm_lst = zt_list[i]
-		str = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f" % (i+1,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6])
-		print str
-	'''
 	df = pd.DataFrame(zt_list)
-	if desc=="ZTHL":
-		df = df.sort_values([2], 0, False)
+	if pconfig['SortByTime']==1:
+		if desc=="ZT" or desc=="ZTHL":
+			df = df.sort_values([8], 0, True)
+		else:
+			df = df.sort_values([7], 0, True)
 	else:
-		df = df.sort_values([7], 0, False)
+		if desc=="ZTHL":
+			df = df.sort_values([2], 0, False)
+		else:
+			df = df.sort_values([7], 0, False)
 	i = 1
 	for index,itm_lst in df.iterrows():
 		#str = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d" % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
 		if desc=="YZZT":
 			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
-		else:
+		elif desc=="ZT":
 			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],itm_lst[8])
+		elif desc=="ZTHL":
+			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],itm_lst[8],itm_lst[9])
 		print str
 		i += 1
 		if i>number:
 			break
 	print endstr
 
-def show_dt_info(dt_list, desc, fmt):
+def show_dt_info(dt_list, desc, fmt, pconfig):
 	number = len(dt_list)
 	endstr = ''
 	str = "%s [%d]:" % (desc, number)
 	if number<=0:
 		return
+	elif pconfig['AllInfo']==1:
+		number = 10000
 	elif number>30:
 		number = 30
 		endstr = '......'
 
 	df = pd.DataFrame(dt_list)
-	if desc=="DT" or desc=="YZDT":
-		df = df.sort_values([7], 0, False)
+	if pconfig['SortByTime']==1:
+		if desc=="DT" or desc=="DTFT":
+			df = df.sort_values([8], 0, True)
+		else:
+			df = df.sort_values([7], 0, True)
 	else:
-		df = df.sort_values([2], 0, False)
+		if desc=="DT" or desc=="YZDT":
+			df = df.sort_values([7], 0, False)
+		else:
+			df = df.sort_values([2], 0, False)
 	i = 1
 	print str
 	for index,itm_lst in df.iterrows():
 		if desc=="YZDT":
 			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
-		else:
+		elif desc=="DT":
 			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],itm_lst[8])
+		elif desc=="DTFT":
+			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],itm_lst[8],itm_lst[9])
 		print str
 		i += 1
 		if i>number:
@@ -236,7 +251,6 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 	return 0
 
 #Main Start:
-pindex = len(sys.argv)
 prepath = "../data/"
 sysstr = platform.system()
 cur=datetime.datetime.now()
@@ -258,9 +272,25 @@ codeArray = ['399678']
 show_extra_index(codeArray)
 
 flag = 0
-pindex = len(sys.argv)
-if pindex==2:
-	flag = int(sys.argv[1])
+
+param_config = {
+	"NoLog":0,
+	"NoDetail":0,
+	"SortByTime":0,
+	"AllInfo":0
+}
+
+optlist, args = getopt.getopt(sys.argv[1:], 'ldtf')
+for option, value in optlist:
+	if option in ["-l","--nolog"]:
+		param_config["NoLog"] = 1
+	elif option in ["-d","--nodetail"]:
+		param_config["NoDetail"] = 1
+	elif option in ["-t","--sbtime"]:
+		param_config["SortByTime"] = 1
+	elif option in ["-a","--all"]:
+		param_config["AllInfo"] = 1
+#print param_config
 
 #comment加在这里便于调试
 #得到所有交易item的code
@@ -298,29 +328,8 @@ st_list.extend(st_bas_list)
 
 '''
 st_list = []
-st_list=['603225','600965','002621','300474', '002110', '002302']
+st_list=['603225','600965','600520','002464', '300273']
 #print st_list
-'''
-
-'''
-listobj = []
-bkInfo=bkStatInfo()
-query_gainianbankuai1(listobj, bkInfo)
-listlen = len(listobj)
-increase = bkInfo.increase
-fall = bkInfo.fall
-zt_count = bkInfo.zt_count
-dt_count = bkInfo.dt_count
-
-fmt = "[%02d:%02d] Increase:%d,  Fall:%d,  PING:%d, (ZT:%d  DT:%d)"
-print( fmt %(cur.hour, cur.minute, increase, fall, listlen-increase-fall, zt_count, dt_count))
-for i in range(0, listlen):
-	if i<5:
-		print( listobj[i] )
-	elif i==5:
-		print( "......")
-	elif i>=listlen-5:
-		print(listobj[i])
 '''
 
 today_open = []
@@ -394,40 +403,42 @@ if len(list)>0:
 		str += str1
 	print str
 
-if flag==0:
+if param_config["NoDetail"]==0:
 	non_cx = len(stcsItem.lst_non_yzcx_yzzt)+len(stcsItem.lst_non_yzcx_zt)
 	tol_str = "Total( %d = %d + %d	YZ: %d=%d(%d)+%d):"
 	print tol_str%( stcsItem.s_zt, stcsItem.s_zt-non_cx, non_cx, stcsItem.s_yzzt, cx_yz, stcsItem.s_cx_yzzt, non_cx_yz)
 	print "id %6s %-12s	%-10s %-9s %-8s %-8s %-8s %-8s" % ("code","name","change","price","opn_p","hgh_p","low_p","z_d")
 
-	fmt1 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %9s"
-	fmt2 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d"
+	fmt1 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d"
+	fmt2 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %9s"
+	fmt3 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %9s %9s"
 
-	show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT", fmt2)
+	show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT", fmt1, param_config)
 	print "ZT  [%d+%d]:" % (stcsItem.s_sw_zt, stcsItem.s_xw_zt)
-	show_zt_info(stcsItem.lst_non_yzcx_zt, "ZT", fmt1)
+	show_zt_info(stcsItem.lst_non_yzcx_zt, "ZT", fmt2, param_config)
 	print "ZTHL [%d]:" % (stcsItem.s_zthl)
-	show_zt_info(stcsItem.lst_non_yzcx_zthl, "ZTHL", fmt1)
+	show_zt_info(stcsItem.lst_non_yzcx_zthl, "ZTHL", fmt3, param_config)
 
-	fmt3 = "Total DT (%d)		DTFT (%d)==================================="
-	print fmt3 %(len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt), len(stcsItem.lst_dtft))
-	show_dt_info(stcsItem.lst_yzdt, "YZDT", fmt2)
-	show_dt_info(stcsItem.lst_dt, "DT", fmt1)
-	show_dt_info(stcsItem.lst_dtft, "DTFT", fmt1)
+	fmt0 = "Total DT (%d)		DTFT (%d)==================================="
+	print fmt0 %(len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt), len(stcsItem.lst_dtft))
+	show_dt_info(stcsItem.lst_yzdt, "YZDT", fmt1, param_config)
+	show_dt_info(stcsItem.lst_dt, "DT", fmt2, param_config)
+	show_dt_info(stcsItem.lst_dtft, "DTFT", fmt3, param_config)
 
-sys.stdout.flush()
-log = open(flname, 'r')
-content = log.read()
-log.close()
+if param_config["NoLog"]==0:
+	sys.stdout.flush()
+	log = open(flname, 'r')
+	content = log.read()
+	log.close()
 
-fmt_time = '%d-%02d-%02d' %(cur.year, cur.month, cur.day)
-path = '../data/entry/realtime/'
-flname = path + "rt_" + fmt_time + ".txt"
-baklog = open(flname, 'a')
-baklog.write('##############################################################\n')
-baklog.write(content)
-baklog.write('\n')
-baklog.close()
+	fmt_time = '%d-%02d-%02d' %(cur.year, cur.month, cur.day)
+	path = '../data/entry/realtime/'
+	flname = path + "rt_" + fmt_time + ".txt"
+	baklog = open(flname, 'a')
+	baklog.write('##############################################################\n')
+	baklog.write(content)
+	baklog.write('\n')
+	baklog.close()
 
-tmp_file = path + "b_rt.txt"
-shutil.copy(flname, tmp_file)
+	tmp_file = path + "b_rt.txt"
+	shutil.copy(flname, tmp_file)

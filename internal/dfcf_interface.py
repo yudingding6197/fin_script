@@ -63,6 +63,8 @@ def query_gainianbankuai(listobj, bkInfo):
 	#1,BK0891,国产芯片,2.53,493268904578,2.28,35|1|4|1,300708,2,聚灿光电,17.01,10.03,300613,2,富瀚微,206.99,-2.31,3,1239.97,30.55
 	#1,BK0706,人脑工程,-0.15,70185675359,0.28,4|1|3|0,300238,2,冠昊生物,24.18,1.00,300244,2,迪安诊断,27.20,-2.30,3,1667.64,-2.57
 
+	#bk 板块
+	#lz 领涨
 	rank = 0
 	strline = u'排名,板块名称,板块涨幅,家数,领涨个股,涨幅,领跌个股,跌幅'
 	while 1:
@@ -89,7 +91,11 @@ def query_gainianbankuai(listobj, bkInfo):
 		for i in range(0, left):
 			lz_name += ' '
 		lz_change = str_arr[11]
-		lz_change_f = float(lz_change)
+		if lz_change=='-':
+			print "lz_change", lz_change
+			lz_change_f = 0
+		else:
+			lz_change_f = float(lz_change)
 		if lz_change_f>=9.9:
 			lz_change = '##' + lz_change
 			if lz_code not in bkInfo.zt_list:
