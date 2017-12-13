@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf8 -*-
+
+import sys
 import re
 import datetime
 from internal.ts_common import *
@@ -50,7 +52,7 @@ def list_stock_news_sum(codeArray, curdate, file):
 			#file.write("\r\n")
 			pass
 		#file.write("\r\n")
-	
+
 if __name__ == '__main__':
 	zdarr = [[] for x in range(6)]
 	parse_rtxt(zdarr)
@@ -69,14 +71,3 @@ if __name__ == '__main__':
 		#print codeArray
 		#list_stock_news_sum	(codeArray, curdate, None )
 		print ''
-		#for 
-	'''
-	print (zdarr)
-	print '-------'
-	print (zdarr[0])
-	print '===='
-	print (zdarr[1])
-	print '===='
-	print (zdarr[2])
-	#print a[1]
-	'''
