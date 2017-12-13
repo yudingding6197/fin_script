@@ -16,5 +16,9 @@ def fun1():
 	print "we are in %s"%__name__ 
 
 if __name__ == '__main__':
+	arr = ['YZZT', 'ZT', 'ZTHL', 'YZDT', 'DT', 'DTFT']
+	key = 'ZT'
+	if key in arr:
+		print ""
 
 

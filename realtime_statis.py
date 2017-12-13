@@ -28,7 +28,7 @@ class Logger_IO(object):
 		pass
 
 #可以和show_dt_info 合并, 通过 desc in ['DT','ZT']进行判断
-def show_zt_info(zt_list, desc, fmt, pconfig):
+def show_zt_info(zt_list, desc, fmt, outstr, pconfig):
 	number = len(zt_list)
 	endstr = ''
 	if number<=0:
@@ -40,6 +40,8 @@ def show_zt_info(zt_list, desc, fmt, pconfig):
 		if desc=="ZTHL":
 			number = 10
 		endstr = '......'
+
+	print outstr
 	df = pd.DataFrame(zt_list)
 	if pconfig['SortByTime']==1:
 		if desc=="ZT":
@@ -73,7 +75,7 @@ def show_zt_info(zt_list, desc, fmt, pconfig):
 def show_dt_info(dt_list, desc, fmt, pconfig):
 	number = len(dt_list)
 	endstr = ''
-	str = "%s [%d]:" % (desc, number)
+	str = "%s  [%d]:" % (desc, number)
 	if number<=0:
 		return
 	elif pconfig['AllInfo']==1:
@@ -422,11 +424,12 @@ if param_config["NoDetail"]==0:
 	fmt2 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %9s"
 	fmt3 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %9s %9s"
 
-	show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT", fmt1, param_config)
-	print "ZT  [%d+%d]:" % (stcsItem.s_sw_zt, stcsItem.s_xw_zt)
-	show_zt_info(stcsItem.lst_non_yzcx_zt, "ZT", fmt2, param_config)
-	print "ZTHL [%d]:" % (stcsItem.s_zthl)
-	show_zt_info(stcsItem.lst_non_yzcx_zthl, "ZTHL", fmt3, param_config)
+	outstr = "YZZT  [%d]:" % (len(stcsItem.lst_non_yzcx_yzzt))
+	show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT", fmt1, outstr, param_config)
+	outstr = "ZT  [%d+%d]:" % (stcsItem.s_sw_zt, stcsItem.s_xw_zt)
+	show_zt_info(stcsItem.lst_non_yzcx_zt, "ZT", fmt2, outstr, param_config)
+	outstr = "ZTHL [%d]:" % (stcsItem.s_zthl)
+	show_zt_info(stcsItem.lst_non_yzcx_zthl, "ZTHL", fmt3, outstr, param_config)
 
 	fmt0 = "Total DT (%d)		DTFT (%d)==================================="
 	print fmt0 %(len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt), len(stcsItem.lst_dtft))
