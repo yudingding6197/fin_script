@@ -27,6 +27,7 @@ class Logger_IO(object):
 		self.log.flush()
 		pass
 
+#可以和show_dt_info 合并, 通过 desc in ['DT','ZT']进行判断
 def show_zt_info(zt_list, desc, fmt, pconfig):
 	number = len(zt_list)
 	endstr = ''
@@ -41,15 +42,19 @@ def show_zt_info(zt_list, desc, fmt, pconfig):
 		endstr = '......'
 	df = pd.DataFrame(zt_list)
 	if pconfig['SortByTime']==1:
-		if desc=="ZT" or desc=="ZTHL":
-			df = df.sort_values([8], 0, True)
+		if desc=="ZT":
+			df = df.sort_values([8,7], 0, True)
+		elif desc=="ZTHL":
+			df = df.sort_values([8,7], 0, True)
 		else:
 			df = df.sort_values([7], 0, True)
 	else:
-		if desc=="ZTHL":
-			df = df.sort_values([2], 0, False)
-		else:
+		if desc=="ZT":
+			df = df.sort_values([7,8], 0, [False,True])
+		elif desc=="YZZT":
 			df = df.sort_values([7], 0, False)
+		elif desc=="ZTHL":
+			df = df.sort_values([2,7], 0, False)
 	i = 1
 	for index,itm_lst in df.iterrows():
 		#str = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d" % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
@@ -79,15 +84,19 @@ def show_dt_info(dt_list, desc, fmt, pconfig):
 
 	df = pd.DataFrame(dt_list)
 	if pconfig['SortByTime']==1:
-		if desc=="DT" or desc=="DTFT":
-			df = df.sort_values([8], 0, True)
+		if desc=="DT":
+			df = df.sort_values([8,7], 0, True)
+		elif desc=="DTFT":
+			df = df.sort_values([8,7], 0, True)
 		else:
 			df = df.sort_values([7], 0, True)
 	else:
-		if desc=="DT" or desc=="YZDT":
+		if desc=="DT":
+			df = df.sort_values([7,8], 0, [False,True])
+		elif desc=="YZDT":
 			df = df.sort_values([7], 0, False)
-		else:
-			df = df.sort_values([2], 0, False)
+		elif desc=="DTFT":
+			df = df.sort_values([2,7], 0, False)
 	i = 1
 	print str
 	for index,itm_lst in df.iterrows():
