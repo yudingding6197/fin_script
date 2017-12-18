@@ -84,7 +84,7 @@ excel_row = 2
 repeat_flag = 0
 first_code = ''
 
-for i in range(1, 35):
+for i in range(1, 50):
 	if repeat_flag==1:
 		break
 
@@ -152,7 +152,11 @@ for i in range(1, 35):
 			number = len(stockInfo)
 			for k in range(0,number):
 				cell = chr(ascid+k) + str(excel_row)
-				ws[cell] = stockInfo[k]
+				try:
+					ws[cell] = stockInfo[k]
+				except:
+					print "Page(%d), cd=%s nm=%s issue:(%d,%s)" % (i, stockInfo[0], stockInfo[1], k, cell)
+					ws[cell] = ''
 			excel_row += 1
 		line = response.readline()
 

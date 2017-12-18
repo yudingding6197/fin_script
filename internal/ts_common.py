@@ -1356,9 +1356,9 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 	if low_df_percent<=-4.0:
 		stcsItem.s_low_df += 1
 
-	#统计表现震撼个股 通过成交量排除新股
+	#统计表现震撼个股 排除YZZT的新股
 	zf_range = high_zf_percent-low_df_percent
-	if zf_range>=15.0 and volume>100000:
+	if zf_range>=15.0 and yzcx_flag==0:
 		if change_percent>=6.0:
 			list = [code, name, change_percent, price, zf_range]
 			stcsItem.lst_nb.append(list)
