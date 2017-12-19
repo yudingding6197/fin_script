@@ -108,7 +108,7 @@ def get_all_fupai_data(res_data, fl, detail, curdate, stockCode, stockName):
 				fl.write(codename)
 				fl.write("\n")
 				print "====",stockCode[stockIdx],codename.decode('gbk')
-				stockName.append(codename)
+				stockName.append(codename.decode('gbk'))
 				if detail==1:
 					list_stock_news(stockCode[stockIdx], curdate, None)
 				totalline += 1
@@ -121,3 +121,82 @@ def get_all_fupai_data(res_data, fl, detail, curdate, stockCode, stockName):
 			break;
 		line = res_data.readline()
 	return totalline
+
+def get_zdt_st(name, p_change, change_l, change_h, change_o):
+	st=''
+	bst=0
+	if name.find("ST")>=0 or name.find("st")>=0:
+		bst=1
+	#print p_change, change_l, change_h, change_o
+	if change_l==change_h:
+		if bst==1 and p_change>4.9:
+			st = 'YZZZZT'
+		elif bst==0 and p_change>9.9:
+			st = 'YZZZZT'
+		elif bst==1 and p_change<-4.9:
+			st = 'YZDDDT'
+		elif bst==0 and p_change<-9.9:
+			st = 'YZDDDT'
+	elif p_change==change_h:
+		if p_change>9.9:
+			st = 'ZT'
+	elif p_change==change_l:
+		if p_change<-9.9:
+			st = 'DT'
+	return st
+
+#将该票实时行情输出，不保存到文件
+def list_stock_rt(codeArray, curdate, file=None):
+	if len(codeArray)==0:
+		return
+	df = ts.get_realtime_quotes(codeArray)
+	for index,row in df.iterrows():
+		stname = row['name']
+		open = row['open']
+		pre_close = row['pre_close']
+		price = row['price']
+		high = row['high']
+		low = row['low']
+
+		price_f = float(price)
+		pre_close_f = float(pre_close)
+		if high=='0.000' and low=='0.000':
+			change = '%02.02f'%(0)
+			change_l = '%02.02f'%(0)
+			change_h = '%02.02f'%(0)
+			change_o = '%02.02f'%(0)
+		else:
+			change = '%02.02f'%( ((price_f-pre_close_f)/pre_close_f)*100 )
+			change_l = '%02.02f'%( ((float(low)-pre_close_f)/pre_close_f)*100 )
+			change_h = '%02.02f'%( ((float(high)-pre_close_f)/pre_close_f)*100 )
+			change_o = '%02.02f'%( ((float(open)-pre_close_f)/pre_close_f)*100 )
+		st = get_zdt_st(stname, float(change), float(change_l), float(change_h), float(change_o))
+		print "%-8s	%8s(%8s,%8s,%8s)	%8s(%8s,%8s)	%8s" %(stname, change, change_l, change_h, change_o, price, low, high, st)
+
+def list_fupai_trade(codeArray, nameArray, curdate, file=None):
+	if len(codeArray)==0:
+		return
+	i = 0
+	for code in codeArray:
+		stname = nameArray[i]
+		i += 1
+
+		df = ts.get_hist_data(code)
+		row=df.ix[[curdate]]
+		open = row['open']
+		price = row.ix[0,'close']
+		high = row.ix[0,'high']
+		low = row.ix[0,'low']
+		p_change = row.ix[0,'p_change']
+		turnover = row.ix[0,'turnover']
+		pre_close_f = round(price/(1+p_change/100), 2)
+		#print pre_close
+		change_l = '%02.02f'%( ((float(low)-pre_close_f)/pre_close_f)*100 )
+		change_h = '%02.02f'%( ((float(high)-pre_close_f)/pre_close_f)*100 )
+		change_o = '%02.02f'%( ((float(open)-pre_close_f)/pre_close_f)*100 )
+		change = p_change
+		
+		st = get_zdt_st(float(p_change), float(change_l), float(change_h), float(change_o))
+		print "%-8s	%8s(%8s,%8s,%8s)	%8s(%8s,%8s)	%8s" %(stname, change, change_l, change_h, change_o, price, low, high, st)
+
+

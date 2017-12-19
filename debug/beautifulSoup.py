@@ -158,9 +158,7 @@ for child in item.children:
 		print info
 
 #将所有的数据汇总输出
-#list_stock_rt(stockCode, curdate, tf_fl)
 tf_fl.write("\n====================================================================================\n")
-#list_stock_rt(stockCode, curdate, tf_fl)
 list_stock_news_sum(stockCode, curdate, tf_fl)
 
 tf_fl.close()
