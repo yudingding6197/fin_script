@@ -171,7 +171,8 @@ def list_stock_rt(codeArray, curdate, file=None):
 			change_h = '%02.02f'%( ((float(high)-pre_close_f)/pre_close_f)*100 )
 			change_o = '%02.02f'%( ((float(open)-pre_close_f)/pre_close_f)*100 )
 		st = get_zdt_st(stname, float(change), float(change_l), float(change_h), float(change_o))
-		print "%-8s	%8s(%8s,%8s,%8s)	%8s(%8s,%8s)	%8s" %(stname, change, change_l, change_h, change_o, price, low, high, st)
+		print "%-8s	%8s(%8s,%8s,%8s)	%8s(%8s,%8s)	%8s" %(stname, change, change_o, change_h, change_l, price, high, low, st)
+	return
 
 def list_fupai_trade(codeArray, nameArray, curdate, file=None):
 	if len(codeArray)==0:
@@ -195,8 +196,7 @@ def list_fupai_trade(codeArray, nameArray, curdate, file=None):
 		change_h = '%02.02f'%( ((float(high)-pre_close_f)/pre_close_f)*100 )
 		change_o = '%02.02f'%( ((float(open)-pre_close_f)/pre_close_f)*100 )
 		change = p_change
-		
 		st = get_zdt_st(float(p_change), float(change_l), float(change_h), float(change_o))
-		print "%-8s	%8s(%8s,%8s,%8s)	%8s(%8s,%8s)	%8s" %(stname, change, change_l, change_h, change_o, price, low, high, st)
-
+		print "%-8s	%8s(%8s,%8s,%8s)	%8s(%8s,%8s)	%8s" %(stname, change, change_o, change_h, change_l, price, high, low, st)
+	return
 
