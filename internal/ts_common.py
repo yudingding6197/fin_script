@@ -397,11 +397,13 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 	get_api = 0
 	if bhist!=0:
 		get_api = 1
+	dtsrc = ['sn', 'tt', 'nt']
+	dtidx = 0
 	while excecount<=3:
 		if get_api==0:
 			df = ts.get_today_ticks(curcode)
 		else:
-			df = ts.get_tick_data(curcode, qdate)
+			df = ts.get_tick_data(curcode, qdate, src=dtsrc[dtidx])
 		#print df
 		if df is None:
 			excecount += 1
@@ -410,6 +412,8 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 			if bhist==2:
 				get_api = 0
 			excecount += 1
+			print "Get data from source '%s' fail in %s" %(dtsrc[dtidx], qdate)
+			dtidx += 1
 			continue;
 		else:
 			break;
