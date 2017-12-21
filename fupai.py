@@ -42,7 +42,8 @@ if __name__=="__main__":
 	if bLast==1:
 		list_stock_rt(stockCode, curdate, fl)
 	else:
-		list_fupai_trade(stockCode, stockName, curdate, fl)
+		if bLast==0:
+			list_fupai_trade(stockCode, stockName, curdate, fl)
 
 	fl.close()
 

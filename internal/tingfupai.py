@@ -34,9 +34,15 @@ def get_date_with_last():
 		else:
 			ret,curdate = parseDate(sys.argv[1], today)
 			if ret==-1:
-				exit(1)
+				return '', -2
 			if curdate==lastdt:
 				bLast = 1
+			else:
+				#如果是查看明天复牌个股，返回-1
+				edate = datetime.datetime.strptime(curdate, '%Y-%m-%d').date()
+				dl = (today-edate).days
+				if dl < 0:
+					bLast = -1
 	return curdate, bLast
 
 def get_tingfupai_res(curdate):
@@ -196,7 +202,7 @@ def list_fupai_trade(codeArray, nameArray, curdate, file=None):
 		change_h = '%02.02f'%( ((float(high)-pre_close_f)/pre_close_f)*100 )
 		change_o = '%02.02f'%( ((float(open)-pre_close_f)/pre_close_f)*100 )
 		change = p_change
-		st = get_zdt_st(float(p_change), float(change_l), float(change_h), float(change_o))
+		st = get_zdt_st(stname, float(p_change), float(change_l), float(change_h), float(change_o))
 		print "%-8s	%8s(%8s,%8s,%8s)	%8s(%8s,%8s)	%8s" %(stname, change, change_o, change_h, change_l, price, high, low, st)
 	return
 
