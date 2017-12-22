@@ -23,7 +23,7 @@ curl 'http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get?type=KZZ_LB
 curl 'http://datapic.eastmoney.com/img/loading.gif' -H 'Referer: http://data.eastmoney.com/kzz/default.html' -H 'User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2986.0 Safari/537.36' --compressed
 '''
 
-urlall = 'http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get?type=KZZ_LB&token=70f12f2f4f091e459a279469fe49eca5&cmd=&st=STARTDATE&sr=-1&p=1&ps=50&js=var%20iGeILSKk={pages:(tp),data:(x)}&rt=50463927'
+urlfmt = 'http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get?type=KZZ_LB&token=70f12f2f4f091e459a279469fe49eca5&cmd=&st=STARTDATE&sr=-1&p=%d&ps=50&js=iGeILSKk={pages:(tp),data:(x)}&rt=50463927'
 send_headers = {
  'Host':'dcfm.eastmoney.com',
  'Connection':'keep-alive',
@@ -37,8 +37,48 @@ send_headers = {
 }
 
 #Main
-if __name__=="__main__":
-	req = urllib2.Request(urlall,headers=send_headers)
-	res_data = urllib2.urlopen(req)
-	print res_data.read().decode('utf8')
+content=''
+totalpage = 1
+def getKZZConnect(page):
+	global content
+	LOOP_COUNT=0
+	urllink = urlfmt % (page)
+	res_data = None
+	while LOOP_COUNT<3:
+		try:
+			print urllink
+			req = urllib2.Request(urllink,headers=send_headers)
+			res_data = urllib2.urlopen(req)
+		except:
+			print "Exception kzz urlopen"
+			LOOP_COUNT += 1
+		else:
+			break
+	if res_data is None:
+		print "Error: Fail to get request"
+		content = ''
+		return
+	content = res_data.read().decode('utf8')
+	return
 
+if __name__=="__main__":
+	req_count=0
+	curpage = 1
+	while 1:
+		req_count += 1
+		if req_count>10:
+			break
+		if curpage>totalpage:
+			break
+
+		getKZZConnect(curpage)
+		print content[:64]
+		if content=='':
+			break
+		dataObj = re.match('^iGeILSKk={pages:(\d+),data:\[(.*)\]}', content)
+		if dataObj is None:
+			print "Content format not match"
+			break
+		if totalpage < 1:
+			totalpage = int(dataObj.group(1))
+		curpage += 1
