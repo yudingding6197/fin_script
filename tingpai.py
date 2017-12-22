@@ -33,10 +33,11 @@ print soup.select("head > title")
 print soup.select('a[href="http://example.com/elsie"]')
 print soup.select('p a[href="http://example.com/elsie"]')
 '''
+
 prepath = "../data/"
 filetxt = prepath + 'tingpai.txt'
 ball = 0
-headlist = ['600','601','603','000','002','300']
+headlist = ['600','601','603','000','001','002','300']
 
 pindex = len(sys.argv)
 today = datetime.date.today()
@@ -68,7 +69,7 @@ while LOOP_COUNT<3:
 		#req = urllib2.Request(urlall)
 		res_data = urllib2.urlopen(urlall)
 	except:
-		print "Error fupai urlopen"
+		print "Error tingpai urlopen"
 		LOOP_COUNT = LOOP_COUNT+1
 	else:
 		break
@@ -163,7 +164,13 @@ for child in clmitem.children:
 				elif ball==0 and (head3 not in headlist):
 					ignore=1
 			elif liattr=='ta-2':
-				value = "%-8s"%(value)
+				nmlen=len(value.encode('gbk'))
+				if nmlen<8:
+					left=8-nmlen
+					while left>0:
+						value=' '+value
+						left-=1
+				value = "%s"%(value)
 			elif liattr=='ta-4':
 				if value=='&nbsp':
 					value = "%16s"%(" ")

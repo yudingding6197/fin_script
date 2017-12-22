@@ -808,6 +808,13 @@ def list_realtime_info(basic, codeArray):
 	print ''
 	for index,row in df.iterrows():
 		stname = row['name']
+		stlen=len(stname.encode('gbk'))
+		maxlen=10
+		if len(stname)<maxlen:
+			left=maxlen-stlen
+			while left>0:
+				stname += ' '
+				left-=1
 		open = row['open']
 		pre_close = row['pre_close']
 		price = row['price']
@@ -827,7 +834,7 @@ def list_realtime_info(basic, codeArray):
 		change_h = '%02.02f'%( ((float(high)-pre_close_f)/pre_close_f)*100 )
 		change_o = '%02.02f'%( ((float(open)-pre_close_f)/pre_close_f)*100 )
 
-		str_fmt = "%6s %-8s	%-6s(%6s%%) (%5.02f%%)	%-6s(%6s) %-6s(%6s)"
+		str_fmt = "%6s %s %-6s(%6s%%) (%5.02f%%)	%-6s(%6s) %-6s(%6s)"
 		print str_fmt%(codeArray[index], stname, price, change, turnover_rt, low, change_l, high, change_h)
 		#print "%6s %5s	%6s(%6s,%6s,%6s)	%8s(%8s,%8s)" %(stname, change, change_l, change_h, change_o, price, low, high)
 		

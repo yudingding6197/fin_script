@@ -9,6 +9,7 @@ import urllib2
 import pandas as pd
 import time
 import ctypes
+import internal.common
 from internal.ts_common import *
 
 # 依赖../data/entry/_no_open_cx.txt，需要 debug/sync_cixin.py
@@ -33,21 +34,6 @@ def currentIndexData(url, code):
 			return
 		idxVal = "%.02f"%(float(stockObj[1]))
 		print "%10s	%s%%(%s)" % (idxVal, stockObj[3], stockObj[2])
-
-def handle_code(code):
-	head3 = code[0:3]
-	result = (cmp(head3, "000")==0) or (cmp(head3, "002")==0) or (cmp(head3, "300")==0) or (cmp(head3, "131")==0)
-	if result is True:
-		code = "sz" + code
-		return code
-
-	result = (cmp(head3, "600")==0) or (cmp(head3, "601")==0) or (cmp(head3, "603")==0) or (cmp(head3, "204")==0)
-	if result is True:
-		code = "sh" + code
-		return code
-
-	print "非法代码:" +code+ "\n"
-	return None
 
 def getSinaData(url, code, sleepTime, inst_info, phase):
 	global COND_COUNT
@@ -164,9 +150,10 @@ def get_stk_by_file(stockCode):
 				continue
 			if code.isdigit() is False:
 				continue
-			code = handle_code(code)
-			if code is None:
-				continue
+
+ 			ret, code = internal.common.parseCode(code)
+			if ret!=0:
+				exit(1);
 			#print code
 			stockCode.append(code)
 	file.close()
@@ -187,7 +174,6 @@ if len(stockCode)==0:
 	print "No CX Data"
 	exit(0)
 #stockCode = stockCode[0:1]
-#stockCode = ['sz002853']
 
 idxCount=0
 exgCount=0
