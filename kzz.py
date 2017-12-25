@@ -5,6 +5,7 @@ import sys
 import re
 import urllib2
 import datetime
+import zlib
 import pandas as pd
 from internal.dfcf_interface import *
 
@@ -50,15 +51,27 @@ curl 'http://datapic.eastmoney.com/img/loading.gif' -H 'Referer: http://data.eas
 
 urlfmt = 'http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get?type=KZZ_LB&token=70f12f2f4f091e459a279469fe49eca5&cmd=&st=STARTDATE&sr=-1&p=%d&ps=50&js=iGeILSKk={pages:(tp),data:(x)}&rt=50463927'
 send_headers = {
- 'Host':'dcfm.eastmoney.com',
- 'Connection':'keep-alive',
- 'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
- 'Accept':'*/*',
- 'DNT': '1',
- 'Referer': 'http://data.eastmoney.com/kzz/default.html',
- 'Accept-Encoding': 'gzip, deflate',
- 'Accept-Language': 'zh-CN,zh;q=0.8',
- 'Cookie': 'st_pvi=33604263703666; emstat_bc_emcount=300285734935048278; pi=6100112247957528%3byudingding6197%3bgoutou%3bcUC1rQLS6GFOJIpJ%2b0I6Wt5AdIat%2bLRj2ZvGrlzeObRNvIHEcy62FDfQ%2boIImkvxiIyCd9QIklChsWI2qjINWL5DdBKYMZ71JGBsgoVjEXYjdw1rWDHu45I%2bNugmP4pbtdgvhUf884FcXhI1tqTCeHOobtdLSzpfA7h3MiSCx5rf8AdOH0uOhUuvYFxLUOx0oD6KGdMI%3bJ7wwpyq2YPDBfbwAqENYGA8GKWnFXYc1dIR5LuUNwKNYfZKtn2ufQSBXaOy%2fJuok5A10Hmp70CM%2bH4jRSUeLe8OOEOwSG5o1tvO4rx%2fTjNoq%2fbM2d6QYkUKtXL0XTX8nREubTh%2bPugiWdGxX3hARJpanE0qULw%3d%3d; uidal=6100112247957528goutou; vtpst=|; '
+'Host':'dcfm.eastmoney.com',
+'Connection':'keep-alive',
+'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
+'Accept':'*/*',
+'DNT': '1',
+'Referer': 'http://data.eastmoney.com/kzz/default.html',
+'Accept-Encoding': 'gzip, deflate',
+'Accept-Language': 'zh-CN,zh;q=0.8',
+'Cookie': 'st_pvi=33604263703666; emstat_bc_emcount=300285734935048278; pi=6100112247957528%3byudingding6197%3bgoutou%3bcUC1rQLS6GFOJIpJ%2b0I6Wt5AdIat%2bLRj2ZvGrlzeObRNvIHEcy62FDfQ%2boIImkvxiIyCd9QIklChsWI2qjINWL5DdBKYMZ71JGBsgoVjEXYjdw1rWDHu45I%2bNugmP4pbtdgvhUf884FcXhI1tqTCeHOobtdLSzpfA7h3MiSCx5rf8AdOH0uOhUuvYFxLUOx0oD6KGdMI%3bJ7wwpyq2YPDBfbwAqENYGA8GKWnFXYc1dIR5LuUNwKNYfZKtn2ufQSBXaOy%2fJuok5A10Hmp70CM%2bH4jRSUeLe8OOEOwSG5o1tvO4rx%2fTjNoq%2fbM2d6QYkUKtXL0XTX8nREubTh%2bPugiWdGxX3hARJpanE0qULw%3d%3d; uidal=6100112247957528goutou; vtpst=|; '
+}
+
+rturl = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._DEBT_%s_Z&sty=FCOIATA&sortType=C&sortRule=-1&page=%d&pageSize=80&js=quote_123={rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c'
+rturl = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._DEBT_%s_Z&sty=FCOIATA&sortType=C&sortRule=-1&page=%d&pageSize=80&js=quote_123={rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c'
+rt_headers = {
+'Host': 'nufm.dfcfw.com',
+'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
+'Accept': '*/*',
+'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
+'Accept-Encoding': 'gzip, deflate',
+'Referer': 'http://quote.eastmoney.com/center/list.html',
+'DNT': '1'
 }
 
 def getKZZConnect(page):
@@ -81,6 +94,35 @@ def getKZZConnect(page):
 		content = ''
 		return
 	content = res_data.read().decode('utf8')
+	return
+
+def getKZZRt(market, page):
+	global content
+	LOOP_COUNT=0
+	urllink = rturl % (market, page)
+	res_data = None
+	while LOOP_COUNT<3:
+		try:
+			#print urllink
+			req = urllib2.Request(urllink,headers=rt_headers)
+			res_data = urllib2.urlopen(req)
+		except:
+			print "Exception kzz urlopen"
+			LOOP_COUNT += 1
+		else:
+			break
+	#print res_data
+	if res_data is None:
+		print "Error: Fail to get request"
+		content = ''
+		return
+	content = res_data.read()
+	respInfo = res_data.info()
+	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")) :
+		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
+	print content.decode('utf8')
+	#content = res_data.read().decode('gbk')
+	#print content[:2]
 	return
 
 #['BONDCODE','SNAME','ZQNEW','YJL','ZGJZGJJZ','ZGJ_HQ','SWAPSCODE','SECURITYSHORTNAME','ZGJZGJ']
@@ -107,6 +149,9 @@ def output(kdf):
 		print str
 	return
 
+getKZZRt('SH', 1)
+getKZZRt('SZ', 1)
+exit()
 
 #Main
 if __name__=="__main__":

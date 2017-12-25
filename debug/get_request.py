@@ -3,6 +3,7 @@
 import sys
 import urllib2
 import json
+import zlib
 from bs4 import BeautifulSoup
 
 #urlall = "http://quote.eastmoney.com/center/list.html#33"
@@ -16,8 +17,10 @@ from bs4 import BeautifulSoup
 #东财关于概念排行
 #urlall = "http://quote.eastmoney.com/center/BKList.html#notion_0_0?sortRule=0"
 urlall = 'http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get?type=KZZ_LB&token=70f12f2f4f091e459a279469fe49eca5&cmd=&st=STARTDATE&sr=-1&p=1&ps=50&js=var%20iGeILSKk={pages:(tp),data:(x)}&rt=50463927'
+urlall = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._DEBT_SH_Z&sty=FCOIATA&sortType=C&sortRule=-1&page=1&pageSize=70&js=quote_123{rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c'
 
 # -H "Host: nufm.dfcfw.com" -H "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0" -H "Accept: */*" 
+'''
 send_headers = {
 'Host':'dcfm.eastmoney.com',
 'Connection':'keep-alive',
@@ -29,6 +32,18 @@ send_headers = {
 'Accept-Language': 'zh-CN,zh;q=0.8',
 'Cookie': 'st_pvi=33604263703666; emstat_bc_emcount=300285734935048278; pi=6100112247957528%3byudingding6197%3bgoutou%3bcUC1rQLS6GFOJIpJ%2b0I6Wt5AdIat%2bLRj2ZvGrlzeObRNvIHEcy62FDfQ%2boIImkvxiIyCd9QIklChsWI2qjINWL5DdBKYMZ71JGBsgoVjEXYjdw1rWDHu45I%2bNugmP4pbtdgvhUf884FcXhI1tqTCeHOobtdLSzpfA7h3MiSCx5rf8AdOH0uOhUuvYFxLUOx0oD6KGdMI%3bJ7wwpyq2YPDBfbwAqENYGA8GKWnFXYc1dIR5LuUNwKNYfZKtn2ufQSBXaOy%2fJuok5A10Hmp70CM%2bH4jRSUeLe8OOEOwSG5o1tvO4rx%2fTjNoq%2fbM2d6QYkUKtXL0XTX8nREubTh%2bPugiWdGxX3hARJpanE0qULw%3d%3d; uidal=6100112247957528goutou; '
 }
+'''
+
+send_headers = {
+'Host': 'nufm.dfcfw.com',
+'Connection': 'keep-alive',
+'Upgrade-Insecure-Requests': '1',
+'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2986.0 Safari/537.36',
+'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+'Accept-Encoding': 'gzip, deflate, sdch',
+'Accept-Language': 'zh-CN,zh;q=0.8'
+}
+
 #print urlall
 
 filename = 'debug/_html.txt'
@@ -52,6 +67,12 @@ if res_data is None:
 	exit(0)
 
 content = res_data.read()
+respInfo = res_data.info()
+if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
+	print "Content compressed"
+	content = zlib.decompress(content, 16+zlib.MAX_WBITS);
+#print content.decode('utf8')
+
 tf_fl.write(content)
 
 
