@@ -11,6 +11,10 @@ import numpy as np
 
 yzzt_list = ['603345','603238','000520','300613','300608','300553','603615']
 
+#空dataFrame
+empty = pd.DataFrame({})
+print empty
+
 #创建Series and pandas
 a = pd.Series([11,34,54,89,39,20,25])
 b = pd.Series(['aa','cc','asd','ew','asd','ew','ce',])
@@ -30,6 +34,19 @@ print df1
 df2 = df1.sort_values(['A'], 0, False)
 print df2
 
+#list中append字典，dictionary，默认列按照a,c,f排序，通过columns排列成为指定的列
+lst=[]
+d1={'c':'CC1', 'f':221, 'a':'AA1'}
+lst.append(d1)
+d2={'c':'CC2', 'f':222, 'a':'AA2'}
+lst.append(d2)
+df1 = pd.DataFrame(lst)
+print "默认列:"
+print df1
+df1 = pd.DataFrame(lst, columns=list('caf'))
+print "指定列:"
+print df1
+
 print "3) ____________________"
 s1=[]
 s1.append(['ab',32,533,4])
@@ -39,6 +56,21 @@ s1.append(['vwq',76,923,62])
 print s1
 df1 = pd.DataFrame(s1, columns=list('ABCD'))
 #print df1.sort_values(['B'], 0, False)
+#前面是list，在第二列按照list(row0)的方式修改
+row0 = ["a_r",3,23,6]
+print type(row0)
+df1.loc[1]=row1
+
+#在最后一行追加
+row1 = {'A':'ak', 'B':3, 'C':23, 'D':6}
+df2=df1.append(row1, ignore_index=True)
+print df2
+
+
+#插入一列
+df1.insert(3,'H',[1,3,4,6])
+print df1
+
 
 df2 = pd.DataFrame(s1)
 #print df2.sort_values([2], 0, False)

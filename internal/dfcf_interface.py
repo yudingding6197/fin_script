@@ -5,6 +5,7 @@ import os
 import re
 import datetime
 import urllib2
+import json
 
 urlall = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._BKGN&sty=FPGBKI&st=c&sr=-1&p=1&ps=5000&cb=&token=7bc05d0d4c3c22ef9fca8c2a912d779c&v=0.2694706493189898"
 send_headers = {
@@ -68,6 +69,7 @@ def query_gainianbankuai(listobj, bkInfo):
 	rank = 0
 	strline = u'排名,板块名称,板块涨幅,家数,领涨个股,涨幅,领跌个股,跌幅'
 	while 1:
+		#通过非贪婪模式进行匹配，关键字'?'
 		obj = re.match(r'"(.*?)",?(.*)', line)
 		if obj is None:
 			break
@@ -130,3 +132,47 @@ def query_gainianbankuai(listobj, bkInfo):
 			bkInfo.increase += 1
 		elif bk_change_f<0:
 			bkInfo.fall += 1
+	return
+
+#检查是否正在交易，过滤没有交易的
+def checkTradeZhai(kzzdt):
+	if kzzdt['ZGJ']=='-':
+		return 0
+	trdate = kzzdt['LISTDATE']
+	if trdate=='-':
+		return 0
+
+	#[LISTDATE]='2016-01-18T00:00:00'
+	trdate = trdate[0:10]
+	trd_date = datetime.datetime.strptime(trdate, '%Y-%m-%d').date()
+	tdy_date = datetime.date.today()
+	delta = (tdy_date - trd_date).days
+	if delta<0:
+		return 0
+	return 1
+
+def getFilterZhai(content, filter_tp, kzzlist):
+	if content=='':
+		return
+
+	tick = 0
+	while 1:
+		dataObj = re.match(r'({.*?}),?(.*)', content)
+		if dataObj is None:
+			break
+		item = dataObj.group(1)
+		content = dataObj.group(2)
+
+		d2 = json.loads(item)
+		if filter_tp==1:
+			if checkTradeZhai(d2)==0:
+				continue
+		kzzlist.append(d2)
+	return
+
+def getZhaiDetail(content, kzzlist):
+	if content=='':
+		return
+	getFilterZhai(content, 0, kzzlist)
+	return
+
