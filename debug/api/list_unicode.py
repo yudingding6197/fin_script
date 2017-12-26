@@ -9,6 +9,10 @@ import datetime
 import tushare as ts
 
 yzzt_list = ['603345','603238','000520','300613','300608','300553','603615']
+add_list = ['002815','300291']
+#通过extend方法追加，不能使用append
+yzzt_list.extend(add_list)
+
 excecount = 0
 stdf = None
 while excecount<5:

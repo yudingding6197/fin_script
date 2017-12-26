@@ -36,16 +36,19 @@ print df2
 
 #list中append字典，dictionary，默认列按照a,c,f排序，通过columns排列成为指定的列
 lst=[]
-d1={'c':'CC1', 'f':221, 'a':'AA1'}
+d1={'c':'CC1', 'f':221, 'a':'AA1','e':'E1'}
 lst.append(d1)
-d2={'c':'CC2', 'f':222, 'a':'AA2'}
+d2={'c':'CC2', 'f':222, 'a':'AA2','e':'E2'}
 lst.append(d2)
 df1 = pd.DataFrame(lst)
 print "默认列:"
 print df1
-df1 = pd.DataFrame(lst, columns=list('caf'))
+df1 = pd.DataFrame(lst, columns=list('cafe'))
+#将e列设置为索引,恢复用 reset_index()
+df1=df1.set_index('e')
 print "指定列:"
 print df1
+print df1.iloc(0)
 
 print "3) ____________________"
 s1=[]
@@ -59,6 +62,7 @@ df1 = pd.DataFrame(s1, columns=list('ABCD'))
 #前面是list，在第二列按照list(row0)的方式修改
 row0 = ["a_r",3,23,6]
 print type(row0)
+row1 = ["c_d",13,23,5]
 df1.loc[1]=row1
 
 #在最后一行追加
@@ -78,7 +82,7 @@ df2 = pd.DataFrame(s1)
 df1 = df1.set_index('A')
 print df1
 
-print "f_C==",df1.ix['fv']['C']
+print "f_C==",df1.ix['vwq']['C']
 #iloc是索引的index取一行，显示这一行： 'fv',6,147,118
 #print (df1.iloc[[0]])
 #loc是针对具体索引的值取一行，显示这一行： 'fv',6,147,118

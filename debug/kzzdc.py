@@ -9,6 +9,8 @@ import zlib
 import json
 import getopt
 import pandas as pd
+sys.path.append(".")
+sys.path.append("..")
 from internal.dfcf_interface import *
 
 '''
@@ -185,79 +187,25 @@ def output(kdf):
 		print str
 	return
 
-def show_item(rank, items):
-	fmt = "%2d %6s %8s	%5.2f	%5.2f	%5.2f	%5.2f	%5.2f	%5.2f	%5.2f"
-	if items is not None:
-		value=items['name']
-		nmlen=len(value)
-		if nmlen<8:
-			left=8-nmlen
-			while left>0:
-				value=' '+value
-				left-=1
-
-		code = items['code']
-		cp = items['changepercent']
-		trade = items['trade']
-		open = items['open']
-		high = items['high']
-		low = items['low']
-		z_close = items['settlement']
-		open_p = (open-z_close)*100/z_close
-		high_p = (high-z_close)*100/z_close
-		low_p = (low-z_close)*100/z_close
-		YJL = (items['YJL'])
-		ZGJZ = (items['ZGJZGJJZ'])
-		str = fmt % (rank, code, value, cp,trade,open_p,high_p,low_p,YJL,ZGJZ)
-		print str
-
-def	output_rank(mgdf):
-	fmt = "   %6s %8s	%-7s	%-7s	%-7s	%-7s	%-7s	%-7s	%-7s"
-	print fmt%('code', 'name', 'change', 'price', 'open', 'high', 'low', 'YJL', 'ZGJZ')
-
-	flag = False
-	sortitem = 'changepercent'
-	if param_config['Daoxu']==1:
-		flag = True
-	if param_config['Price']==1:
-		sortitem = 'trade'
-	elif param_config['YJL']==1:
-		sortitem = 'YJL'
-	elif param_config['ZGJZ']==1:
-		sortitem = 'ZGJZGJJZ'
-	df = mgdf.sort_values([sortitem],0, flag)
-	rank = 0
-	for code in priority:
-		items = df.ix[code]
-		#print items
-		show_item(rank, items)
-	print ''
-	for index,items in df.iterrows():
-		rank += 1
-		show_item(rank, items)
-	return
-
-priority = ['128018','128023','123002']
 param_config = {
 	"Daoxu":0,
-	"Price":0,
-	"YJL":0,
-	"ZGJZ":0
+	"NoDetail":0,
+	"SortByTime":0,
+	"AllInfo":0
 }
 
 #Main
 if __name__=="__main__":
-	#倒序，价格，溢价率
-	optlist, args = getopt.getopt(sys.argv[1:], 'dpyz')
+	optlist, args = getopt.getopt(sys.argv[1:], 'ldtf')
 	for option, value in optlist:
 		if option in ["-d","--daoxu"]:
 			param_config["Daoxu"] = 1
-		elif option in ["-p","--price"]:
-			param_config["Price"] = 1
-		elif option in ["-y","--yjl"]:
-			param_config["YJL"] = 1
-		elif option in ["-z","--zgjz"]:
-			param_config["ZGJZ"] = 1
+		elif option in ["-d","--nodetail"]:
+			param_config["NoDetail"] = 1
+		elif option in ["-t","--sbtime"]:
+			param_config["SortByTime"] = 1
+		elif option in ["-a","--all"]:
+			param_config["AllInfo"] = 1
 
 	req_count=0
 	curpage = 1
@@ -296,17 +244,7 @@ if __name__=="__main__":
 	"LIMITBUYIPUB", "MEMO", "ZGJ", "ZQHDATE", "YJL", "FSTPLACVALPERSTK", "ZQNEW",
 	"CORRESCODE", "SWAPPRICE", "ZGJ_HQ", "ZGJZGJ"]
 	keylist = ['BONDCODE','SNAME','ZQNEW','YJL','ZGJZGJJZ','ZGJ_HQ','SWAPSCODE','SECURITYSHORTNAME','ZGJZGJ']
+
 	kzzdf = pd.DataFrame(kzzlist, columns=keylist)
-	kzzdf1 = kzzdf.set_index('BONDCODE')
 
-	sinakey = ['sell', 'volume', 'buy', 'name', 'ticktime', 'symbol', 'pricechange', 'changepercent', 'trade', 'high', 'amount','code', 'low', 'settlement', 'open']
-	sina_rt = []
-	getKZZRtSina(sina_rt)
-	sinadf=pd.DataFrame(sina_rt, columns=sinakey)
-	sinadf=sinadf.set_index('symbol')
-
-	#直接合并2个dataFrame，根据索引合并
-	mgdf = pd.merge(sinadf, kzzdf1, how='left', left_index=True, right_index=True)
-
-	#output(kzzdf)
-	output_rank(mgdf)
+	output(kzzdf)
