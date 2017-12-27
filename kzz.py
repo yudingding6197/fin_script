@@ -14,9 +14,6 @@ from internal.dfcf_interface import *
 '''
 urlall = "http://data.eastmoney.com/kzz/default.html"
 
-http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get?type=KZZ_LB&token=70f12f2f4f091e459a279469fe49eca5&cmd=&st=STARTDATE&sr=-1&p=2&ps=50&js=var%20fnhOGnNf={pages:(tp),data:(x)}&rt=50462432
-curl 'http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get?type=KZZ_LB&token=70f12f2f4f091e459a279469fe49eca5&cmd=&st=STARTDATE&sr=-1&p=2&ps=50&js=var%20ShTNyQGa=\{pages:(tp),data:(x)\}&rt=50462435' -H 'Referer: http://data.eastmoney.com/kzz/default.html' -H 'User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2986.0 Safari/537.36' --compressed ;
-curl 'http://datapic.eastmoney.com/img/loading.gif' -H 'Referer: http://data.eastmoney.com/kzz/default.html' -H 'User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2986.0 Safari/537.36' --compressed
 ==========
 [STARTDATE]='2017-12-04T00:00:00'		申购日期
 [QSCFJ]='7.31'				强赎触发价
@@ -61,7 +58,12 @@ send_headers = {
 'Referer': 'http://data.eastmoney.com/kzz/default.html',
 'Accept-Encoding': 'gzip, deflate',
 'Accept-Language': 'zh-CN,zh;q=0.8',
-'Cookie': 'st_pvi=33604263703666; emstat_bc_emcount=300285734935048278; pi=6100112247957528%3byudingding6197%3bgoutou%3bcUC1rQLS6GFOJIpJ%2b0I6Wt5AdIat%2bLRj2ZvGrlzeObRNvIHEcy62FDfQ%2boIImkvxiIyCd9QIklChsWI2qjINWL5DdBKYMZ71JGBsgoVjEXYjdw1rWDHu45I%2bNugmP4pbtdgvhUf884FcXhI1tqTCeHOobtdLSzpfA7h3MiSCx5rf8AdOH0uOhUuvYFxLUOx0oD6KGdMI%3bJ7wwpyq2YPDBfbwAqENYGA8GKWnFXYc1dIR5LuUNwKNYfZKtn2ufQSBXaOy%2fJuok5A10Hmp70CM%2bH4jRSUeLe8OOEOwSG5o1tvO4rx%2fTjNoq%2fbM2d6QYkUKtXL0XTX8nREubTh%2bPugiWdGxX3hARJpanE0qULw%3d%3d; uidal=6100112247957528goutou; vtpst=|; '
+'Cookie': 'st_pvi=33604263703666; emstat_bc_emcount=300285734935048278; \
+pi=6100112247957528%3byudingding6197%3bgoutou%3bcUC1rQLS6GFOJIpJ%2b0I6Wt5AdIat%2bLRj2ZvGrlzeObRNvIHEcy62FDfQ%2boIImkvxiIyCd9QIklChsWI2qjINWL\
+5DdBKYMZ71JGBsgoVjEXYjdw1rWDHu45I%2bNugmP4pbtdgvhUf884FcXhI1tqTCeHOobtdLSzpfA7h3MiSCx5rf8AdOH0uOhUuvYFxLUOx0oD6KGdMI%3bJ7wwpyq2YPDBfbw\
+AqENYGA8GKWnFXYc1dIR5LuUNwKNYfZKtn2ufQSBXaOy%2fJuok5A10Hmp70CM%2bH4jRSUeLe8OOEOwSG5o1tvO4rx%2fTjNoq%2fbM2d6QYkUKtXL0XTX8nREubTh%2bPugi\
+WdGxX3hARJpanE0qULw%3d%3d; \
+uidal=6100112247957528goutou; vtpst=|; '
 }
 
 rturl = 'http://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeDataSimple?page=1&num=80&sort=symbol&asc=1&node=hskzz_z&_s_r_a=page'
@@ -75,7 +77,16 @@ rt_headers = {
 'Referer': 'http://vip.stock.finance.sina.com.cn/mkt/',
 'Accept-Encoding': 'gzip, deflate',
 'Accept-Language': 'zh-CN,zh;q=0.8',
-'Cookie': 'U_TRS1=0000000e.db0f67d9.58743532.0ab3855e; UOR=www.baidu.com,blog.sina.com.cn,; vjuids=-4f7e5f1b8.15985efc8ab.0.b0009b04a9d3a; SINAGLOBAL=114.243.223.213_1484010803.467733; SGUID=1490330513641_6143460; SCF=ApQZBkYNx5ED9eRh4x7RWZjDJZfZGEsCEcgqoaFHnaP7DqJZQpUkYRbUtwv1spWbrMvv9eU5YBJ8U5RXwjUggcc.; FINA_V_S_2=sz300648,sh603600; vjlast=1504425305; Apache=10.13.240.35_1513310793.422171; U_TRS2=00000016.b8c612f7.5a3398c2.608c14c5; SessionID=oe6kbh7j9v4usqdkigqe4inb71; ULV=1513330875049:56:5:3:10.13.240.35_1513310793.422171:1513225944670; sso_info=v02m6alo5qztbmdlpGpm6adpJqWuaeNo4S5jbKZtZqWkL2Mk5i1jaOktYyDmLOMsMDA; SUB=_2A253Rcj3DeThGedI7lQY9S7KyD-IHXVUMr0_rDV_PUNbm9AKLWTjkW9NVwM9cn_D0fMlGi8-URaLNK3j_mTGomwb; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5.n90RO.U79QHoy5Rk17Op5NHD95QpSo-c1K-7Soe0Ws4Dqcjdi--NiKyFiK.Ni--4i-zpi-ihi--fi-2Xi-zX; ALF=1545792551; rotatecount=2; SR_SEL=1_511; lxlrttp=1513341002; FINANCE2=8d5626b3132364178ca15d9e87dc4f27; SINA_FINANCE=yudingding6197%3A1656950633%3A4'
+'Cookie': 'U_TRS1=0000000e.db0f67d9.58743532.0ab3855e; UOR=www.baidu.com,blog.sina.com.cn,; vjuids=-4f7e5f1b8.15985efc8ab.0.b0009b04a9d3a; \
+SINAGLOBAL=114.243.223.213_1484010803.467733; SGUID=1490330513641_6143460; \
+SCF=ApQZBkYNx5ED9eRh4x7RWZjDJZfZGEsCEcgqoaFHnaP7DqJZQpUkYRbUtwv1spWbrMvv9eU5YBJ8U5RXwjUggcc.; \
+FINA_V_S_2=sz300648,sh603600; vjlast=1504425305; Apache=10.13.240.35_1513310793.422171; U_TRS2=00000016.b8c612f7.5a3398c2.608c14c5; \
+SessionID=oe6kbh7j9v4usqdkigqe4inb71; ULV=1513330875049:56:5:3:10.13.240.35_1513310793.422171:1513225944670; \
+sso_info=v02m6alo5qztbmdlpGpm6adpJqWuaeNo4S5jbKZtZqWkL2Mk5i1jaOktYyDmLOMsMDA; \
+SUB=_2A253Rcj3DeThGedI7lQY9S7KyD-IHXVUMr0_rDV_PUNbm9AKLWTjkW9NVwM9cn_D0fMlGi8-URaLNK3j_mTGomwb; \
+SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5.n90RO.U79QHoy5Rk17Op5NHD95QpSo-c1K-7Soe0Ws4Dqcjdi--NiKyFiK.Ni--4i-zpi-ihi--fi-2Xi-zX; \
+ALF=1545792551; rotatecount=2; SR_SEL=1_511; lxlrttp=1513341002; FINANCE2=8d5626b3132364178ca15d9e87dc4f27; \
+SINA_FINANCE=yudingding6197%3A1656950633%3A4'
 }
 
 def getKZZConnect(page):
@@ -162,7 +173,7 @@ def getKZZRtSina(list):
 
 #['BONDCODE','SNAME','ZQNEW','YJL','ZGJZGJJZ','ZGJ_HQ','SWAPSCODE','SECURITYSHORTNAME','ZGJZGJ']
 def output(kdf):
-	fmt = "%2d %6s %8s	%5.2f	%5.2f	%5.2f	%5.2f	%5.2f"
+	fmt = u"%2d %6s %8s	%5.2f	%5.2f	%5.2f	%5.2f	%5.2f"
 	df = kdf.sort_values(['YJL'],0,True)
 	rank = 0
 	for index,items in df.iterrows():
@@ -208,11 +219,12 @@ def show_item(rank, items):
 		low_p = (low-z_close)*100/z_close
 		YJL = (items['YJL'])
 		ZGJZ = (items['ZGJZGJJZ'])
-		str = fmt % (rank, code, value, cp,trade,open_p,high_p,low_p,YJL,ZGJZ)
+		str = fmt % (rank, code, value.decode('gbk'), cp,trade,open_p,high_p,low_p,YJL,ZGJZ)
+		#str = fmt % (rank, code, value, cp,trade,open_p,high_p,low_p,YJL,ZGJZ)
 		print str
 
-def	output_rank(mgdf):
-	fmt = "   %6s %8s	%-7s	%-7s	%-7s	%-7s	%-7s	%-7s	%-7s"
+def output_rank(mgdf):
+	fmt = "   %6s %8s      %-7s	%-7s	%-7s	%-7s	%-7s	%-7s	%-7s"
 	print fmt%('code', 'name', 'change', 'price', 'open', 'high', 'low', 'YJL', 'ZGJZ')
 
 	flag = False
@@ -231,6 +243,7 @@ def	output_rank(mgdf):
 		items = df.ix[code]
 		#print items
 		show_item(rank, items)
+	print '=================================================='
 	print ''
 	for index,items in df.iterrows():
 		rank += 1

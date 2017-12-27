@@ -291,7 +291,7 @@ param_config = {
 	"AllInfo":0
 }
 
-optlist, args = getopt.getopt(sys.argv[1:], 'ldtf')
+optlist, args = getopt.getopt(sys.argv[1:], 'ldta')
 for option, value in optlist:
 	if option in ["-l","--nolog"]:
 		param_config["NoLog"] = 1
