@@ -797,47 +797,6 @@ def list_stock_news(code, curdate, file):
 		print row['date'],row['title']
 	print ''
 
-def list_realtime_info(basic, codeArray):
-	if len(codeArray)==0:
-		return
-	df = ts.get_realtime_quotes(codeArray)
-	#print df
-	#c = df[['name','price','bid','ask','volume','amount','time']]
-	#name    open pre_close   price    high     low     bid     ask     volume 
-	#amount   ...      a2_p  a3_v    a3_p  a4_v    a4_p  a5_v    a5_p  date      time    code
-	print ''
-	for index,row in df.iterrows():
-		stname = row['name']
-		stlen=len(stname.encode('gbk'))
-		maxlen=10
-		if len(stname)<maxlen:
-			left=maxlen-stlen
-			while left>0:
-				stname += ' '
-				left-=1
-		open = row['open']
-		pre_close = row['pre_close']
-		price = row['price']
-		high = row['high']
-		low = row['low']
-		volume = int(row['volume'])
-		if basic is None:
-			turnover_rt = 0
-		else:
-			total_vol = float(basic.ix[codeArray[index]]['outstanding'])
-			turnover_rt = ((volume/10000) / (total_vol*100))
-			
-		price_f = float(price)
-		pre_close_f = float(pre_close)
-		change = '%02.02f'%( ((price_f-pre_close_f)/pre_close_f)*100 )
-		change_l = '%02.02f'%( ((float(low)-pre_close_f)/pre_close_f)*100 )
-		change_h = '%02.02f'%( ((float(high)-pre_close_f)/pre_close_f)*100 )
-		change_o = '%02.02f'%( ((float(open)-pre_close_f)/pre_close_f)*100 )
-
-		str_fmt = "%6s %s %-6s(%6s%%) (%5.02f%%)	%-6s(%6s) %-6s(%6s)"
-		print str_fmt%(codeArray[index], stname, price, change, turnover_rt, low, change_l, high, change_h)
-		#print "%6s %5s	%6s(%6s,%6s,%6s)	%8s(%8s,%8s)" %(stname, change, change_l, change_h, change_o, price, low, high)
-		
 def list_latest_news(codeArray, curdate):
 	cur_dt = datetime.datetime.strptime(curdate, '%Y-%m-%d').date()
 	for code in codeArray:

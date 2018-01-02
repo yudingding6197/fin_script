@@ -219,8 +219,10 @@ def show_item(rank, items):
 		low_p = (low-z_close)*100/z_close
 		YJL = (items['YJL'])
 		ZGJZ = (items['ZGJZGJJZ'])
-		str = fmt % (rank, code, value.decode('gbk'), cp,trade,open_p,high_p,low_p,YJL,ZGJZ)
-		#str = fmt % (rank, code, value, cp,trade,open_p,high_p,low_p,YJL,ZGJZ)
+		if trade==0:
+			str = fmt % (rank, code, value.decode('gbk'), cp,trade,open,high,low,YJL,ZGJZ)
+		else:
+			str = fmt % (rank, code, value.decode('gbk'), cp,trade,open_p,high_p,low_p,YJL,ZGJZ)
 		print str
 
 def output_rank(mgdf):
