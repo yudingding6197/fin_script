@@ -89,6 +89,7 @@ ALF=1545792551; rotatecount=2; SR_SEL=1_511; lxlrttp=1513341002; FINANCE2=8d5626
 SINA_FINANCE=yudingding6197%3A1656950633%3A4'
 }
 
+'''
 def getKZZConnect(page):
 	global content
 	LOOP_COUNT=0
@@ -110,6 +111,7 @@ def getKZZConnect(page):
 		return
 	content = res_data.read().decode('utf8')
 	return
+'''
 
 #得到交易日KZZ的实时价格
 def getKZZRtSina(list):
@@ -173,7 +175,7 @@ def getKZZRtSina(list):
 
 #['BONDCODE','SNAME','ZQNEW','YJL','ZGJZGJJZ','ZGJ_HQ','SWAPSCODE','SECURITYSHORTNAME','ZGJZGJ']
 def output(kdf):
-	fmt = u"%2d %6s %8s	%5.2f	%5.2f	%5.2f	%5.2f	%5.2f"
+	fmt = u"%2d %6s %8s	%8s   %5.2f	%5.2f	%5.2f	%5.2f"
 	df = kdf.sort_values(['YJL'],0,True)
 	rank = 0
 	for index,items in df.iterrows():
@@ -185,7 +187,7 @@ def output(kdf):
 				value=' '+value
 				left-=1
 
-		ZQNEW = (float(items['ZQNEW']))
+		ZQNEW = items['ZQNEW']
 		YJL = float(items['YJL'])
 		ZGJZ = float(items['ZGJZGJJZ'])
 		ZGJ_HQ = float(items['ZGJ_HQ'])
@@ -217,6 +219,10 @@ def show_item(rank, items):
 		open_p = (open-z_close)*100/z_close
 		high_p = (high-z_close)*100/z_close
 		low_p = (low-z_close)*100/z_close
+		if high==0:
+			open_p = 0
+			high_p = 0
+			low_p = 0
 		YJL = (items['YJL'])
 		ZGJZ = (items['ZGJZGJJZ'])
 		if trade==0:
@@ -284,7 +290,7 @@ if __name__=="__main__":
 		if req_count>10:
 			break
 
-		getKZZConnect(curpage)
+		content = getKZZConnect(urlfmt, send_headers, curpage)
 		if content=='':
 			break
 		dataObj = re.match('^iGeILSKk={pages:(\d+),data:\[(.*)\]}', content)

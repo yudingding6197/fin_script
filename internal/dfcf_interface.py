@@ -176,3 +176,22 @@ def getZhaiDetail(content, kzzlist):
 	getFilterZhai(content, 0, kzzlist)
 	return
 
+def getKZZConnect(urlfmt, send_headers, page):
+	LOOP_COUNT=0
+	urllink = urlfmt % (page)
+	res_data = None
+	while LOOP_COUNT<3:
+		try:
+			#print urllink
+			req = urllib2.Request(urllink,headers=send_headers)
+			res_data = urllib2.urlopen(req)
+		except:
+			print "Exception kzz urlopen"
+			LOOP_COUNT += 1
+		else:
+			break
+	if res_data is None:
+		print "Error: Fail to get request"
+		return ''
+	content = res_data.read().decode('utf8')
+	return content
