@@ -78,9 +78,9 @@ def export_ebk(kdf):
 		code = items[0]
 		str = ''
 		if code[:2]=='11':
-			str = '0%s\n'%(code)
-		elif code[:2]=='12':
 			str = '1%s\n'%(code)
+		elif code[:2]=='12':
+			str = '0%s\n'%(code)
 		if str!='':
 			file.write(str)
 	file.close()

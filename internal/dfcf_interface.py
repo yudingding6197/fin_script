@@ -196,15 +196,27 @@ def getKZZConnect(urlfmt, send_headers, page):
 	content = res_data.read().decode('utf8')
 	return content
 
-def get_latest_market(new_st_list):
+'''
+GET /EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._A&sty=FCOIATA&sortType=A&sortRule=1&page=1&pageSize=20&js=var%20quote_123%3d{rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c&jsName=quote_123&_g=0.11244183898795046 HTTP/1.1
+Host: nufm.dfcfw.com
+Connection: keep-alive
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36
+Accept: */*
+DNT: 1
+Referer: http://quote.eastmoney.com/center/list.html
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.8
+
+'''
+def get_each_page_data(curpage, new_st_list):
 	link = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?"
-	key1 = "type=CT&cmd=C._A&sty=FCOIATA&sortType=C&sortRule=-1"
+	key1 = "type=CT&cmd=C._A&sty=FCOIATA&sortType=A&sortRule=1"
 	urlfmt = link + key1 +"&page=%d&pageSize=80&js={rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c"
 
 	LOOP_COUNT = 0
 	response = None
 	while LOOP_COUNT<3:
-		url = urlfmt % (1)
+		url = urlfmt % (curpage)
 		try:
 			req = urllib2.Request(url)
 			response = urllib2.urlopen(req, timeout=5)
@@ -214,17 +226,41 @@ def get_latest_market(new_st_list):
 		else:
 			break
 	if response is None:
-		print "Please check no data from DongCai"
-		return
+		print "Please check data from DongCai at", curpage
+		return -1
 
 	line = response.read()
-	obj = re.match(r'{rank:\["(.*)"\].*', line)
+	#print line
+	obj = re.match(r'{rank:\["(.*)"\],pages:(\d+)', line)
+	if obj is None:
+		print "Not find matched content at", curpage
+		return -1
+	totalpage = int(obj.group(2))
+	
+	file = open("_temp.txt", 'w')
+	file.write(line)
+	file.close()
+	
 	rank = obj.group(1)
 	array = rank.split('","')
 	for i in range(0, len(array)):
 		props = array[i].split(',')
+		print props
 		#if props[2][0]=='N':
 		code = props[1]
 		new_st_list.append(code)
-		print code
-	return
+		#print code
+	#到达最大页面，返回0
+	if totalpage==curpage:
+		return 0
+	return 0
+
+def get_latest_market(new_st_list):
+	curpage = 1
+	while 1:
+		bnext = get_each_page_data(curpage, new_st_list)
+		if bnext==0:
+			break
+		elif bnext==-1:
+			continue
+		curpage += 1
