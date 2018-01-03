@@ -6,17 +6,13 @@ import re
 import os
 import datetime
 import tushare as ts
-from internal.common import *
-from internal.ts_common import *
-
-def fun1():
-	print "we are in %s"%__name__ 
+sys.path.append(".")
+sys.path.append("..")
+from internal.dfcf_interface import *
 
 if __name__ == '__main__':
 	new_st_list = []
-
 	get_latest_market(new_st_list)
-	
 	print len(new_st_list)
 
 

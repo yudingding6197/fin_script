@@ -195,3 +195,36 @@ def getKZZConnect(urlfmt, send_headers, page):
 		return ''
 	content = res_data.read().decode('utf8')
 	return content
+
+def get_latest_market(new_st_list):
+	link = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?"
+	key1 = "type=CT&cmd=C._A&sty=FCOIATA&sortType=C&sortRule=-1"
+	urlfmt = link + key1 +"&page=%d&pageSize=80&js={rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c"
+
+	LOOP_COUNT = 0
+	response = None
+	while LOOP_COUNT<3:
+		url = urlfmt % (1)
+		try:
+			req = urllib2.Request(url)
+			response = urllib2.urlopen(req, timeout=5)
+		except:
+			LOOP_COUNT += 1
+			print "URL request timeout"
+		else:
+			break
+	if response is None:
+		print "Please check no data from DongCai"
+		return
+
+	line = response.read()
+	obj = re.match(r'{rank:\["(.*)"\].*', line)
+	rank = obj.group(1)
+	array = rank.split('","')
+	for i in range(0, len(array)):
+		props = array[i].split(',')
+		#if props[2][0]=='N':
+		code = props[1]
+		new_st_list.append(code)
+		print code
+	return
