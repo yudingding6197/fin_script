@@ -67,7 +67,6 @@ uidal=6100112247957528goutou; vtpst=|; '
 }
 
 rturl = 'http://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeDataSimple?page=1&num=80&sort=symbol&asc=1&node=hskzz_z&_s_r_a=page'
-#rturl = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._DEBT_%s_Z&sty=FCOIATA&sortType=C&sortRule=-1&page=%d&pageSize=80&js={"rank":[(x)],"pages":(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c'
 rt_headers = {
 'Host': 'vip.stock.finance.sina.com.cn',
 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',

@@ -208,15 +208,15 @@ Accept-Encoding: gzip, deflate
 Accept-Language: zh-CN,zh;q=0.8
 
 '''
-def get_each_page_data(curpage, new_st_list):
+def get_each_page_data(new_st_list, curpage, st='A', sr=-1, ps=80):
 	link = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?"
-	key1 = "type=CT&cmd=C._A&sty=FCOIATA&sortType=A&sortRule=1"
-	urlfmt = link + key1 +"&page=%d&pageSize=80&js={rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c"
+	key1 = "type=CT&cmd=C._A&sty=FCOIATA&sortType=%s&sortRule=%d"
+	urlfmt = link + key1 +"&page=%d&pageSize=%d&js={rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c"
 
 	LOOP_COUNT = 0
 	response = None
 	while LOOP_COUNT<3:
-		url = urlfmt % (curpage)
+		url = urlfmt % (st, sr, curpage, ps)
 		try:
 			req = urllib2.Request(url)
 			response = urllib2.urlopen(req, timeout=5)
@@ -253,9 +253,21 @@ def get_each_page_data(curpage, new_st_list):
 def get_latest_market(new_st_list):
 	curpage = 1
 	while 1:
-		bnext = get_each_page_data(curpage, new_st_list)
+		bnext = get_each_page_data(new_st_list, curpage)
 		if bnext==0:
 			break
 		elif bnext==-1:
 			continue
 		curpage += 1
+	return
+
+def get_market_by_chg_per(new_st_list, st='C', sr=-1, ps=80):
+	curpage = 1
+	while 1:
+		bnext = get_each_page_data(new_st_list, curpage, st, sr, ps)
+		if bnext==0:
+			break
+		elif bnext==-1:
+			continue
+		curpage += 1
+	return
