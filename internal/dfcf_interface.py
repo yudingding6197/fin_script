@@ -229,7 +229,7 @@ def get_each_page_data(curpage, new_st_list):
 		print "Please check data from DongCai at", curpage
 		return -1
 
-	line = response.read()
+	line = response.read().decode('utf8')
 	#print line
 	obj = re.match(r'{rank:\["(.*)"\],pages:(\d+)', line)
 	if obj is None:
@@ -237,23 +237,18 @@ def get_each_page_data(curpage, new_st_list):
 		return -1
 	totalpage = int(obj.group(2))
 	
-	file = open("_temp.txt", 'w')
-	file.write(line)
-	file.close()
-	
 	rank = obj.group(1)
 	array = rank.split('","')
 	for i in range(0, len(array)):
-		props = array[i].split(',')
-		print props
-		#if props[2][0]=='N':
-		code = props[1]
-		new_st_list.append(code)
-		#print code
+		#props = array[i].split(',')
+		#code = props[1]
+		line = array[i][2:]
+		new_st_list.append(line.encode('gbk'))
+		#file.write(line.encode('gbk')+'\n')
 	#到达最大页面，返回0
 	if totalpage==curpage:
 		return 0
-	return 0
+	return 1
 
 def get_latest_market(new_st_list):
 	curpage = 1

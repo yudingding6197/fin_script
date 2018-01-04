@@ -1360,6 +1360,7 @@ def get_today_new_stock(new_st_list):
 			new_st_list.append(code)
 	return
 
+#TODO: 以下几个函数可以合并
 def get_trade_date(zsidx='sh'):
 	df = ts.get_k_data(zsidx)
 	if df is None:
@@ -1368,10 +1369,22 @@ def get_trade_date(zsidx='sh'):
 	list = df['date'].tolist()
 	ll = sorted(list, reverse=True)
 	return ll
-	
 
 def get_last_trade_dt(zsidx='sh'):
 	list = get_trade_date(zsidx)
 	if len(list)>0:
 		return list[0]
 	return None
+
+def get_pre_trade_date(tradeList, days):
+	code='399001'
+	df = ts.get_hist_data(code)
+	if df is None:
+		return
+	count = 0
+	#idxlist=list(df.index)
+	for index,row in df.iterrows():
+		if count>=days:
+			break
+		tradeList.append(index)
+		count += 1

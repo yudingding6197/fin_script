@@ -141,8 +141,8 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 	idx_date = datetime.datetime.strptime(last_idx_date, '%Y-%m-%d').date()
 
 	#得到最近一天的实时信息，得到日期
-	idx_df = ts.get_realtime_quotes('399001')
-	rq_idx = idx_df.ix[0,'date']
+	rq_idx = get_last_trade_dt()
+	print rq_idx
 	rq_idx_dt = datetime.datetime.strptime(rq_idx, '%Y-%m-%d').date()
 
 	cmp_delta = rq_idx_dt-idx_date
