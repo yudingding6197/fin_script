@@ -1377,6 +1377,8 @@ def get_last_trade_dt(zsidx='sh'):
 	return None
 
 def get_pre_trade_date(tradeList, days):
+	today = datetime.date.today()
+	td_str = '%d-%02d-%02d' %(today.year, today.month, today.day)
 	code='399001'
 	df = ts.get_hist_data(code)
 	if df is None:
@@ -1386,5 +1388,7 @@ def get_pre_trade_date(tradeList, days):
 	for index,row in df.iterrows():
 		if count>=days:
 			break
+		if td_str==index:
+			continue
 		tradeList.append(index)
 		count += 1

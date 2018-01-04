@@ -19,36 +19,58 @@ import tushare as ts
 }
 '''
 
-def handle_data_source(code, trdate):
-	tickdf = ts.get_tick_data(code, td)
+#TODO: 增加股票代码合法性检查，sn, tt, nt下载的文件格式不一样，sn错误的时候，输出日志取消
+def handle_data_source(entry, code, trdate):
+	tickdf = None
+	ds = ['sn', 'tt', 'nt']
+	i = 0
+	for item in ds:
+		try:
+			tickdf = ts.get_tick_data(code, td, src=item)
+		except:
+			print code, "Switch src, cur is", item
+		else:
+			break
 	if tickdf is None:
 		print code, trdate, "is None"
 		return
-	file = code+trdate+'.csv'
-	tickdf.to_csv(file, encoding="gbk")
+	cdpath = entry + '/' + code
+	fpath = cdpath + '/' + code + '_' + trdate +'.csv'
+	tickdf.to_csv(fpath, encoding="gbk")
 	return
 
-def check_code_path(code, trdate):
-	
-	return 0
+def check_code_path(entry, code, trdate):
+	cdpath = entry + '/' + code
+	if not os.path.exists(cdpath):
+		os.makedirs(cdpath)
 
-if __name__=='__main__':
-	fpath = '../data/entry/market/latest_stock.txt'
-	days = 5
-	tradeList = []
-	get_pre_trade_date(tradeList, 5)
-	if len(tradeList)!=days:
-		print "Fail to get trade date"
-		exit()
-	td = tradeList[0]
+	fpath = cdpath + '/' + code + '_' + trdate +'.csv'
+	if not os.path.exists(fpath):
+		return 0
+	if not os.path.isfile(fpath):
+		print "Error: check file:", fpath
+	return 1
 
-	index=0
-	tdxcn = ts.get_apis()
+def verify_bid_code(codes_list, tdx_chk):
+	if tdx_chk==0:
+		file = open(fpath, 'r')
+		line=file.readline()
+		while (line):
+			code = line[:6]
+			codes_list.append(code)
+			line=file.readline()
+		file.close()
+		return
+
 	file = open(fpath, 'r')
 	line=file.readline()
 	df = None
-	codes_list = []
+	LOOP_COUNT = 0
+	tdxcn = ts.get_apis()
 	while (line):
+		if LOOP_COUNT>3:
+			print "Too many error, retry"
+			break
 		code = line[:6]
 		try:
 			df = ts.bar(code, tdxcn)
@@ -59,22 +81,38 @@ if __name__=='__main__':
 			tdxcn = ts.get_apis()
 		if df is None:
 			print code, "get bar is None"
-			line=file.readline()
+			#line=file.readline()
+			LOOP_COUNT += 1
 			continue
-		#print code
-		if df[td].empty:
-			pass
-		else:
-			codes_list.append(df[td]['code'])
+		LOOP_COUNT = 0
+		if not df[td].empty:
+			ncode = df[td]['code'][0]
+			print ncode
+			codes_list.append(ncode)
 		line=file.readline()
 
-		index += 1
-		if index>10:
-			break
 	file.close()
 	ts.close_apis(tdxcn)
-	
+
+if __name__=='__main__':
+	entry = '../data/entry/resp'
+	fpath = '../data/entry/market/latest_stock.txt'
+	days = 5
+	tradeList = []
+	get_pre_trade_date(tradeList, 5)
+	if len(tradeList)!=days:
+		print "Fail to get trade date"
+		exit()
+	td = tradeList[0]
+	if not os.path.exists(entry):
+		os.makedirs(entry)
+
+	codes_list = []
+	verify_bid_code(codes_list, 0)
+
+	print "Start to add tick data"
 	for code in codes_list:
-		if check_code_path(code, td)==1:
-			handle_data_source(code, td)
+		result = check_code_path(entry, code, td)
+		if result==0:
+			handle_data_source(entry, code, td)
 		
