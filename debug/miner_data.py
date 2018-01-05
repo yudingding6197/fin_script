@@ -15,7 +15,7 @@ def get_baseline(volume):
 	v = ((volume+20)/100) * 100
 	return v
 
-def handle_res(code, coindf):
+def handle_res(code, coindf, coinList):
 	volumeList = []
 	clm_vol = 'volume'
 	amount = coindf.iloc[:,0].size
@@ -46,6 +46,8 @@ def handle_res(code, coindf):
 			matchCt += 1
 			if matchCt>1:
 				print lastAvg, avg_sec, volumeList
+				if matchCt==2:
+					coinList.append(code)
 			pass
 		#print lastAvg, avg_sec
 		volumeList.append(avg_sec)
@@ -64,7 +66,7 @@ def handle_res(code, coindf):
 # Main
 if __name__=="__main__":
 	filterfl = '../data/entry/filter/filter_latest.txt'
-	filterfl = '../data/entry/market/latest_stock.txt'
+	#filterfl = '../data/entry/market/latest_stock.txt'
 
 	file = open(filterfl, 'r')
 	codeList = []
@@ -74,6 +76,7 @@ if __name__=="__main__":
 		codeList.append(item)
 		line = file.readline()
 
+	coinList = []
 	folder = '../data/entry/resp/'
 	for item in codeList:
 		cfolder = folder + item + '/'
@@ -85,5 +88,9 @@ if __name__=="__main__":
 			#print fname, "File Not exist"
 			continue
 		coindf = pd.read_csv(fname)
-		handle_res(item, coindf)
+		handle_res(item, coindf, coinList)
+
+	print "============\n"
+	for item in coinList:
+		print item
 	print 'FIN MINER'
