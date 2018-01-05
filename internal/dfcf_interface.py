@@ -135,9 +135,11 @@ def query_gainianbankuai(listobj, bkInfo):
 	return
 
 #检查是否正在交易，过滤没有交易的
-def checkTradeZhai(kzzdt):
+def checkTradeZhai(kzzdt, filter_tp):
 	if kzzdt['ZGJ']=='-':
 		return 0
+	if filter_tp==2:
+		return 1
 	trdate = kzzdt['LISTDATE']
 	if trdate=='-':
 		return 0
@@ -151,6 +153,10 @@ def checkTradeZhai(kzzdt):
 		return 0
 	return 1
 
+#filter_ty:
+# 0: 不过滤，得到所有的
+# 1: 只保留正在交易的
+# 2: 正在交易的和将要上市还未交易的
 def getFilterZhai(content, filter_tp, kzzlist):
 	if content=='':
 		return
@@ -164,9 +170,11 @@ def getFilterZhai(content, filter_tp, kzzlist):
 		content = dataObj.group(2)
 
 		d2 = json.loads(item)
-		if filter_tp==1:
-			if checkTradeZhai(d2)==0:
-				continue
+		if filter_tp==0:
+			kzzlist.append(d2)
+			continue
+		if checkTradeZhai(d2, filter_tp)==0:
+			continue
 		kzzlist.append(d2)
 	return
 

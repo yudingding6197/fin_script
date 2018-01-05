@@ -25,22 +25,18 @@ def handle_int(str):
 		obj = int(str)
 	return obj
 
-def handle_item_data(stk_item, stockInfo):
+def handle_item_data(stk_item, stockInfo, pos=0):
 	str_arr = stk_item.split(',')
-	name = str_arr[2]
-	code = str_arr[1]
-	#if code=='603999':
-	#	for i in range(0, len(str_arr)):
-	#		print "%02d	%s"%(i, str_arr[i])
-	#print "%6s	%s	%s"%(code, str_arr[31], str_arr[34])
+	name = str_arr[pos+1]
+	code = str_arr[pos]
 
-	close = str_arr[3]
+	close = str_arr[pos+2]
 	close = handle_float(close)
 
-	change_price = str_arr[4]
+	change_price = str_arr[pos+3]
 	change_price = handle_float(change_price)
 
-	change_perc = str_arr[5]
+	change_perc = str_arr[pos+4]
 	if change_perc=='-':
 		change_perc = None
 	else:
@@ -51,30 +47,36 @@ def handle_item_data(stk_item, stockInfo):
 		elif change_perc>9.9:
 			return 1
 
-	stockInfo.append(stk_item[2:])
+	stockInfo.append(stk_item)
 	return 1
+
+def filter_share(stkList, filterList):
+	for item in stkList:
+		ret = strategy_price_increase(item, filterList)
+		if ret==0:
+			break
+	return
 
 #选出符合条件的item
 if __name__=='__main__':
-	days = 5
-	tradeList = []
-	get_pre_trade_date(tradeList, 5)
-	if len(tradeList)!=days:
-		print "Fail to get trade date"
-	print tradeList
+	cur=datetime.datetime.now()
+	tmstr = '%02d%02d'%(cur.hour, cur.minute)
+	tdate = get_last_trade_dt()
 	
 	stkList = []
 	get_market_by_chg_per(stkList)
-	print "Start to handle data"
+	print "Start to handle data"	
 
 	filterList = []
-	for item in stkList:
-		val = handle_item_data('1,'+item, filterList)
-		if val==0:
-			break
+	filter_share(stkList, filterList)
 
-	fname = '../data/entry/filter/' + 'f_1.txt'
+	folder='../data/entry/filter'
+	if not os.path.exists(folder):
+		os.makedirs(folder)
+
+	fname = '%s/filter_%s_%s.txt' % (folder, tdate, tmstr)
 	file = open(fname, 'w')
+	index=1
 	for item in filterList:
 		file.write(item+'\n')
 	file.close()

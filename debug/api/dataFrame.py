@@ -22,6 +22,12 @@ b = pd.Series(['aa','cc','asd','ew','asd','ew','ce',])
 df = pd.DataFrame({'code':a, 'name':b})
 print df
 
+print df.columns.size #列数 2
+print df.iloc[:,0].size #行数 3
+print df.ix[[0]].index.values[0] #索引值 0
+print df.ix[[0]].values[0][0] #第一行第一列的值 11
+print df.ix[[1]].values[0][1] #第二行第二列的值 121
+
 print "2222 ____________________"
 s1=np.array(['a',32,33,4])
 s2=np.array(['f',6,47,118])

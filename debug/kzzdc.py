@@ -12,6 +12,8 @@ import pandas as pd
 sys.path.append(".")
 sys.path.append("..")
 from internal.dfcf_interface import *
+from openpyxl import Workbook
+from openpyxl.reader.excel  import  load_workbook
 
 '''
 urlall = "http://data.eastmoney.com/kzz/default.html"
@@ -178,6 +180,7 @@ def getKZZRtSina(list):
 	return
 
 #['BONDCODE','SNAME','ZQNEW','YJL','ZGJZGJJZ','ZGJ_HQ','SWAPSCODE','SECURITYSHORTNAME','ZGJZGJ']
+# 债券最新价格,溢价率,当前转股价值,正股价??,当前转股价
 def output(kdf):
 	fmt = "%2d %6s %8s	%8s   %5.2f	%5.2f	%5.2f	%5.2f"
 	df = kdf.sort_values(['YJL'],0,True)
@@ -202,18 +205,65 @@ def output(kdf):
 		print str
 	return
 
+def saveToExcel(kzzList):
+	if len(kzzList)==0:
+		return
+	
+	wb = Workbook()
+	ws = wb.active
+	strline = u'code,名称,正股价格,转股价,转股价值,债价格,溢价率,n股价,n转股价值,n溢价率'
+	strObj = strline.split(u',')
+	ws.append(strObj)
+	#随着列数进行改变
+	ws.auto_filter.ref = "A1:J1"
+	excel_row = 2
+
+	k = 0
+	ascid = 65
+	for item in kzzlist:
+		itemList = []
+		itemList.append(item['BONDCODE'])
+		itemList.append(item['SNAME'])
+		itemList.append(item['ZGJ_HQ'])
+		itemList.append(item['ZGJZGJ'])
+		ZGJZGJJZ_p = round(float(item['ZGJZGJJZ']), 2)
+		itemList.append(ZGJZGJJZ_p)
+		itemList.append(item['ZQNEW'])
+		YJL_p = round(float(item['YJL']), 2)
+		itemList.append(YJL_p)
+
+		itemList.append(item['ZGJ_HQ'])
+		itemList.append(ZGJZGJJZ_p)
+		itemList.append(YJL_p)
+
+		number = len(itemList)
+		for k in range(0,number):
+			cell = chr(ascid+k) + str(excel_row)
+			ws[cell] = itemList[k]
+		excel_row += 1
+
+	folder = '../data/entry/kzz'
+	if not os.path.exists(folder):
+		os.makedirs(folder)
+	today = datetime.date.today()
+	tdstr = '%04d-%02d-%02d' %(today.year, today.month, today.day)
+	filexlsx1 = '%s/kzzInfo_%s.xlsx' %(folder, tdstr)
+	wb.save(filexlsx1)
+	return
+
 param_config = {
 	"Daoxu":0,
 	"NoDetail":0,
 	"SortByTime":0,
-	"AllInfo":0
+	"AllInfo":0,
+	"Excel":0
 }
 
 #Main
 if __name__=="__main__":
-	optlist, args = getopt.getopt(sys.argv[1:], 'ldtf')
+	optlist, args = getopt.getopt(sys.argv[1:], 'sdtae')
 	for option, value in optlist:
-		if option in ["-d","--daoxu"]:
+		if option in ["-s","--sort"]:
 			param_config["Daoxu"] = 1
 		elif option in ["-d","--nodetail"]:
 			param_config["NoDetail"] = 1
@@ -221,6 +271,8 @@ if __name__=="__main__":
 			param_config["SortByTime"] = 1
 		elif option in ["-a","--all"]:
 			param_config["AllInfo"] = 1
+		elif option in ["-e","--excel"]:
+			param_config["Excel"] = 1
 
 	req_count=0
 	curpage = 1
@@ -245,21 +297,23 @@ if __name__=="__main__":
 			break
 		curpage += 1
 		#分析具体的每一项数据
-		getFilterZhai(dataObj.group(2), 1, kzzlist)
+		if param_config['Excel']==1:
+			getFilterZhai(dataObj.group(2), 2, kzzlist)
+		else:
+			getFilterZhai(dataObj.group(2), 1, kzzlist)
 		#print curpage, totalpage
 		#break
 
 	if len(kzzlist)==0:
 		print "Not find data"
 		exit()
-	print datetime.datetime.now()
-	keylist = ["STARTDATE", "QSCFJ", "TEXCH", "AISSUEVOL", "ISSUEPRICE", "DELISTDATE",
-	"BCODE", "SWAPSCODE", "CORRESNAME", "BONDCODE", "PB", "SNAME", "PARVALUE", "MarketType",
-	"LISTDATE", "HSCFJ", "SECURITYSHORTNAME", "GDYX_STARTDATE", "LUCKRATE", "ZGJZGJJZ",
-	"LIMITBUYIPUB", "MEMO", "ZGJ", "ZQHDATE", "YJL", "FSTPLACVALPERSTK", "ZQNEW",
-	"CORRESCODE", "SWAPPRICE", "ZGJ_HQ", "ZGJZGJ"]
+
+	if param_config['Excel']==1:
+		saveToExcel(kzzlist)
+		exit()
+
 	keylist = ['BONDCODE','SNAME','ZQNEW','YJL','ZGJZGJJZ','ZGJ_HQ','SWAPSCODE','SECURITYSHORTNAME','ZGJZGJ']
-
 	kzzdf = pd.DataFrame(kzzlist, columns=keylist)
-
 	output(kzzdf)
+
+

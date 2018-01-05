@@ -33,6 +33,7 @@ def currentIndexData(url, code):
 			return
 		idxVal = "%.02f"%(float(stockObj[1]))
 		print "%10s	%s%%(%s)" % (idxVal, stockObj[3], stockObj[2])
+	return
 
 def currentSinaData(url, code, sleepTime):
 	global COND_COUNT
@@ -141,6 +142,7 @@ def currentSinaData(url, code, sleepTime):
 					COND_COUNT = 60
 				else:
 					COND_COUNT -= sleepTime
+	return
 
 def handle_price(priceList):
 	#循环得到数据后，判断条件是否满足
@@ -170,7 +172,9 @@ def handle_price(priceList):
 			if bMatched==0:
 				alertPrice.append(curValue)
 				ctypes.windll.user32.MessageBoxW(0, u'Low value', '', 0)
+	return
 
+#Main
 pindex = len(sys.argv)
 if pindex<2:
 	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 [睡眠时间] [最大最小值之差 触发消息门限值]\n")
@@ -181,18 +185,33 @@ if (len(code) != 6):
 	sys.stderr.write("Len should be 6\n")
 	exit(1);
 
+flag = 0
 shcd = ['600','601','603','204']
 szcd = ['000','001','002','300','131']
 head3 = code[0:3]
 if head3 in szcd:
 	code = "sz" + code
-else:
-	if head3 in shcd:
-		code = "sh" + code
-	else:
-		print "非法代码:" +code+ "\n"
-		exit(1);
+	flag = 1
+elif head3 in shcd:
+	code = "sh" + code
+	flag = 1
 
+if flag==0:
+	shbond = ['11']
+	szbond = ['12']
+	head3 = code[0:2]
+	if head3 in szbond:
+		code = "sz" + code
+		flag = 1
+	elif head3 in shbond:
+		code = "sh" + code
+		flag = 1
+	
+if flag==0:
+	print "非法代码:" +code+ "\n"
+	exit(1);
+
+		
 deltaV = 0
 deltaTg = 0
 if pindex==3:
