@@ -142,19 +142,25 @@ def chk_holiday(date):
 	'''
 	df = get_trade_obj()
 	if df is None:
+		print "Error: Not get trade Object from file"
 		return False
 	holiday = df[df.isOpen == 0]['calendarDate'].values
 	if isinstance(date, str):
-		today = datetime.datetime.strptime(date, '%Y-%m-%d')
+		tsToday = datetime.datetime.strptime(date, '%Y-%m-%d')
+	else:
+		print "Error: not string type", type(date)
+		return False
 
 	#去掉月和日前面的'0'
 	obj = re.match(r'^(\d{4})-(\d{2})-(\d{2})', date)
 	year = int(obj.group(1))
 	month = int(obj.group(2))
 	day = int(obj.group(3))
-	ndate = '%4d-%d-%d' %(year, month, day)
+	ndate1 = '%4d-%d-%d' %(year, month, day)
+	ndate2 = '%4d/%d/%d' %(year, month, day)
 
-	if today.isoweekday() in [6, 7] or ndate in holiday:
+	bhol = ndate1 in holiday or ndate2 in holiday
+	if tsToday.isoweekday() in [6, 7] or bhol:
 		return True
 	else:
 		return False

@@ -4,6 +4,8 @@
 import sys
 import re
 import os
+import time
+import getopt
 import datetime
 sys.path.append(".")
 sys.path.append("..")
@@ -38,7 +40,7 @@ SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5.n90RO.U79QHoy5Rk17Op5NHD95QpSo-c1K-7Soe
 lxlrttp=1513341002; FINANCE2=8d5626b3132364178ca15d9e87dc4f27; SINA_FINANCE=yudingding6197%3A1656950633%3A4'
 }
 
-def fetch_tick_resource(entry, code, trdate):
+def fetch_tick_resource_sn(entry, code, trdate, ds, feedback_list):
 	shcd = ['600', '601', '603']
 	szcd = ['000','001','002','300']
 	head3 = code[0:3]
@@ -51,19 +53,21 @@ def fetch_tick_resource(entry, code, trdate):
 		return
 
 	urllink = urlall %(trdate, ncode)
+	print urllink
 	try:
-		proxy = {'http':'http://122.114.31.177:808'}
+		#proxy = {'http':'http://122.114.31.177:808'}
 		#proxy = None
 		#req = urllib2.Request(urllink, headers=send_headers, proxies=proxy)
-		#req = urllib2.Request(urllink, headers=send_headers, proxies=None)
-		req = urllib2.Request(urllink, proxies=proxy)
+		req = urllib2.Request(urllink, headers=send_headers)
 		res_data = urllib2.urlopen(req)
-	except:
+	except Exception as e:
 		print "Error:", urllink
+		print e
 		#LOOP_COUNT = LOOP_COUNT+1
 		return
 	content = res_data.read()
 	respInfo = res_data.info()
+	print content[:32]
 	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
 		print "Content compressed"
 		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
@@ -79,23 +83,43 @@ def fetch_tick_resource(entry, code, trdate):
 	return
 
 #TODO: 增加股票代码合法性检查，sn, tt, nt下载的文件格式不一样，sn错误的时候，输出日志取消
-def fetch_tick_resource1(entry, code, trdate):
+def fetch_tick_resource(entry, code, trdate, ds, feedback_list):
 	tickdf = None
-	ds = ['sn', 'tt', 'nt']
 	i = 0
+	bclear = 0
 	for item in ds:
 		try:
 			tickdf = ts.get_tick_data(code, trdate, src=item)
-		except:
-			print code, "Switch src, cur is", item
+		except IOError:
+			if item=='sn':
+				ds.remove(item)
+			print "Error: get data", code, ds
 		else:
+			if tickdf is None:
+				print code, trdate, ds, "is None"
+				continue
+			if tickdf.empty:
+				continue
+			#检查sina的数据
+			elif item=='sn':
+				tm = tickdf.ix[0][0]
+				tmObj = re.match('(\d+):(\d+):(\d+)', tm)
+				if tmObj is None:
+					continue
 			break
 	if tickdf is None:
 		print code, trdate, "is None"
 		return
+	elif tickdf.empty:
+		feedback_list.append(code)
+		print code, trdate, "EMPTY"
+		return
+
 	cdpath = entry + '/' + code
 	fpath = cdpath + '/' + code + '_' + trdate +'.csv'
-	tickdf.to_csv(fpath, encoding="gbk")
+	if item=='tt' or item=='nt':
+		tickdf = tickdf.iloc[::-1]
+	tickdf.to_csv(fpath, encoding="gbk", index=False)
 	return
 
 #检查文件是否存在，已经存在不需要再次下载了
@@ -111,17 +135,38 @@ def check_code_path(entry, code, trdate):
 		print "Error: check file:", fpath
 	return 1
 
-def verify_bid_code(codes_list, fpath, tdx_chk):
+def check_trade_info(check_trade, line, not_trade_list):
+	if check_trade==0:
+		return
+	props = line.split(',')
+	length = len(props)
+	if length>3:
+		if props[3]=='-':
+			not_trade_list.append(props[0])
+	elif length==0:
+		not_trade_list.append(props[0])
+	return
+	
+def verify_bid_code(folder, trade_dt, tdx_chk, codes_list, not_trade_list):
 	if tdx_chk==0:
-		file = open(fpath, 'r')
+		bChkTd = 0
+		fpath = folder + "stock_" + trade_dt + ".txt"
+		if os.path.isfile(fpath):
+			file = open(fpath, 'r')
+			bChkTd = 1
+		else:
+			fpath = folder + "latest_stock.txt"
+			file = open(fpath, 'r')
 		line=file.readline()
 		while (line):
 			code = line[:6]
 			codes_list.append(code)
+			check_trade_info(bChkTd, line, not_trade_list)
 			line=file.readline()
 		file.close()
 		return
 
+	fpath = folder + "latest_stock.txt"
 	file = open(fpath, 'r')
 	line=file.readline()
 	df = None
@@ -156,27 +201,59 @@ def verify_bid_code(codes_list, fpath, tdx_chk):
 
 #Main 
 # 
+param_config = {
+	"Date":''
+}
+
 if __name__=='__main__':
-	entry = '../data/entry/resp'
-	fpath = '../data/entry/market/latest_stock.txt'
-	days = 5
-	tradeList = []
-	get_pre_trade_date(tradeList, 5)
-	if len(tradeList)!=days:
-		print "Fail to get trade date"
+	init_trade_obj()
+	td = ''
+	nowToday = datetime.date.today()
+	optlist, args = getopt.getopt(sys.argv[1:], '?d:')
+	for option, value in optlist:
+		if option in ["-d","--date"]:
+			ret,stdate = parseDate(value, nowToday)
+			if ret==-1:
+				exit()
+			param_config['Date'] = stdate
+			td = stdate
+		elif option in ["-?","--??"]:
+			print "Usage:", os.path.basename(sys.argv[0]), " [-d MMDD/YYYYMMDD]"
+			exit()
+
+	if td=='':
+		days = 5
+		tradeList = []
+		get_pre_trade_date(tradeList, days)
+		if len(tradeList)!=days:
+			print "Fail to get trade date"
+			exit()
+		td = str(tradeList[0])
+
+	if chk_holiday(td):
+		print td, "is holiday, Quit"
 		exit()
-	td = tradeList[0]
+
+	entry = '../data/entry/resp'
 	if not os.path.exists(entry):
 		os.makedirs(entry)
 
 	codes_list = []
-	verify_bid_code(codes_list, fpath, 0)
-	#codes_list = ['300295']
-	codes_list = codes_list[:2]
+	not_td_list = []
+	folder = '../data/entry/market/'
+	verify_bid_code(folder, td, 0, codes_list, not_td_list)
+	#codes_list = ['603680']
+	#codes_list = codes_list[:2]
 
 	print "Start to add tick data"
+	ds = ['sn', 'tt', 'nt']
+	feedbac_list = []
 	for code in codes_list:
 		result = check_code_path(entry, code, td)
-		if result==0:
-			fetch_tick_resource(entry, code, td)
-		
+		if result!=0:
+			continue
+		if code in not_td_list:
+			continue
+		fetch_tick_resource(entry, code, td, ds, feedbac_list)
+
+	#TODO: 更新没有交易的个股到对应文件中

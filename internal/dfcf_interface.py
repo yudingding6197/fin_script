@@ -248,10 +248,12 @@ def get_each_page_data(new_st_list, curpage, st='A', sr=-1, ps=80):
 	rank = obj.group(1)
 	array = rank.split('","')
 	for i in range(0, len(array)):
-		#props = array[i].split(',')
+		props = array[i].split(',')
 		#code = props[1]
-		line = array[i][2:]
-		new_st_list.append(line.encode('gbk'))
+		pre_close = props[9]
+		if pre_close!='0.00':
+			line = array[i][2:]
+			new_st_list.append(line.encode('gbk'))
 		#file.write(line.encode('gbk')+'\n')
 	#到达最大页面，返回0
 	if totalpage==curpage:
