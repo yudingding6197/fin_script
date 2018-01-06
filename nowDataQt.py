@@ -79,14 +79,15 @@ if (len(code) != 6):
 shcd = ['600', '601', '603']
 szcd = ['000','001','002','300']
 head3 = code[0:3]
-if head3 is True:
+if head3 in szcd:
 	code = "sz" + code
+	flag = 1
+elif head3 in shcd:
+	code = "sh" + code
+	flag = 1
 else:
-	if head3 is True:
-		code = "sh" + code
-	else:
-		print "非法代码:" +code+ "\n"
-		exit(1);
+	print "非法代码:" +code+ "\n"
+	exit(1);
 
 today = datetime.date.today()
 qdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)

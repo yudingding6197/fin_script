@@ -98,6 +98,8 @@ respInfo = res_data.info()
 if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
 	print "Content compressed"
 	content = zlib.decompress(content, 16+zlib.MAX_WBITS);
+else:
+	print "Content not zip"
 #print content.decode('utf8')
 
 tf_fl.write(content)

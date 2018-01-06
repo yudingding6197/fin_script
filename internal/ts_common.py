@@ -131,7 +131,7 @@ def spc_round(value,bit):
 #从文件中读取某一天是否是交易日
 def init_trade_obj():
 	global trade_data
-	trade_data = pd.read_csv("internal/trade_date.csv")
+	trade_data = pd.read_csv("internal/trade_holiday.csv")
 def get_trade_obj():
 	global trade_data
 	return trade_data
@@ -238,6 +238,7 @@ def print_node(node):
 	print "node.tag:%s" % node.tag
 	print "node.text:%s" % node.text
 
+#解析XML文件，获取为每个个股定义的大单数组
 def get_data_array(code, xmlfile):
 	try:
 		tree = ET.parse(xmlfile)

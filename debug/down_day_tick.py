@@ -19,14 +19,73 @@ import tushare as ts
 }
 '''
 
+urlall = 'http://market.finance.sina.com.cn/downxls.php?date=%s&symbol=%s'
+#Connection: keep-alive
+#Upgrade-Insecure-Requests: 1
+send_headers = {
+'Host': 'market.finance.sina.com.cn',
+'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
+'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+'DNT': 1,
+'Accept-Encoding': 'gzip, deflate',
+'Accept-Language': 'zh-CN,zh;q=0.8',
+'Cookie': 'U_TRS1=0000000e.db0f67d9.58743532.0ab3855e; UOR=www.baidu.com,blog.sina.com.cn,; vjuids=-4f7e5f1b8.15985efc8ab.0.b0009b04a9d3a; SINAGLOBAL=114.243.223.213_1484010803.467733; \
+SGUID=1490330513641_6143460; SCF=ApQZBkYNx5ED9eRh4x7RWZjDJZfZGEsCEcgqoaFHnaP7DqJZQpUkYRbUtwv1spWbrMvv9eU5YBJ8U5RXwjUggcc.; \
+vjlast=1504425305; Apache=10.13.240.35_1513310793.422171; U_TRS2=00000016.b8c612f7.5a3398c2.608c14c5; SessionID=oe6kbh7j9v4usqdkigqe4inb71; \
+ULV=1513330875049:56:5:3:10.13.240.35_1513310793.422171:1513225944670; sso_info=v02m6alo5qztbmdlpGpm6adpJqWuaeNo4S5jbKZtZqWkL2Mk5i1jaOktYyDmLOMsMDA; \
+SUB=_2A253Rcj3DeThGedI7lQY9S7KyD-IHXVUMr0_rDV_PUNbm9AKLWTjkW9NVwM9cn_D0fMlGi8-URaLNK3j_mTGomwb; \
+SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5.n90RO.U79QHoy5Rk17Op5NHD95QpSo-c1K-7Soe0Ws4Dqcjdi--NiKyFiK.Ni--4i-zpi-ihi--fi-2Xi-zX; ALF=1545792551; rotatecount=2; SR_SEL=1_511; \
+lxlrttp=1513341002; FINANCE2=8d5626b3132364178ca15d9e87dc4f27; SINA_FINANCE=yudingding6197%3A1656950633%3A4'
+}
+
+def fetch_tick_resource(entry, code, trdate):
+	shcd = ['600', '601', '603']
+	szcd = ['000','001','002','300']
+	head3 = code[0:3]
+	if head3 in szcd:
+		ncode = "sz" + code
+	elif head3 in shcd:
+		ncode = "sh" + code
+	else:
+		print "非法代码:" +code+ "\n"
+		return
+
+	urllink = urlall %(trdate, ncode)
+	try:
+		proxy = {'http':'http://122.114.31.177:808'}
+		#proxy = None
+		#req = urllib2.Request(urllink, headers=send_headers, proxies=proxy)
+		#req = urllib2.Request(urllink, headers=send_headers, proxies=None)
+		req = urllib2.Request(urllink, proxies=proxy)
+		res_data = urllib2.urlopen(req)
+	except:
+		print "Error:", urllink
+		#LOOP_COUNT = LOOP_COUNT+1
+		return
+	content = res_data.read()
+	respInfo = res_data.info()
+	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
+		print "Content compressed"
+		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
+	#print content.decode('utf8')
+
+	cdpath = entry + '/' + code
+	fpath = cdpath + '/' + code + '_' + trdate +'.csv'
+	if content[:7]=='<script':
+		return
+	file = open(fpath, 'w')
+	file.write(content)
+	file.close()
+	return
+
 #TODO: 增加股票代码合法性检查，sn, tt, nt下载的文件格式不一样，sn错误的时候，输出日志取消
-def handle_data_source(entry, code, trdate):
+def fetch_tick_resource1(entry, code, trdate):
 	tickdf = None
 	ds = ['sn', 'tt', 'nt']
 	i = 0
 	for item in ds:
 		try:
-			tickdf = ts.get_tick_data(code, td, src=item)
+			tickdf = ts.get_tick_data(code, trdate, src=item)
 		except:
 			print code, "Switch src, cur is", item
 		else:
@@ -39,6 +98,7 @@ def handle_data_source(entry, code, trdate):
 	tickdf.to_csv(fpath, encoding="gbk")
 	return
 
+#检查文件是否存在，已经存在不需要再次下载了
 def check_code_path(entry, code, trdate):
 	cdpath = entry + '/' + code
 	if not os.path.exists(cdpath):
@@ -51,7 +111,7 @@ def check_code_path(entry, code, trdate):
 		print "Error: check file:", fpath
 	return 1
 
-def verify_bid_code(codes_list, tdx_chk):
+def verify_bid_code(codes_list, fpath, tdx_chk):
 	if tdx_chk==0:
 		file = open(fpath, 'r')
 		line=file.readline()
@@ -94,6 +154,8 @@ def verify_bid_code(codes_list, tdx_chk):
 	file.close()
 	ts.close_apis(tdxcn)
 
+#Main 
+# 
 if __name__=='__main__':
 	entry = '../data/entry/resp'
 	fpath = '../data/entry/market/latest_stock.txt'
@@ -108,11 +170,13 @@ if __name__=='__main__':
 		os.makedirs(entry)
 
 	codes_list = []
-	verify_bid_code(codes_list, 0)
+	verify_bid_code(codes_list, fpath, 0)
+	#codes_list = ['300295']
+	codes_list = codes_list[:2]
 
 	print "Start to add tick data"
 	for code in codes_list:
 		result = check_code_path(entry, code, td)
 		if result==0:
-			handle_data_source(entry, code, td)
+			fetch_tick_resource(entry, code, td)
 		
