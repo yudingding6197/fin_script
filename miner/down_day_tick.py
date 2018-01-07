@@ -13,6 +13,8 @@ from internal.ts_common import *
 import tushare as ts
 
 #下载每一天item的每笔交易数据
+#将停牌的排除，只选择指定日期进行交易的items
+
 '''  
 { #3个可用数据源
 'tt': 'http://stock.gtimg.cn/data/index.php?appn=detail&action=download&c=sz300553&d=20180102', 
@@ -135,36 +137,37 @@ def check_code_path(entry, code, trdate):
 		print "Error: check file:", fpath
 	return 1
 
-def check_trade_info(check_trade, line, not_trade_list):
-	if check_trade==0:
-		return
-	props = line.split(',')
-	length = len(props)
-	if length>3:
-		if props[3]=='-':
-			not_trade_list.append(props[0])
-	elif length==0:
-		not_trade_list.append(props[0])
-	return
+def check_matched_stock(fpath, stock_list):
+	if not os.path.isfile(fpath):
+		print "Not find file to store matched item:", fpath
+		return -1
+
+	file = open(fpath, 'r')
+	line=file.readline()
+	while (line):
+		code = line[:6]
+		if len(code)==6:
+			stock_list.append(code)
+		else:
+			print "Not correct code", line
+		line=file.readline()
+	file.close()
+	return 0
 	
 def verify_bid_code(folder, trade_dt, tdx_chk, codes_list, not_trade_list):
 	if tdx_chk==0:
-		bChkTd = 0
+		#通过文件得到当天没有交易的item
 		fpath = folder + "stock_" + trade_dt + ".txt"
-		if os.path.isfile(fpath):
-			file = open(fpath, 'r')
-			bChkTd = 1
-		else:
-			fpath = folder + "latest_stock.txt"
-			file = open(fpath, 'r')
-		line=file.readline()
-		while (line):
-			code = line[:6]
-			codes_list.append(code)
-			check_trade_info(bChkTd, line, not_trade_list)
-			line=file.readline()
-		file.close()
-		return
+		ret = check_matched_stock(fpath, not_trade_list)
+		if ret==-1:
+			return -1
+
+		#通过latest_stock得到所有的代码
+		fpath = folder + "latest_stock.txt"
+		ret = check_matched_stock(fpath, codes_list)
+		if ret==-1:
+			return -1
+		return 0
 
 	fpath = folder + "latest_stock.txt"
 	file = open(fpath, 'r')
@@ -198,7 +201,7 @@ def verify_bid_code(folder, trade_dt, tdx_chk, codes_list, not_trade_list):
 
 	file.close()
 	ts.close_apis(tdxcn)
-
+	return 0
 #Main 
 # 
 param_config = {
@@ -241,19 +244,23 @@ if __name__=='__main__':
 	codes_list = []
 	not_td_list = []
 	folder = '../data/entry/market/'
-	verify_bid_code(folder, td, 0, codes_list, not_td_list)
+	ret = verify_bid_code(folder, td, 0, codes_list, not_td_list)
+	if ret==-1:
+		exit()
 	#codes_list = ['603680']
 	#codes_list = codes_list[:2]
 
 	print "Start to add tick data"
 	ds = ['sn', 'tt', 'nt']
 	feedbac_list = []
+	#print codes_list
 	for code in codes_list:
+		if code in not_td_list:
+			#print "Not in list", code
+			continue
 		result = check_code_path(entry, code, td)
 		if result!=0:
+			#print "Exist data", code
 			continue
-		if code in not_td_list:
-			continue
+		#print "Fetch data=", code
 		fetch_tick_resource(entry, code, td, ds, feedbac_list)
-
-	#TODO: 更新没有交易的个股到对应文件中

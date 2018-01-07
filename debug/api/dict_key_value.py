@@ -20,7 +20,15 @@ else:
 	print "NNN1"
 d['000520']=300
 d['603098']=400
-print d
+d['603987']=400
+#³¤¶È
+print len(d), d 
+print "for .. in dict:"
+for item in d:
+	print item
+print "for .. in d.keys:"
+for k in d.keys():
+	print k
 
 if '000520' in d.iterkeys():
 	print "AAA2"

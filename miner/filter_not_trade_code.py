@@ -12,12 +12,17 @@ sys.path.append("..")
 from internal.ts_common import *
 import tushare as ts
 
+#FUNC: 获得某一天所有停牌的items
+#目前通过TDX的选股获取，此方法可能不再使用
+
 #验证获得以前交易时间停牌的股票
+#通过TDX获取每只item的所有交易日期，检查指定日期是否包含在内
+#如果不包含指定的日期，此item可能停牌
 def verify_not_bid_code(trade_dt, codes_list, not_trade_list):
-	df = None
 	LOOP_COUNT = 0
 	tdxcn = ts.get_apis()
 	for item in codes_list:
+		df = None
 		if LOOP_COUNT>3:
 			print "Too many error, retry"
 			break
@@ -25,11 +30,8 @@ def verify_not_bid_code(trade_dt, codes_list, not_trade_list):
 		try:
 			df = ts.bar(code, tdxcn)
 		except Exception as e:
-			print "ERROR:", code, e
-			ts.close_apis(tdxcn)
-			tdxcn = ts.get_apis()
+			print "ERROR:%s %s"%( code, e)
 		if df is None:
-			print code, "get bar is None"
 			LOOP_COUNT += 1
 			continue
 		LOOP_COUNT = 0
@@ -38,10 +40,10 @@ def verify_not_bid_code(trade_dt, codes_list, not_trade_list):
 			dtList = map(str, dtList)
 			chkDt = trade_dt + ' 00:00:00'
 			if chkDt not in dtList:
-				print code, td, "NO TRADE"
+				#print code, td, "NO TRADE"
 				not_trade_list.append(code)
 		except Exception as e:
-			print df.head(5)
+			#print df.head(5)
 			print code, "ERROR:", e
 	ts.close_apis(tdxcn)
 	return
@@ -59,11 +61,6 @@ def get_all_last_codes(folder, codes_list):
 	return
 
 #Main 
-# 
-param_config = {
-	"Date":''
-}
-
 if __name__=='__main__':
 	init_trade_obj()
 	td = ''
@@ -74,7 +71,6 @@ if __name__=='__main__':
 			ret,stdate = parseDate(value, nowToday)
 			if ret==-1:
 				exit()
-			param_config['Date'] = stdate
 			td = stdate
 		elif option in ["-?","--??"]:
 			print "Usage:", os.path.basename(sys.argv[0]), "-d MMDD/YYYYMMDD"
@@ -88,11 +84,31 @@ if __name__=='__main__':
 		exit()
 
 	lastTd = str(tradeList[0])
-	if lastTd==td:
-		print "Latest trade date, not call this function"
-		exit()
 	if td=='':
-		print "Usage:", os.path.basename(sys.argv[0]), "-d MMDD/YYYYMMDD"
+		folder = '../data/entry/market/'
+		fname = "latest_stock.txt"
+		fpath = folder + fname
+		if not os.path.isfile(fpath):
+			print "Error, not find" +fname+ ", first to download by latest_market.py"
+			exit()
+		fLatest = open(fpath, 'r')
+
+		fpath = folder + "stock_" + lastTd + ".txt"
+		if os.path.isfile(fpath):
+			print fpath, "exist! not update"
+			fLatest.close()
+			exit()
+		file = open(fpath, 'w')
+		line = fLatest.readline()
+		while line:
+			props = line.split(',')
+			length = len(props)
+			if length>3:
+				if props[3]=='-':
+					file.write(props[0]+'\n')
+			line = fLatest.readline()
+		fLatest.close()
+		file.close()
 		exit()
 	if chk_holiday(td):
 		print td, "is holiday, Quit"
@@ -102,14 +118,11 @@ if __name__=='__main__':
 	folder = '../data/entry/market/'
 	get_all_last_codes(folder, codes_list)
 	
-	#codes_list = ['603999', '603986', '603161', '300664']
 	not_td_list = []
 	verify_not_bid_code(td, codes_list, not_td_list)
-	print not_td_list
 
 	print "Start to add tick data"
 	file = open(folder + "stock_" + td + ".txt", 'w')
 	for item in not_td_list:
 		file.write(item + '\n')
 	file.close()
-	#TODO: 更新没有交易的个股到对应文件中
