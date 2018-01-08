@@ -6,7 +6,6 @@ import os
 import time
 import string
 import datetime
-import getopt
 import tushare as ts
 from internal.ts_common import *
 
@@ -62,18 +61,10 @@ def list_realtime_info(basic, codeArray):
 			
 	return
 
-#Main
 curdate = ''
 data_path = "debug/_self_define.txt"
-optlist, args = getopt.getopt(sys.argv[1:], '?n')
-for option, value in optlist:
-	if option in ["-n","--new"]:
-		data_path='../data/entry/miner/filter.txt'
-	elif option in ["-?","--???"]:
-		print "Usage: "
-		exit()
-
 stockCode = []
+
 today = datetime.date.today()
 curdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
 #print curdate
@@ -90,7 +81,7 @@ if pindex==2:
 	elif sys.argv[1]=='2':
 		show_flag=2
 
-if not os.path.isfile(data_path):
+if os.path.isfile(data_path) is False:
 	print "No file:",data_path
 	exit(0)
 
@@ -103,7 +94,7 @@ while 1:
 		code=line.strip()
 		if len(code)!=6:
 			continue;
-		if not code.isdigit():
+		if code.isdigit() is False:
 			continue;
 		stockCode.append(code)
 		#print code
