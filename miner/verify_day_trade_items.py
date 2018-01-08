@@ -84,7 +84,7 @@ def get_stock_bid_status(trade_dt, codesDict):
 			print "Invalid line:", line
 			line = file.readline()
 			continue
-		if props[3]=='':
+		if props[3]=='' or props[4]=='0':
 			#print "%s,'%s'" % (item, props[3])
 			codesDict[item] = 0
 		else:
@@ -139,7 +139,7 @@ if __name__=='__main__':
 	ret = get_stock_bid_status(td, codesDict)
 	if ret==-1:
 		exit()
-	print "Get all data"
+	print "Get all data in", td
 	#codesDict = {'603680':1, '000520':0}
 	#print codesDict
 

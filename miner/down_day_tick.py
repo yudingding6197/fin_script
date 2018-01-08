@@ -246,11 +246,12 @@ if __name__=='__main__':
 	folder = '../data/entry/market/'
 	ret = verify_bid_code(folder, td, 0, codes_list, not_td_list)
 	if ret==-1:
+		print "Error: Verify bid code fail"
 		exit()
 	#codes_list = ['603680']
 	#codes_list = codes_list[:2]
 
-	print "Start to add tick data"
+	print "Start to add tick data", td
 	ds = ['sn', 'tt', 'nt']
 	feedbac_list = []
 	#print codes_list

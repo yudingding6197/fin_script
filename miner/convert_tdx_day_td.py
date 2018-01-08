@@ -12,6 +12,7 @@ from internal.ts_common import *
 #读取通过TDX选股得到的某天所有交易数据，判断获得没有交易的item
 #解析原始文件 '../data/entry/tdx_history/沪深Ａ股_日期.txt'(通过TDX 34功能生成此文件)
 #保存到	'../data/entry/market/stock_日期.txt'
+#TODO:如果不加日期，希望能只能判断
 
 if __name__=='__main__':
 	td=''
@@ -55,7 +56,7 @@ if __name__=='__main__':
 			print "Invalid line:", line
 			line = file.readline()
 			continue
-		if props[3]=='':
+		if props[3]=='' or props[4]=='0':
 			#print "%s,'%s'" % (item, props[3])
 			tpList.append(item)
 		line = file.readline()
