@@ -225,17 +225,14 @@ param_config = {
 	"Date":'',	#
 	"Code":'',	#
 	"File":0,	#
+	"Range":1,	#
 	"LogTP":0	#写日志
 }
 if __name__=="__main__":
-	if 0:
-		lst=[1]
-		print lst[-2]
-		exit()
-
+	beginTm = datetime.datetime.now()
 	td = ''
 	nowToday = datetime.date.today()
-	optlist, args = getopt.getopt(sys.argv[1:], '?lfd:c:')
+	optlist, args = getopt.getopt(sys.argv[1:], '?lfd:c:r:')
 	for option, value in optlist:
 		if option in ["-d","--date"]:
 			ret,stdate = parseDate(value, nowToday, 1)
@@ -249,6 +246,8 @@ if __name__=="__main__":
 			param_config['Code'] = value
 		elif option in ["-f","--file"]:
 			param_config['File'] = 1
+		elif option in ["-r","--range"]:
+			param_config['Range'] = int(value)
 		elif option in ["-?","--??"]:
 			print "Usage:", os.path.basename(sys.argv[0]), " [-d MMDD/YYYYMMDD]"
 			exit()
@@ -268,6 +267,9 @@ if __name__=="__main__":
 	#针对某一只专门分析
 	if code!='':
 		codeList.append(code)
+		tdList = get_trade_date(code)
+		tdList = tdList[:param_config['Range']]
+			
 	#从filter.txt文件中读取一批票子挖
 	elif param_config['File']==1:
 		filterfl = '../data/entry/miner/filter.txt'
@@ -296,6 +298,22 @@ if __name__=="__main__":
 	tpList = []
 	logList = []
 	folder = '../data/entry/resp/'
+	if code!='':
+		for dat in tdList:
+			item = codeList[0]
+			cfolder = folder + item + '/'
+			if not os.path.exists(cfolder):
+				print cfolder, "Folder Not exist"
+				continue
+			fname = "%s%s_%s.csv" %(cfolder, item, dat)
+			if not os.path.exists(fname):
+				if code!='':
+					print fname, "File Not exist"
+				tpList.append(item)
+				continue
+			coindf = pd.read_csv(fname)
+			handle_single_res(item, coindf, coinList, logList)
+		exit()
 	for item in codeList:
 		if len(item)<6:
 			continue
@@ -307,7 +325,6 @@ if __name__=="__main__":
 		if not os.path.exists(fname):
 			if code!='':
 				print fname, "File Not exist"
-			bExist = 0
 			tpList.append(item)
 			continue
 		coindf = pd.read_csv(fname)
@@ -315,8 +332,7 @@ if __name__=="__main__":
 			handle_single_res(item, coindf, coinList, logList)
 		else:
 			handle_res(item, coindf, coinList, logList)
-	if code!='':
-		exit()
+	pass
 
 	if param_config['LogTP']==1:
 		fpath = '../data/entry/filter/no_td_' +td+ '.log'
@@ -337,5 +353,6 @@ if __name__=="__main__":
 	for item in logList:
 		file.write(item+'\n')
 	file.close()
-	
-	print 'FIN MINER'
+
+	endTm = datetime.datetime.now()
+	print 'FIN MINER ', (endTm-beginTm)

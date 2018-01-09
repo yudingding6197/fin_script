@@ -58,13 +58,26 @@ def check_tick_content(fpath):
 	if tmObj is None:
 		print "Error: Invalid format3", fpath
 		return -1
+	file.close()
+
 	hour=tmObj.group(1)
 	minute=tmObj.group(2)
 	if (hour=="15" and minute=='00') or (hour=="14" and minute=='59'):
-		pass
-	else:
-		print "Warning: check value", fpath
-	file.close()
+		return 0
+		
+	#校验不能通过的，再详细一些检查
+	df = pd.read_csv(fpath)
+	#YZZT
+	llen = len(df['price'].unique())
+	if llen==1:
+		if df['price'].count()<100:
+			return 0
+	#New stock
+	elif llen==2:
+		if df['price'].count()>100:
+			return 0
+	if hour=="14" and minute<="55":
+		print "Warning: check value", hour, minute, fpath
 	return 0
 
 def get_stock_bid_status(trade_dt, codesDict):
@@ -107,6 +120,7 @@ param_config = {
 }
 
 if __name__=='__main__':
+	beginTm = datetime.datetime.now()
 	init_trade_obj()
 	td = ''
 	nowToday = datetime.date.today()
@@ -162,4 +176,6 @@ if __name__=='__main__':
 			print "Error: Not exist file", fpath
 			continue
 		check_tick_content(fpath)
+	endTm = datetime.datetime.now()
 	print "Verify %d data" %(len(codesDict))
+	print "END ", (endTm-beginTm)

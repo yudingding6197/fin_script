@@ -154,7 +154,7 @@ def check_matched_stock(fpath, stock_list):
 	file.close()
 	return 0
 	
-def verify_bid_code(folder, trade_dt, tdx_chk, codes_list, not_trade_list):
+def separate_bid_or_not(folder, trade_dt, tdx_chk, codes_list, not_trade_list):
 	if tdx_chk==0:
 		#通过文件得到当天没有交易的item
 		fpath = folder + "stock_" + trade_dt + ".txt"
@@ -162,6 +162,13 @@ def verify_bid_code(folder, trade_dt, tdx_chk, codes_list, not_trade_list):
 		if ret==-1:
 			return -1
 
+		#首先从 A文件中获取分离信息，如果失败，尝试laster_stk
+		preName = '沪深Ａ股'
+		ntd = ''.join(trade_dt.split('-'))
+		fpath = '../data/entry/tdx_history/' + preName + ntd + ".txt"
+		ret = check_matched_stock(fpath, codes_list)
+		if ret==0:
+			return 0
 		#通过latest_stock得到所有的代码
 		fpath = folder + "latest_stock.txt"
 		ret = check_matched_stock(fpath, codes_list)
@@ -209,6 +216,7 @@ param_config = {
 }
 
 if __name__=='__main__':
+	beginTm = datetime.datetime.now()
 	init_trade_obj()
 	td = ''
 	nowToday = datetime.date.today()
@@ -225,13 +233,7 @@ if __name__=='__main__':
 			exit()
 
 	if td=='':
-		days = 5
-		tradeList = []
-		get_pre_trade_date(tradeList, days)
-		if len(tradeList)!=days:
-			print "Fail to get trade date"
-			exit()
-		td = str(tradeList[0])
+		td = str(get_last_trade_dt())
 
 	if chk_holiday(td):
 		print td, "is holiday, Quit"
@@ -244,7 +246,7 @@ if __name__=='__main__':
 	codes_list = []
 	not_td_list = []
 	folder = '../data/entry/market/'
-	ret = verify_bid_code(folder, td, 0, codes_list, not_td_list)
+	ret = separate_bid_or_not(folder, td, 0, codes_list, not_td_list)
 	if ret==-1:
 		print "Error: Verify bid code fail"
 		exit()
@@ -265,3 +267,5 @@ if __name__=='__main__':
 			continue
 		#print "Fetch data=", code
 		fetch_tick_resource(entry, code, td, ds, feedbac_list)
+	endTm = datetime.datetime.now()
+	print "END ", (endTm-beginTm)

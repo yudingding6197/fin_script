@@ -25,18 +25,18 @@ if __name__=='__main__':
 				exit()
 			td = stdate
 		elif option in ["-?","--??"]:
-			print "Usage:", os.path.basename(sys.argv[0]), "-d MMDD/YYYYMMDD"
+			print "Usage:", os.path.basename(sys.argv[0]), "[-d MMDD/YYYYMMDD]"
 			exit()
 
 	if td=='':
-		print "Usage:", os.path.basename(sys.argv[0]), "-d MMDD/YYYYMMDD"
-		exit()
+		td = str(get_last_trade_dt())
+
 	sarry = td.split('-')
 	ntd=''.join(sarry)
 	folder='../data/entry/tdx_history/'
 	preFname='沪深Ａ股'
-	fname = preFname + ntd + '.txt'
-	fpath = folder+fname.decode('utf8')
+	fname = preFname.decode('utf8') + ntd + '.txt'
+	fpath = folder+fname
 	if not os.path.isfile(fpath):
 		print "Error: ", fpath, "not exist"
 		exit()
@@ -71,3 +71,4 @@ if __name__=='__main__':
 	for item in tpList:
 		tpFile.write(item + '\n')
 	tpFile.close()
+	print "New file write in", fpath
