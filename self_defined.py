@@ -65,12 +65,12 @@ def list_realtime_info(basic, codeArray):
 #Main
 curdate = ''
 data_path = "debug/_self_define.txt"
-optlist, args = getopt.getopt(sys.argv[1:], '?n')
+optlist, args = getopt.getopt(sys.argv[1:], '?f')
 for option, value in optlist:
-	if option in ["-n","--new"]:
+	if option in ["-f","--file"]:
 		data_path='../data/entry/miner/filter.txt'
 	elif option in ["-?","--???"]:
-		print "Usage: "
+		print "Usage:", os.path.basename(sys.argv[0]), " [-f filename]"
 		exit()
 
 stockCode = []

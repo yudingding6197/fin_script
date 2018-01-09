@@ -13,7 +13,10 @@ from internal.ts_common import *
 import tushare as ts
 
 #FUNC: 获得某一天所有停牌的items
-#目前通过TDX的选股获取，此方法可能不再使用
+#目前通过TDX的选股获取，
+#	如果没有TDX，一般从DC获取最新交易,debug/last_market.py
+#	filter执行的时候，不加参数(-d)，则解析文本，将没有交易的提取到指定文件中
+#	如果有参数(-d)指定了日期,则会通过tdx的get_apis()进行处理，花费较长时间了
 
 #验证获得以前交易时间停牌的股票
 #通过TDX获取每只item的所有交易日期，检查指定日期是否包含在内
@@ -68,7 +71,7 @@ if __name__=='__main__':
 	optlist, args = getopt.getopt(sys.argv[1:], '?d:')
 	for option, value in optlist:
 		if option in ["-d","--date"]:
-			ret,stdate = parseDate(value, nowToday)
+			ret,stdate = parseDate(value, nowToday, ai=1)
 			if ret==-1:
 				exit()
 			td = stdate
@@ -98,6 +101,7 @@ if __name__=='__main__':
 			print fpath, "exist! not update"
 			fLatest.close()
 			exit()
+		print "Ready to save to ", fpath
 		file = open(fpath, 'w')
 		line = fLatest.readline()
 		while line:
@@ -117,7 +121,7 @@ if __name__=='__main__':
 	codes_list = []
 	folder = '../data/entry/market/'
 	get_all_last_codes(folder, codes_list)
-	
+
 	not_td_list = []
 	verify_not_bid_code(td, codes_list, not_td_list)
 

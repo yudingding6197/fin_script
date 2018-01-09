@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding:gbk -*-
-#可转债
 import sys
 import re
 import urllib2
@@ -12,6 +11,8 @@ import pandas as pd
 sys.path.append(".")
 sys.path.append("..")
 from internal.dfcf_interface import *
+
+#最新的交易代码保存为EBK文件，../data/kzz.EBK
 
 '''
 urlall = "http://data.eastmoney.com/kzz/default.html"

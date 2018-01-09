@@ -58,6 +58,12 @@ def check_tick_content(fpath):
 	if tmObj is None:
 		print "Error: Invalid format3", fpath
 		return -1
+	hour=tmObj.group(1)
+	minute=tmObj.group(2)
+	if (hour=="15" and minute=='00') or (hour=="14" and minute=='59'):
+		pass
+	else:
+		print "Warning: check value", fpath
 	file.close()
 	return 0
 
@@ -107,7 +113,7 @@ if __name__=='__main__':
 	optlist, args = getopt.getopt(sys.argv[1:], '?ad:')
 	for option, value in optlist:
 		if option in ["-d","--date"]:
-			ret,stdate = parseDate(value, nowToday)
+			ret,stdate = parseDate(value, nowToday, ai=1)
 			if ret==-1:
 				exit()
 			param_config['Date'] = stdate

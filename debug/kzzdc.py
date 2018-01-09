@@ -15,6 +15,11 @@ from internal.dfcf_interface import *
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
+#根据参数不同操作
+#1.没有参数，访问DC将数据显示在控制台
+#2.多个参数 sdtae
+#
+
 '''
 urlall = "http://data.eastmoney.com/kzz/default.html"
 
@@ -197,7 +202,10 @@ def output(kdf):
 		ZQNEW = items['ZQNEW']
 		YJL = float(items['YJL'])
 		ZGJZ = float(items['ZGJZGJJZ'])
-		ZGJ_HQ = float(items['ZGJ_HQ'])
+		if items['ZGJ_HQ']=='-':
+			ZGJ_HQ = 0
+		else:
+			ZGJ_HQ = float(items['ZGJ_HQ'])
 		ZGJZGJ = float(items['ZGJZGJ'])
 
 		str = fmt % (rank+1, items[0],items[1],ZQNEW,YJL,ZGJZ,ZGJ_HQ,ZGJZGJ)
@@ -249,6 +257,7 @@ def saveToExcel(kzzList):
 	tdstr = '%04d-%02d-%02d' %(today.year, today.month, today.day)
 	filexlsx1 = '%s/kzzInfo_%s.xlsx' %(folder, tdstr)
 	wb.save(filexlsx1)
+	print "Save file", filexlsx1
 	return
 
 param_config = {
@@ -261,7 +270,7 @@ param_config = {
 
 #Main
 if __name__=="__main__":
-	optlist, args = getopt.getopt(sys.argv[1:], 'sdtae')
+	optlist, args = getopt.getopt(sys.argv[1:], '?sdtae')
 	for option, value in optlist:
 		if option in ["-s","--sort"]:
 			param_config["Daoxu"] = 1
@@ -273,6 +282,14 @@ if __name__=="__main__":
 			param_config["AllInfo"] = 1
 		elif option in ["-e","--excel"]:
 			param_config["Excel"] = 1
+		elif option in ["-?","--???"]:
+			print "Usage:", os.path.basename(sys.argv[0]), " [-sdtae]"
+			print "-s: sort DaoXu"
+			print "-d: NoDetail"
+			print "-t: sort by time"
+			print "-a: All Info, building..."
+			print "-e: save as Excel"
+			exit()
 
 	req_count=0
 	curpage = 1

@@ -199,7 +199,7 @@ for i in range(1, 35):
 				ws[cell] = stockInfo[k]
 			excel_row += 1
 			total_item += 1
-			cd_list.append(stockInfo[0])
+			cd_list.append(stockInfo)
 		#假设最后一页取出数据太少，停止http请求
 		if total_item<PAGE_COUNT-10:
 			break
@@ -217,5 +217,5 @@ if len(cd_list)<=0:
 	exit(1)
 fl = open(prepath1 + name + '_last.txt', 'w')
 for item in cd_list:
-	fl.write(item+'\n')
+	fl.write(item[0]+'\n')
 fl.close()

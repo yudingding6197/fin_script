@@ -71,7 +71,7 @@ def parseCode(code):
 			return (-1, '')
 	return (0, ncode)
 
-def parseDate(qdate, today):
+def parseDate(qdate, today, ai=0):
 	dateObj = re.match(r'^(\d{4})(\d{2})(\d{2})', qdate)
 	if (dateObj is None):
 		dateObj = re.match(r'^(\d{2})(\d{2})', qdate)
@@ -92,10 +92,15 @@ def parseDate(qdate, today):
 	strdate = '%04d-%02d-%02d' %(year, month, day)
 
 	try:
-		datetime.date(year,month,day)
+		newdate = datetime.date(year,month,day)
 	except:
 		print strdate, "is invalid date"
 		return (-1, '')
+	if ai==1:
+		delta = newdate-today
+		if delta.days>10:
+			year -= 1
+			strdate = '%04d-%02d-%02d' %(year, month, day)
 	return (0, strdate)
 
 def parseSeparateDate(qdate, today):

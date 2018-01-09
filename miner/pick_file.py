@@ -22,7 +22,7 @@ if __name__=="__main__":
 	optlist, args = getopt.getopt(sys.argv[1:], '?c:d:')
 	for option, value in optlist:
 		if option in ["-d","--date"]:
-			ret,stdate = parseDate(value, nowToday)
+			ret,stdate = parseDate(value, nowToday, ai=1)
 			if ret==-1:
 				exit()
 			param_config['Date'] = stdate
