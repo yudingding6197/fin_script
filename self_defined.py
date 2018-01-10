@@ -94,12 +94,10 @@ if not os.path.isfile(data_path):
 	print "No file:",data_path
 	exit(0)
 
-flag=0
 file = open(data_path, 'r')
-while 1:
+if '_self_define' in data_path:
+	flag=0
 	lines = file.readlines(100000)
-	if not lines:
-		break
 	for line in lines:
 		line=line.strip()
 		if line=='STK':
@@ -116,6 +114,15 @@ while 1:
 			continue;
 		stockCode.append(code)
 		#print code
+else:
+	line = file.readline()
+	while line:
+		if len(line)>=6:
+			code = line[0:6]
+			if code.isdigit():
+				stockCode.append(code)
+		line = file.readline()
+	pass
 file.close()
 
 if show_flag==1:
