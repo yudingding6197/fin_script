@@ -8,6 +8,7 @@ import urllib
 import urllib2
 import datetime
 import shutil
+import pandas as pd
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
@@ -89,7 +90,7 @@ def handle_stk_data(stk_item, stockInfo):
 	item2 = handle_float(item2)
 	item3 = str_arr[24]
 	item3 = handle_float(item3)
-	
+
 	stockInfo.append(code)
 	stockInfo.append(name)
 	stockInfo.append(change_perc)
@@ -219,3 +220,7 @@ fl = open(prepath1 + name + '_last.txt', 'w')
 for item in cd_list:
 	fl.write(item[0]+'\n')
 fl.close()
+
+df = pd.DataFrame(cd_list, columns=strObj)
+df = df.sort_values([u'ÕÇµø·ù'], 0, False)
+df.to_csv('../data/entry/miner/instant_rank.csv', encoding='gbk', index=False)

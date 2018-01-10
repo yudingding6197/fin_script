@@ -30,7 +30,7 @@ def output_hist(code, histDf, file):
 			msg = fmt%(index, row['p_change'], row['close'], row['open'], row['high'], row['low'], '')
 		else:
 			msg = fmt%(index, row['p_change'], row['close'], row['open'], row['high'], row['low'], row['turnover'])
-		if count<10:
+		if count<param_config['Line']:
 			print msg
 		elif count>50:
 			break
@@ -65,17 +65,20 @@ def get_code_list(codeList):
 # Main
 param_config = {
 	"Code":'',	#
-	"File":''	#
+	"File":'',
+	"Line":10
 }
 if __name__=="__main__":
 	td = ''
 	nowToday = datetime.date.today()
-	optlist, args = getopt.getopt(sys.argv[1:], '?fc:')
+	optlist, args = getopt.getopt(sys.argv[1:], '?fl:c:')
 	for option, value in optlist:
 		if option in ["-c","--code"]:
 			param_config['Code'] = value
 		elif option in ["-f","--file"]:
 			param_config['File'] = 'F'
+		elif option in ["-l","--line"]:
+			param_config['Line'] = int(value)
 		elif option in ["-?","--??"]:
 			print "Usage:", os.path.basename(sys.argv[0]), " [-c code] [-f filename]"
 			exit()
@@ -87,11 +90,11 @@ if __name__=="__main__":
 	codeList = []
 	code = param_config['Code']
 	if param_config['File']!='':
-		print "Get from file"
 		get_code_list(codeList)
 	elif code!='':
-		print "Get code"
 		codeList.append(code)
+	if codeList==[]:
+		print "Error: Not get date from file or code"
 
 	fpath = '../data/entry/miner/zKDate.txt'
 	file = open(fpath, 'w')

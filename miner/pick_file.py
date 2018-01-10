@@ -32,7 +32,7 @@ if __name__=="__main__":
 		elif option in ["-?","--??"]:
 			print "Usage:", os.path.basename(sys.argv[0]), " -c code [-d MMDD/YYYYMMDD]"
 			exit()
-
+	pass
 
 	code = param_config['Code']
 	td = param_config['Date']
@@ -44,11 +44,12 @@ if __name__=="__main__":
 	dfolder = '../data/'
 	if td=='':
 		for (dirpath, dirnames, filenames) in os.walk(sfolder1):  
-			print('dirpath = ' + dirpath)
+			print('From path = ' + dirpath)
 			for filename in filenames:
 				shutil.copy(sfolder1+filename, dfolder+filename)
 		pass
 	else:
 		name = code +"_"+ td + '.csv'
 		shutil.copy(sfolder1+name, dfolder+name)
+	print "END: put here", dfolder
 

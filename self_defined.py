@@ -94,12 +94,21 @@ if not os.path.isfile(data_path):
 	print "No file:",data_path
 	exit(0)
 
+flag=0
 file = open(data_path, 'r')
 while 1:
 	lines = file.readlines(100000)
 	if not lines:
 		break
 	for line in lines:
+		line=line.strip()
+		if line=='STK':
+			flag=1
+			continue
+		elif flag==1 and line=='END':
+			break
+		if flag==0:
+			continue
 		code=line.strip()
 		if len(code)!=6:
 			continue;

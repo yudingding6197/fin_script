@@ -230,7 +230,7 @@ def show_item(rank, items):
 			str = fmt % (rank, code, value.decode('gbk'), cp,trade,open_p,high_p,low_p,YJL,ZGJZ)
 		print str
 
-def output_rank(mgdf):
+def output_rank(mgdf, priority):
 	fmt = "   %6s %8s      %-7s	%-7s	%-7s	%-7s	%-7s	%-7s	%-7s"
 	print fmt%('code', 'name', 'change', 'price', 'open', 'high', 'low', 'YJL', 'ZGJZ')
 
@@ -257,7 +257,6 @@ def output_rank(mgdf):
 		show_item(rank, items)
 	return
 
-priority = ['128018','128023','123002']
 param_config = {
 	"Daoxu":0,
 	"Price":0,
@@ -278,6 +277,32 @@ if __name__=="__main__":
 			param_config["YJL"] = 1
 		elif option in ["-z","--zgjz"]:
 			param_config["ZGJZ"] = 1
+	pass
+
+	priority = []
+	flag = 0
+	data_path = "debug/_self_define.txt"
+	file = open(data_path, 'r')
+	while 1:
+		lines = file.readlines(100000)
+		if not lines:
+			break
+		for line in lines:
+			line=line.strip()
+			if line=='KZZ':
+				flag=1
+				continue
+			elif flag==1 and line=='END':
+				break
+			if flag==0:
+				continue
+			code=line.strip()
+			if len(code)!=6:
+				continue;
+			if not code.isdigit():
+				continue;
+			priority.append(code)
+	file.close()
 
 	req_count=0
 	curpage = 1
@@ -329,4 +354,4 @@ if __name__=="__main__":
 	mgdf = pd.merge(sinadf, kzzdf1, how='left', left_index=True, right_index=True)
 
 	#output(kzzdf)
-	output_rank(mgdf)
+	output_rank(mgdf, priority)

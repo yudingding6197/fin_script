@@ -23,7 +23,7 @@ def get_baseline1(volume):
 	v = volume/10*10
 	return v
 
-def handle_single_res(code, coindf, coinList, logList):
+def handle_single_res(code, trade_dt, coindf, coinList, logList):
 	clm_vol = 'volume'
 	amount = coindf.iloc[:,0].size
 	if amount==0:
@@ -70,8 +70,8 @@ def handle_single_res(code, coindf, coinList, logList):
 	if matchCt>1:
 		coinList.append(code +','+ str(volumeList))
 
-	print code, str(volumeList)
-	logList.append(code + str(volumeList))
+	print code, trade_dt, str(volumeList)
+	logList.append(code +', '+ trade_dt +', '+ str(volumeList))
 	filterDf = coindf[coindf[clm_vol]>=0]
 	i = 0
 	fmt1 = "%6s (%4d) %4d %4d(%6d,%6d) -- %4d %4d(%6d,%6d)"
@@ -102,7 +102,7 @@ def handle_single_res(code, coindf, coinList, logList):
 		i += 1
 	return
 	
-def handle_res(code, coindf, coinList, logList):
+def handle_res(code, trade_dt, coindf, coinList, logList):
 	clm_vol = 'volume'
 	amount = coindf.iloc[:,0].size
 	if amount==0:
@@ -253,22 +253,20 @@ if __name__=="__main__":
 			exit()
 	pass
 
-	if td=='':
-		days = 5
-		tradeList = []
-		get_pre_trade_date(tradeList, days)
+	codeList = []
+	code = param_config['Code']
+	range = param_config['Range']
+	#针对某一只专门分析
+	tradeList = []
+	if code!='':
+		days = range
+		get_pre_trade_date(tradeList, days, code)
 		if len(tradeList)!=days:
 			print "Fail to get trade date"
 			exit()
-		td = str(tradeList[0])
-
-	codeList = []
-	code = param_config['Code']
-	#针对某一只专门分析
-	if code!='':
 		codeList.append(code)
-		tdList = get_trade_date(code)
-		tdList = tdList[:param_config['Range']]
+		#tdList = get_trade_date(code)
+		#tdList = tdList[:param_config['Range']]
 			
 	#从filter.txt文件中读取一批票子挖
 	elif param_config['File']==1:
@@ -292,6 +290,10 @@ if __name__=="__main__":
 				codeList.append(item)
 			line = file.readline()
 		file.close()
+	if td=='':
+		if tradeList==[]:
+			get_pre_trade_date(tradeList, 2)
+		td = str(tradeList[0])
 
 	print "Mine " +td+ " start ......"
 	coinList = []
@@ -299,7 +301,7 @@ if __name__=="__main__":
 	logList = []
 	folder = '../data/entry/resp/'
 	if code!='':
-		for dat in tdList:
+		for dat in tradeList:
 			item = codeList[0]
 			cfolder = folder + item + '/'
 			if not os.path.exists(cfolder):
@@ -312,7 +314,12 @@ if __name__=="__main__":
 				tpList.append(item)
 				continue
 			coindf = pd.read_csv(fname)
-			handle_single_res(item, coindf, coinList, logList)
+			handle_single_res(item, dat, coindf, coinList, logList)
+		fpath = '../data/entry/miner/log_' + td + '.log'
+		file = open(fpath, 'w')
+		for item in logList:
+			file.write(item+'\n')
+		file.close()
 		exit()
 	for item in codeList:
 		if len(item)<6:
@@ -329,9 +336,9 @@ if __name__=="__main__":
 			continue
 		coindf = pd.read_csv(fname)
 		if code!='':
-			handle_single_res(item, coindf, coinList, logList)
+			handle_single_res(item, td, coindf, coinList, logList)
 		else:
-			handle_res(item, coindf, coinList, logList)
+			handle_res(item, td, coindf, coinList, logList)
 	pass
 
 	if param_config['LogTP']==1:

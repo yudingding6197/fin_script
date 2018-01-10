@@ -212,7 +212,9 @@ def separate_bid_or_not(folder, trade_dt, tdx_chk, codes_list, not_trade_list):
 #Main 
 # 
 param_config = {
-	"Date":''
+	"Date":'',
+	"Code":'',
+	"File":0
 }
 
 if __name__=='__main__':
@@ -220,7 +222,7 @@ if __name__=='__main__':
 	init_trade_obj()
 	td = ''
 	nowToday = datetime.date.today()
-	optlist, args = getopt.getopt(sys.argv[1:], '?d:')
+	optlist, args = getopt.getopt(sys.argv[1:], '?fc:d:')
 	for option, value in optlist:
 		if option in ["-d","--date"]:
 			ret,stdate = parseDate(value, nowToday, ai=1)
@@ -228,13 +230,16 @@ if __name__=='__main__':
 				exit()
 			param_config['Date'] = stdate
 			td = stdate
+		elif option in ["-c","--code"]:
+			param_config['Code'] = value
+		elif option in ["-f","--file"]:
+			param_config['File'] = 1
 		elif option in ["-?","--??"]:
 			print "Usage:", os.path.basename(sys.argv[0]), " [-d MMDD/YYYYMMDD]"
 			exit()
 
 	if td=='':
 		td = str(get_last_trade_dt())
-
 	if chk_holiday(td):
 		print td, "is holiday, Quit"
 		exit()
@@ -245,11 +250,23 @@ if __name__=='__main__':
 
 	codes_list = []
 	not_td_list = []
-	folder = '../data/entry/market/'
-	ret = separate_bid_or_not(folder, td, 0, codes_list, not_td_list)
-	if ret==-1:
-		print "Error: Verify bid code fail"
-		exit()
+	if param_config['Code']!='':
+		codes_list.append(param_config['Code'])
+	elif param_config['File']==1:
+		file = open('../data/entry/miner/filter.txt', 'r')
+		line = file.readline()
+		while line:
+			if len(line)>=6:
+				line = line[:6]
+				if line.isdigit():
+					codes_list.append(line)
+			line = file.readline()
+	else:
+		folder = '../data/entry/market/'
+		ret = separate_bid_or_not(folder, td, 0, codes_list, not_td_list)
+		if ret==-1:
+			print "Error: Verify bid code fail"
+			exit()
 	#codes_list = ['603680']
 	#codes_list = codes_list[:2]
 

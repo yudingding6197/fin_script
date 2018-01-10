@@ -35,7 +35,7 @@ if ret!=0:
 
 delta1=datetime.timedelta(days=1)
 today = datetime.date.today()
-ret,stdate = parseDate(sys.argv[2], today)
+ret,stdate = parseDate(sys.argv[2], today, ai=1)
 if ret==-1:
 	exit(1)
 sdate = datetime.datetime.strptime(stdate, '%Y-%m-%d').date()
@@ -53,7 +53,7 @@ else:
 	if ret==-1:
 		exit(1)
 	edate = datetime.datetime.strptime(eddate, '%Y-%m-%d').date()
-#print sdate, edate
+print "Ready fetch", sdate, edate
 
 replace=0
 if pindex>=5:
