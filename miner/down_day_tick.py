@@ -145,9 +145,10 @@ def check_matched_stock(fpath, stock_list):
 	file = open(fpath, 'r')
 	line=file.readline()
 	while (line):
-		code = line[:6]
-		if len(code)==6:
-			stock_list.append(code)
+		if len(line)>=6:
+			code = line[:6]
+			if code.isdigit():
+				stock_list.append(code)
 		else:
 			print "Not correct code", line
 		line=file.readline()

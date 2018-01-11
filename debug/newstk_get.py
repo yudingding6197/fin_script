@@ -80,7 +80,7 @@ def check_new_stk(stk_item, stockInfo):
 fm_url = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._A&sty=FCOIATA&sortType=A&sortRule=-1&page=%d&pageSize=%d&token=7bc05d0d4c3c22ef9fca8c2a912d779c"
 prepath1 = "../data/entry/trade/"
 name = "ns_info.xlsx"
-PAGE_COUNT = 500
+PAGE_COUNT = 50
 
 wb = Workbook()
 # grab the active worksheet
@@ -94,9 +94,14 @@ excel_row = 2
 repeat_flag = 0
 first_code = ''
 
-for i in range(1, 35):
+#遇到rsp.readline失败，重读此页，最多3次
+SAME_PAGE_CT=0
+while i<100:
 	if repeat_flag==1:
 		break
+	if SAME_PAGE_CT>3:
+		break
+	SAME_PAGE_CT += 1
 
 	url = fm_url%(i,PAGE_COUNT)
 	#print url
@@ -106,7 +111,7 @@ for i in range(1, 35):
 	while LOOP_COUNT<3:
 		try:
 			req = urllib2.Request(url)
-			response = urllib2.urlopen(req, timeout=5)
+			response = urllib2.urlopen(req, timeout=60)
 		except:
 			LOOP_COUNT += 1
 			print "URL request timeout"
@@ -115,7 +120,12 @@ for i in range(1, 35):
 	if response is None:
 		break
 
-	line = response.readline()
+	#print response
+	try:
+		line = response.readline()
+	except:
+		print "Warning read fail in page i=", i
+		continue
 	while line:
 		line = line.decode('utf8')
 
@@ -178,9 +188,11 @@ for i in range(1, 35):
 			excel_row += 1
 			total_item += 1
 		#假设最后一页取出数据太少，停止http请求
-		if total_item<PAGE_COUNT-10:
+		if total_item<PAGE_COUNT-5:
 			break
 		line = response.readline()
+	i += 1
+	SAME_PAGE_CT = 0
 
 filexlsx1 = prepath1 + name
 wb.save(filexlsx1)
