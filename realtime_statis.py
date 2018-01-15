@@ -247,7 +247,12 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 					yzzt_day += 1
 					pre_close = close
 				if b_open==0:
-					dt_str=day_info_df.iloc[trade_days-1,0]
+					try:
+						dt_str=day_info_df.iloc[trade_days-1,0]
+					except:
+						print code,trade_days
+						print day_info_df
+						exit()
 					last_date = datetime.datetime.strptime(dt_str, '%Y-%m-%d').date()
 					#print code, name, idx_date,last_date
 					cmp_delta = idx_date-last_date
@@ -262,6 +267,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 	return 0
 
 #Main Start:
+beginTm = datetime.datetime.now()
 prepath = "../data/"
 sysstr = platform.system()
 cur=datetime.datetime.now()
@@ -454,3 +460,5 @@ if param_config["NoLog"]==0:
 
 	tmp_file = path + "b_rt.txt"
 	shutil.copy(flname, tmp_file)
+endTm = datetime.datetime.now()
+print "END ", (endTm-beginTm)

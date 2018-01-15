@@ -85,6 +85,7 @@ def export_ebk(kdf):
 		if str!='':
 			file.write(str)
 	file.close()
+	print "Save to ", kzzebk
 	return
 
 #Main

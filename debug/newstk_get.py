@@ -96,6 +96,7 @@ first_code = ''
 
 #遇到rsp.readline失败，重读此页，最多3次
 SAME_PAGE_CT=0
+i = 0
 while i<100:
 	if repeat_flag==1:
 		break
@@ -196,3 +197,4 @@ while i<100:
 
 filexlsx1 = prepath1 + name
 wb.save(filexlsx1)
+print "DONE!"

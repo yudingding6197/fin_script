@@ -5,8 +5,8 @@ import re
 import os
 import string
 import datetime
-import urllib
 import urllib2
+import zlib
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
@@ -926,7 +926,8 @@ def zt_time_point(code, zt_price, trade_date, stcsItem):
 			j += 1
 	return
 
-def get_zf_days(code, type, trade_date):
+def get_zf_days1(code, type, trade_date, cur_zdt=1):
+	print code, trade_date
 	excecount=0
 	df = None
 	while excecount<=3:
@@ -940,14 +941,13 @@ def get_zf_days(code, type, trade_date):
 		return 0
 	#如果当天的数据已经得到，不需要多加一天，得到ZT or DT
 	#只有正在进行交易的时候，当天数据得不到，ZT or DT需要加1
-	b_add_one = 1
 	count = 0
 	for index,row in df.iterrows():
 		val = float(row['p_change'])
 		bflag = 0
 		if str(index)==str(trade_date):
-			b_add_one = 0
-			count += 1
+			if cur_zdt==1:
+				count += 1
 			continue
 		if type==1:
 			if val>9.9:
@@ -959,8 +959,114 @@ def get_zf_days(code, type, trade_date):
 				bflag = 1
 		if bflag==0:
 			break
-	if b_add_one==1:
-		count += 1
+	pass
+	return count
+
+urlfmt = 'http://pdfm2.eastmoney.com/EM_UBG_PDTI_Fast/api/js?id=%s&TYPE=k&js=%s((x))&rtntype=%d&isCR=true&authorityType=fa'
+#'Referer': http://quote.eastmoney.com/chart/h5.html?id=0005202&type=k
+send_headers = {
+'Host': 'pdfm2.eastmoney.com',
+'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0',
+'Accept': '*/*',
+'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
+'Accept-Encoding': 'gzip, deflate',
+'Cookie': 'st_pvi=97140791819816; emstat_bc_emcount=24578815992596371324; emstat_ss_emcount=0_1515626347_1914456706; \
+em_hq_fls=old; _ga=GA1.2.1371087654.1472141391; Hm_lvt_557fb74c38569c2da66471446bbaea3f=1506330203; qgqp_b_id=867a67ca83c13fbd622d079314b267df; \
+ct=tTNAoSxXA4HgHmLlK58m5dvCXLfX46zX2EhPxEC0Mp9KXne6YtatYD6Zc0kmqHFH9fEfxnQyVM3cy4d5hDSq4xaCuyjCtoat4MAwVJeFCgQ4jH3xU77tzv2BnAs_YtDRJ5YbPVra0XcbM0-zTxO2seQHPw9FjR4vaKjkGFEoupI; \
+uidal=6100112247957528goutou; vtpst=|; emshistory=%5B%22%E4%BF%9D%E5%8D%83%E9%87%8C%E5%80%BA%E5%88%B8%22%5D; st_si=56676665040049',
+'DNT': 1
+}
+def get_zf_days(code, type, trade_date, cur_zdt):
+	rtntype = 1
+	jstr = 'fsData1515847425760'
+	excecount=0
+	df = None
+	shcd = ['600', '601', '603']
+	szcd = ['000','001','002','300']
+	head3 = code[0:3]
+	if head3 in szcd:
+		ncode = code + "2"
+	elif head3 in shcd:
+		ncode = code + "1"
+	urlall = urlfmt %(ncode, jstr, rtntype)
+	while excecount<=3:
+		try:
+			req = urllib2.Request(urlall,headers=send_headers)
+			res_data = urllib2.urlopen(req)
+		except:
+			excecount += 1
+			continue
+		else:
+			break
+	if res_data is None:
+		print "Open URL fail"
+		return
+
+	content1 = res_data.read()
+	respInfo = res_data.info()
+	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
+		content1 = zlib.decompress(content1, 16+zlib.MAX_WBITS);
+	else:
+		print "Content not zip"
+
+	content = content1.decode('utf8')
+	if content[-1]==")":
+		content = content[:-1]
+	jslen = len(jstr)
+	content = content[(jslen+1):]
+	contObj = content.split("\r")
+	
+	#如果当天的数据已经得到，不需要多加一天，得到ZT or DT
+	#只有正在进行交易的时候，当天数据得不到，ZT or DT需要加1
+	count = 0
+	yzcount = 0
+	dayLen = len(contObj)
+	while dayLen>0:
+		dayCont = contObj[dayLen-1]
+		if len(dayCont)<=8:
+			dayLen -= 1
+			continue
+		itemObj = dayCont.strip().split(',')
+
+		index = itemObj[0]
+		close = float(itemObj[2])
+		high = float(itemObj[3])
+		low = float(itemObj[4])
+		#最开始上市那天，以前不再有数据
+		if dayLen<=1:
+			count += 1
+			yzcount += 1
+			if yzcount!=0:
+				count -= yzcount
+			break
+		preDayCont = contObj[dayLen-2]
+		preItemObj = preDayCont.strip().split(',')
+		preClose = float(preItemObj[2])
+
+		val = round((close-preClose)*100/preClose, 2)
+		bflag = 0
+		if str(index)==str(trade_date):
+			if cur_zdt==1:
+				count += 1
+			dayLen -= 1
+			continue
+		#print index, trade_date, type, val
+		if type==1:
+			if val>9.8 and high==close:
+				count += 1
+				if high==low:
+					yzcount += 1
+				bflag = 1
+		elif type==2:
+			if val<-9.88 and low==close:
+				count += 1
+				if high==low:
+					yzcount += 1
+				bflag = 1
+		if bflag==0:
+			break
+		dayLen -= 1
+	pass
 	return count
 
 def handle_today_ticks(df, code, trade_date, chk_price, type):
@@ -1144,7 +1250,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 					stcsItem.s_close_zt += 1
 					#list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
 					#pd_list.append(list)
-					count = get_zf_days(code, 1, trade_date)
+					count = get_zf_days(code, 1, trade_date, 1)
 					if yzcx_flag==0:
 						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count]
 						stcsItem.lst_non_yzcx_yzzt.append(list)
@@ -1160,7 +1266,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 				status |= STK_DT
 				stcsItem.s_open_dt += 1
 				status |= STK_OPEN_DT
-				count = get_zf_days(code, 2, trade_date)
+				count = get_zf_days(code, 2, trade_date, 1)
 				list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count]
 				stcsItem.lst_yzdt.append(list)
 		#print code,name,open,low,high,price,pre_close
@@ -1185,12 +1291,12 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 							stcsItem.s_open_T_zt += 1
 					#list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
 					#pd_list.append(list)
-					count = get_zf_days(code, 1, trade_date)
+					count = get_zf_days(code, 1, trade_date, 1)
 					if yzcx_flag==0:
 						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, chuban]
 						stcsItem.lst_non_yzcx_zt.append(list)
 				else:
-					count = get_zf_days(code, 1, trade_date)
+					count = get_zf_days(code, 1, trade_date, 0)
 					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, chuban, openban]
 					stcsItem.lst_non_yzcx_zthl.append(list)
 					stcsItem.s_zthl += 1
@@ -1220,7 +1326,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 				if price==dt_price:
 					stcsItem.s_dt += 1
 					status |= STK_DT
-					count = get_zf_days(code, 2, trade_date)
+					count = get_zf_days(code, 2, trade_date, 1)
 
 					#DT Data
 					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, chuban]
@@ -1230,7 +1336,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 					status |= STK_DTFT
 
 					#DTFT Data
-					count = get_zf_days(code, 2, trade_date)
+					count = get_zf_days(code, 2, trade_date, 0)
 					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, chuban, openban]
 					stcsItem.lst_dtft.append(list)
 
