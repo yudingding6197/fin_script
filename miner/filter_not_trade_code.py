@@ -86,8 +86,15 @@ if __name__=='__main__':
 		print "Fail to get trade date"
 		exit()
 
-	lastTd = str(tradeList[0])
-	if td=='':
+	todayStr = '%04d-%02d-%02d' %(nowToday.year, nowToday.month, nowToday.day)
+	if todayStr==td:
+		lastTd = td
+	else:
+		lastTd = str(tradeList[0])
+	if chk_holiday(lastTd):
+		print lastTd, "is holiday for last td, Quit"
+		exit()
+	if td=='' or td==lastTd:
 		folder = '../data/entry/market/'
 		fname = "latest_stock.txt"
 		fpath = folder + fname

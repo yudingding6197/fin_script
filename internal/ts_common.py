@@ -433,15 +433,27 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 		print qdate, ": Fail to get data"
 		return -1
 
+	lastTime=''
+	lastvol = -1
 	for index,row in df.iterrows():
 		curtime = row['time']
+		curvol = int(row['volume'])
+		#检查2条数据是否重复，偶尔发现会有重复
+		if lastTime=='':
+			lastTime = curtime
+			lastvol = curvol
+		else:
+			if lastTime==curtime:
+				if lastvol==curvol:
+					print code, curtime, curvol, "discard repeat data!"
+					continue
+		pass
 		curprice = row['price']
 		range_per = ''
 		if last_close!=0:
 			range_val = ((float(curprice)-last_close) * 100) / last_close
 			range_per = round(range_val, 2)
 		fluctuate = row['change']
-		curvol = int(row['volume'])
 		volume = curvol
 		amount = row['amount']
 		if get_api==0:

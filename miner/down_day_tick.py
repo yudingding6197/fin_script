@@ -273,7 +273,7 @@ if __name__=='__main__':
 
 	print "Start to add tick data", td
 	ds = ['sn', 'tt', 'nt']
-	feedbac_list = []
+	feedback_list = []
 	#print codes_list
 	for code in codes_list:
 		if code in not_td_list:
@@ -283,7 +283,7 @@ if __name__=='__main__':
 		if result!=0:
 			#print "Exist data", code
 			continue
-		#print "Fetch data=", code
-		fetch_tick_resource(entry, code, td, ds, feedbac_list)
+		#print "Fetch data=", code, td
+		fetch_tick_resource(entry, code, td, ds, feedback_list)
 	endTm = datetime.datetime.now()
 	print "END ", (endTm-beginTm)

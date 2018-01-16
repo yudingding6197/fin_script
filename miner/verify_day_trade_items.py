@@ -163,7 +163,7 @@ if __name__=='__main__':
 	#codesDict = {'603680':1, '000520':0}
 	#print codesDict
 
-	folder = '../data/entry/resp/'
+	folder = '../data/entry/ore_mine/'
 	for key in codesDict.keys():
 		code = key
 		fname = code + '_' + td + '.csv'
