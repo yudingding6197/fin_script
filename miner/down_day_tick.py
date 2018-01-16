@@ -245,7 +245,7 @@ if __name__=='__main__':
 		print td, "is holiday, Quit"
 		exit()
 
-	entry = '../data/entry/resp'
+	entry = '../data/entry/ore_mine'
 	if not os.path.exists(entry):
 		os.makedirs(entry)
 

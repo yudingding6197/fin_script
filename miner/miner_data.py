@@ -299,7 +299,7 @@ if __name__=="__main__":
 	coinList = []
 	tpList = []
 	logList = []
-	folder = '../data/entry/resp/'
+	folder = '../data/entry/ore_mine/'
 	if code!='':
 		for dat in tradeList:
 			item = codeList[0]

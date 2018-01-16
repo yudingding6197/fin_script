@@ -39,7 +39,7 @@ if __name__=="__main__":
 	if code=='':
 		print "Need code"
 		exit()
-	sfolder = '../data/entry/resp/'
+	sfolder = '../data/entry/ore_mine/'
 	sfolder1 = sfolder + code + '/'
 	dfolder = '../data/'
 	if td=='':
