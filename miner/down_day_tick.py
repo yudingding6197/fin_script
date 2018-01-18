@@ -210,11 +210,50 @@ def separate_bid_or_not(folder, trade_dt, tdx_chk, codes_list, not_trade_list):
 	file.close()
 	ts.close_apis(tdxcn)
 	return 0
-#Main 
+
+def down_tick_by_day(minePath, codes_list, not_td_list, td):
+	ds = ['sn', 'tt', 'nt']
+	feedback_list = []
+	#print codes_list
+	for code in codes_list:
+		if code in not_td_list:
+			#print "Not in list", code
+			continue
+		result = check_code_path(minePath, code, td)
+		if result!=0:
+			#print "Exist data", code
+			continue
+		#print "Fetch data=", code, td
+		fetch_tick_resource(minePath, code, td, ds, feedback_list)
+	return
+
+def get_real_trade_days(code, st_date, trade_list):
+	nowToday = datetime.date.today()
+	startDate = datetime.datetime.strptime(st_date, '%Y-%m-%d').date()
+	obj = nowToday - startDate
+	if obj.days<0:
+		print "Error: date out of range ", startDate
+		return
+
+	kdf = ts.get_k_data(code)
+	if kdf is None:
+		print "Error: Fail to get k date", code
+		return
+
+	kdf = kdf.sort_index(ascending=False)
+	for tdidx,tdrow in kdf.iterrows():
+		dfDate = datetime.datetime.strptime(tdrow['date'], '%Y-%m-%d').date()
+		if (dfDate-startDate).days<0:
+			break
+		trade_list.append(tdrow['date'])
+	return
+
+#Main
 # 
 param_config = {
 	"Date":'',
 	"Code":'',
+	"Start":'',
 	"File":0
 }
 
@@ -222,8 +261,9 @@ if __name__=='__main__':
 	beginTm = datetime.datetime.now()
 	init_trade_obj()
 	td = ''
+	pCode = ''
 	nowToday = datetime.date.today()
-	optlist, args = getopt.getopt(sys.argv[1:], '?fc:d:')
+	optlist, args = getopt.getopt(sys.argv[1:], '?fc:d:s:')
 	for option, value in optlist:
 		if option in ["-d","--date"]:
 			ret,stdate = parseDate(value, nowToday, ai=1)
@@ -233,8 +273,14 @@ if __name__=='__main__':
 			td = stdate
 		elif option in ["-c","--code"]:
 			param_config['Code'] = value
+			pCode = param_config['Code']
 		elif option in ["-f","--file"]:
 			param_config['File'] = 1
+		elif option in ["-s","--start"]:
+			ret,stdate = parseDate(value, nowToday, ai=1)
+			if ret==-1:
+				exit()
+			param_config['Start'] = stdate
 		elif option in ["-?","--??"]:
 			print "Usage:", os.path.basename(sys.argv[0]), " [-d MMDD/YYYYMMDD]"
 			exit()
@@ -245,14 +291,14 @@ if __name__=='__main__':
 		print td, "is holiday, Quit"
 		exit()
 
-	entry = '../data/entry/ore_mine'
-	if not os.path.exists(entry):
-		os.makedirs(entry)
+	minePath = '../data/entry/ore_mine'
+	if not os.path.exists(minePath):
+		os.makedirs(minePath)
 
 	codes_list = []
 	not_td_list = []
-	if param_config['Code']!='':
-		codes_list.append(param_config['Code'])
+	if pCode!='':
+		codes_list.append(pCode)
 	elif param_config['File']==1:
 		file = open('../data/entry/miner/filter.txt', 'r')
 		line = file.readline()
@@ -271,19 +317,14 @@ if __name__=='__main__':
 	#codes_list = ['603680']
 	#codes_list = codes_list[:2]
 
-	print "Start to add tick data", td
-	ds = ['sn', 'tt', 'nt']
-	feedback_list = []
-	#print codes_list
-	for code in codes_list:
-		if code in not_td_list:
-			#print "Not in list", code
-			continue
-		result = check_code_path(entry, code, td)
-		if result!=0:
-			#print "Exist data", code
-			continue
-		#print "Fetch data=", code, td
-		fetch_tick_resource(entry, code, td, ds, feedback_list)
+	if param_config['Start']=='':
+		print "Start to add tick data", td
+		down_tick_by_day(minePath, codes_list, not_td_list, td)
+	else:
+		tradeList = []
+		get_real_trade_days(pCode, param_config['Start'], tradeList)
+		for td in tradeList:
+			down_tick_by_day(minePath, codes_list, not_td_list, td)
+
 	endTm = datetime.datetime.now()
 	print "END ", (endTm-beginTm)

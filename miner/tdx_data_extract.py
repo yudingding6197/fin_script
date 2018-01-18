@@ -30,6 +30,7 @@ if __name__=='__main__':
 
 	if td=='':
 		td = str(get_last_trade_dt())
+		print td
 
 	sarry = td.split('-')
 	ntd=''.join(sarry)
