@@ -228,9 +228,10 @@ def down_tick_by_day(minePath, codes_list, not_td_list, td):
 	return
 
 def get_real_trade_days(code, st_date, trade_list):
-	nowToday = datetime.date.today()
+	nowToday = datetime.datetime.now()
+	today = datetime.date.today()
 	startDate = datetime.datetime.strptime(st_date, '%Y-%m-%d').date()
-	obj = nowToday - startDate
+	obj = today - startDate
 	if obj.days<0:
 		print "Error: date out of range ", startDate
 		return
@@ -243,8 +244,13 @@ def get_real_trade_days(code, st_date, trade_list):
 	kdf = kdf.sort_index(ascending=False)
 	for tdidx,tdrow in kdf.iterrows():
 		dfDate = datetime.datetime.strptime(tdrow['date'], '%Y-%m-%d').date()
-		if (dfDate-startDate).days<0:
+		delta = dfDate-startDate
+		if delta.days<0:
 			break
+		delta = dfDate-today
+		if delta.days==0:
+			if nowToday.hour<15:
+				continue
 		trade_list.append(tdrow['date'])
 	return
 

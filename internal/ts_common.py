@@ -115,7 +115,7 @@ class statisticsItem:
 		self.lst_yzdt = []
 		self.lst_dtft = []
 
-def spc_round(value,bit):
+def spc_round1(value,bit):
 	delen = len(str(value).split('.')[1])
 	if delen==4:
 		b = int(value*10000)%100
@@ -127,6 +127,13 @@ def spc_round(value,bit):
 		if int(value*100)%2==0:
 			rd_val+=0.01
 	return round(rd_val,2)
+
+def spc_round(value,bit):
+	b = int(value*10000)
+	b1 = b+51
+	j = b1/100
+	rd_val = float(j)/100
+	return rd_val
 
 #从文件中读取某一天是否是交易日
 def init_trade_obj():
@@ -1241,11 +1248,13 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 		dt_price1 = pre_close * 0.9
 	zt_price = spc_round(zt_price1,2)
 	dt_price = spc_round(dt_price1,2)
-	#print name, zt_price1, zt_price
+	#print name, dt_price1, dt_price
 
 	#YZ状态处理
 	if high==low:
 		if open>pre_close:
+			if high!=zt_price:
+				print "Warning: YZ, not ZT??? ", code, high, zt_price
 			if b_ST==1 and high==zt_price:
 				stcsItem.s_st_yzzt += 1
 				status |= STK_ST_YZZT
@@ -1268,6 +1277,8 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 						stcsItem.lst_non_yzcx_yzzt.append(list)
 					#print stcsItem.s_zt,code,name,price,change_percent,open
 		elif open<pre_close:
+			if low!=dt_price:
+				print "Warning: YZ, not DT??? ", code, low, dt_price
 			if b_ST==1 and low==dt_price:
 				stcsItem.s_st_yzdt += 1
 				status |= STK_ST_YZDT

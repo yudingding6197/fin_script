@@ -14,6 +14,10 @@ if __name__ == '__main__':
 
 	delta1=datetime.timedelta(days=5)
 	print delta1
+	
+	cur=datetime.datetime.now()
+	fctime = 'TTT### %d-%d-%d %02d:%02d:%02d' %(cur.year, cur.month, cur.day, cur.hour, cur.minute, cur.second)
+	print cur, fctime
 
 	today = datetime.date.today()
 	qdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
