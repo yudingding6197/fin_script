@@ -446,15 +446,14 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 		curtime = row['time']
 		curvol = int(row['volume'])
 		#检查2条数据是否重复，偶尔发现会有重复
-		if lastTime=='':
-			lastTime = curtime
-			lastvol = curvol
-		else:
+		if lastTime!='':
 			if lastTime==curtime:
 				if lastvol==curvol:
-					print code, curtime, curvol, "discard repeat data!"
+					#print code, curtime, curvol, "discard repeat data!"
 					continue
 		pass
+		lastTime = curtime
+		lastvol = curvol
 		curprice = row['price']
 		range_per = ''
 		if last_close!=0:
@@ -1253,8 +1252,9 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 	#YZ状态处理
 	if high==low:
 		if open>pre_close:
-			if high!=zt_price:
-				print "Warning: YZ, not ZT??? ", code, high, zt_price
+			#刚开盘，只有1笔成交，会大量的输出，不合适检查
+			#if high!=zt_price:
+			#	print "Warning: YZ, not ZT??? ", code, high, zt_price
 			if b_ST==1 and high==zt_price:
 				stcsItem.s_st_yzzt += 1
 				status |= STK_ST_YZZT
@@ -1277,8 +1277,8 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 						stcsItem.lst_non_yzcx_yzzt.append(list)
 					#print stcsItem.s_zt,code,name,price,change_percent,open
 		elif open<pre_close:
-			if low!=dt_price:
-				print "Warning: YZ, not DT??? ", code, low, dt_price
+			#if low!=dt_price:
+			#	print "Warning: YZ, not DT??? ", code, low, dt_price
 			if b_ST==1 and low==dt_price:
 				stcsItem.s_st_yzdt += 1
 				status |= STK_ST_YZDT
