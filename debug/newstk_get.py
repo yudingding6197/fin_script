@@ -32,6 +32,7 @@ def handle_int(str):
 		obj = int(str)
 	return obj
 
+#选出名以N开头的新股
 def check_new_stk(stk_item, stockInfo):
 	str_arr = stk_item.split(',')
 	name = str_arr[2]
@@ -96,7 +97,7 @@ first_code = ''
 
 #遇到rsp.readline失败，重读此页，最多3次
 SAME_PAGE_CT=0
-i = 0
+i = 1
 while i<100:
 	if repeat_flag==1:
 		break
@@ -105,7 +106,6 @@ while i<100:
 	SAME_PAGE_CT += 1
 
 	url = fm_url%(i,PAGE_COUNT)
-	#print url
 	#response type is 'instance'
 	response = None
 	LOOP_COUNT = 0

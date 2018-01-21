@@ -13,6 +13,7 @@ from openpyxl.reader.excel  import  load_workbook
 from internal.common import *
 
 #可以先执行debug\newstk_get.py,得到今日的new
+#
 
 #读取表格中的价格
 def get_xg_fx():
@@ -92,11 +93,7 @@ def get_hist_cx():
 		#df1 = pd.DataFrame(item_list, columns=first_list)
 		#hist_df = hist_df.append(df1)
 		return item_list
-	else:
-		return None
-
-	#hist_df = hist_df.set_index('code')
-	return hist_df
+	return None
 
 #得到当天上的Item
 def get_xg_trade(xg_trade_list, xg_df):
@@ -195,7 +192,7 @@ def get_stock_data(code):
 	#print code, v1, v2
 	return (0, v2, v1)
 
-def parse_item_data(type, code, row, xg_df, ws, hist_df):
+def parse_item_data(type, code, row, xg_df, ws, hisList):
 	stockInfo = []
 	if type==1:
 		name = row[0]
@@ -221,16 +218,17 @@ def parse_item_data(type, code, row, xg_df, ws, hist_df):
 	delta = trade_date - base_date
 	if delta.days<0:
 		return
-
+	#print code, type,  '================'
+	
 	#仅仅处理类型2的情况
-	if type==2 and hist_df is not None:
+	if type==2 and hisList is not None:
 		#today = datetime.date.today()
 		#cmp_delta = today - trade_date
 		tmpInfo = []
-		for j in range(0, len(hist_df)):
-			if hist_df[j][0]!=code:
+		for j in range(0, len(hisList)):
+			if hisList[j][0]!=code:
 				continue
-			tmpInfo = hist_df[j]
+			tmpInfo = hisList[j]
 			break
 		if len(tmpInfo)==0:
 			#可能昨天数据没有保存，有新上市
@@ -256,6 +254,7 @@ def parse_item_data(type, code, row, xg_df, ws, hist_df):
 		print "Timeout to get k data of " + code +", Quit"
 		exit(0)
 
+	print code, type, trade_date, len(tddf)
 	b_open = 0
 	b_break = 0
 	b_log_cxkb = 0
@@ -391,7 +390,7 @@ if __name__ =='__main__':
 	new_st_dt = get_xg_trade(new_st_list, xg_df)
 
 	#从最新的新股交易中获得数据
-	hist_df = get_hist_cx()
+	hist_list = get_hist_cx()
 	#print hist_df.head(15)
 
 	#得到basic info
@@ -436,10 +435,10 @@ if __name__ =='__main__':
 	#如果有今日发行个股
 	for st_item in st_list:
 		row = new_st_dt.ix[st_item]
-		parse_item_data(1, st_item, row, xg_df, ws, hist_df)
+		parse_item_data(1, st_item, row, xg_df, ws, hist_list)
 
 	for code,row in df1.iterrows():
-		parse_item_data(2, code, row, xg_df, ws, hist_df)
+		parse_item_data(2, code, row, xg_df, ws, hist_list)
 	#print "Final excel_row=",excel_row
 	filexlsx = prepath + "cixin_analyze.xlsx"
 	wb.save(filexlsx)
