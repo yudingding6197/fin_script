@@ -4,6 +4,7 @@
 import sys
 import re
 import urllib2
+import time
 import datetime
 import zlib
 import json
@@ -126,7 +127,8 @@ def getKZZRtSina(list):
 		except:
 			if LOOP_COUNT==1:
 				print "Exception kzz urlopen"
-			time.sleep(1)
+				print urllink
+			time.sleep(0.5)
 			LOOP_COUNT += 1
 		else:
 			break
@@ -349,6 +351,9 @@ if __name__=="__main__":
 	sinakey = ['sell', 'volume', 'buy', 'name', 'ticktime', 'symbol', 'pricechange', 'changepercent', 'trade', 'high', 'amount','code', 'low', 'settlement', 'open']
 	sina_rt = []
 	getKZZRtSina(sina_rt)
+	if len(sina_rt)==0:
+		print "Get Sina KZZ fail"
+		exit()
 	sinadf=pd.DataFrame(sina_rt, columns=sinakey)
 	sinadf=sinadf.set_index('symbol')
 
