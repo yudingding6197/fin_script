@@ -196,6 +196,7 @@ elif head3 in shcd:
 	code = "sh" + code
 	flag = 1
 
+bbond=0
 if flag==0:
 	shbond = ['11']
 	szbond = ['12']
@@ -203,9 +204,11 @@ if flag==0:
 	if head3 in szbond:
 		code = "sz" + code
 		flag = 1
+		bbond = 1
 	elif head3 in shbond:
 		code = "sh" + code
 		flag = 1
+		bbond = 1
 	
 if flag==0:
 	print "非法代码:" +code+ "\n"
@@ -240,6 +243,8 @@ contPrice = []
 #临时处理方案，对国债逆回购
 head5 = code[0:5]
 bBigChange = (cmp(head5, "sz131")==0) or (cmp(head5, "sh204")==0)
+if bbond==1:
+	bBigChange = True
 
 while True:
 	now = datetime.datetime.now()

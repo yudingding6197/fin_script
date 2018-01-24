@@ -124,7 +124,9 @@ def getKZZRtSina(list):
 			req = urllib2.Request(urllink,headers=rt_headers)
 			res_data = urllib2.urlopen(req)
 		except:
-			print "Exception kzz urlopen"
+			if LOOP_COUNT==1:
+				print "Exception kzz urlopen"
+			time.sleep(1)
 			LOOP_COUNT += 1
 		else:
 			break
