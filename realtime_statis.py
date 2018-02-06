@@ -45,14 +45,14 @@ def show_zt_info(zt_list, desc, fmt, outstr, pconfig):
 	df = pd.DataFrame(zt_list)
 	if pconfig['SortByTime']==1:
 		if desc=="ZT":
-			df = df.sort_values([8,7], 0, True)
+			df = df.sort_values([9,7], 0, True)
 		elif desc=="ZTHL":
-			df = df.sort_values([8,7], 0, True)
+			df = df.sort_values([9,7], 0, True)
 		else:
 			df = df.sort_values([7], 0, True)
 	else:
 		if desc=="ZT":
-			df = df.sort_values([7,8], 0, [False,True])
+			df = df.sort_values([7,9], 0, [False,True])
 		elif desc=="YZZT":
 			df = df.sort_values([7], 0, False)
 		elif desc=="ZTHL":
@@ -60,12 +60,15 @@ def show_zt_info(zt_list, desc, fmt, outstr, pconfig):
 	i = 1
 	for index,itm_lst in df.iterrows():
 		#str = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d" % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
+		cxFlag = ''
+		if itm_lst[8]<300:
+			cxFlag='CX'
 		if desc=="YZZT":
-			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
+			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag)
 		elif desc=="ZT":
-			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],itm_lst[8])
+			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag,itm_lst[9])
 		elif desc=="ZTHL":
-			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],itm_lst[8],itm_lst[9])
+			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag,itm_lst[9],itm_lst[10])
 		print str
 		i += 1
 		if i>number:
@@ -87,14 +90,14 @@ def show_dt_info(dt_list, desc, fmt, pconfig):
 	df = pd.DataFrame(dt_list)
 	if pconfig['SortByTime']==1:
 		if desc=="DT":
-			df = df.sort_values([8,7], 0, True)
+			df = df.sort_values([9,7], 0, True)
 		elif desc=="DTFT":
-			df = df.sort_values([8,7], 0, True)
+			df = df.sort_values([9,7], 0, True)
 		else:
 			df = df.sort_values([7], 0, True)
 	else:
 		if desc=="DT":
-			df = df.sort_values([7,8], 0, [False,True])
+			df = df.sort_values([7,9], 0, [False,True])
 		elif desc=="YZDT":
 			df = df.sort_values([7], 0, False)
 		elif desc=="DTFT":
@@ -102,12 +105,15 @@ def show_dt_info(dt_list, desc, fmt, pconfig):
 	i = 1
 	print str
 	for index,itm_lst in df.iterrows():
+		cxFlag = ''
+		if itm_lst[8]<300:
+			cxFlag='CX'
 		if desc=="YZDT":
-			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
+			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag)
 		elif desc=="DT":
-			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],itm_lst[8])
+			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag,itm_lst[9])
 		elif desc=="DTFT":
-			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],itm_lst[8],itm_lst[9])
+			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag,itm_lst[9],itm_lst[10])
 		print str
 		i += 1
 		if i>number:
@@ -234,7 +240,6 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 					close = tdrow[2]
 					high = tdrow['high']
 					low = tdrow['low']
-					#print tdrow
 					if high!=low:
 						if yzzt_day!=0:
 							if (yzzt_day+1)==trade_days:
@@ -363,14 +368,14 @@ str_opn = "[%d %d %d %d] %3d ио,%3d об" % (stcsItem.s_open_zt,stcsItem.s_close_z
 if sysstr == "Linux":
 	str_opn = str_opn.decode('gbk').encode('utf-8')
 
-str_dt = "DTKP:%d" % (stcsItem.s_open_dt)
+str_dt = "%d DTKP" % (stcsItem.s_open_dt)
 if stcsItem.s_yzdt>0:
-	str_dt = "%s YZDT:%d" % (str_dt, stcsItem.s_yzdt)
+	str_dt = "%s, %d YZDT" % (str_dt, stcsItem.s_yzdt)
 if stcsItem.s_open_dt_dk>0:
-	str_dt = "%s DTDK:%d" % (str_dt, stcsItem.s_open_dt_dk)
+	str_dt = "%s, %d DTDK" % (str_dt, stcsItem.s_open_dt_dk)
 DaoT = stcsItem.s_open_dt-stcsItem.s_yzdt-stcsItem.s_open_dt_dk
 if DaoT>0:
-	str_dt = "%s DaoT:%d" % (str_dt, DaoT)
+	str_dt = "%s, %d DaoT " % (str_dt, DaoT)
 print "			ST(%d ZT %d DT)		%s" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, str_dt)
 
 #print "			ST(%d ZT %d DT)		DTKP:%d YZDT:%d DTDK:%d" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, stcsItem.s_open_dt, stcsItem.s_yzdt,stcsItem.s_open_dt_dk)
@@ -422,13 +427,13 @@ if len(list)>0:
 
 if param_config["NoDetail"]==0:
 	non_cx = len(stcsItem.lst_non_yzcx_yzzt)+len(stcsItem.lst_non_yzcx_zt)
-	tol_str = "Total( %d = %d + %d	YZ: %d=%d(%d)+%d):"
-	print tol_str%( stcsItem.s_zt, stcsItem.s_zt-non_cx, non_cx, stcsItem.s_yzzt, cx_yz, stcsItem.s_cx_yzzt, non_cx_yz)
+	tol_str = "Total( %d = %d + %d	YZ: %d=%d(%d)+%d   %d CXZT,%d CXDT ):"
+	print tol_str%( stcsItem.s_zt, stcsItem.s_zt-non_cx, non_cx, stcsItem.s_yzzt, cx_yz, stcsItem.s_cx_yzzt, non_cx_yz, stcsItem.s_cxzt, stcsItem.s_cxdt)
 	print "id %6s %-12s	%-10s %-9s %-8s %-8s %-8s %-8s" % ("code","name","change","price","opn_p","hgh_p","low_p","z_d")
 
-	fmt1 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d"
-	fmt2 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %9s"
-	fmt3 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %9s %9s"
+	fmt1 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %3s"
+	fmt2 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %3s %9s"
+	fmt3 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %3s %9s %9s"
 
 	outstr = "YZZT  [%d]:" % (len(stcsItem.lst_non_yzcx_yzzt))
 	show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT", fmt1, outstr, param_config)
@@ -437,8 +442,8 @@ if param_config["NoDetail"]==0:
 	outstr = "ZTHL [%d]:" % (stcsItem.s_zthl)
 	show_zt_info(stcsItem.lst_non_yzcx_zthl, "ZTHL", fmt3, outstr, param_config)
 
-	fmt0 = "Total DT (%d)		DTFT (%d)==================================="
-	print fmt0 %(len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt), len(stcsItem.lst_dtft))
+	fmt0 = "Total DT (%d)		DTFT (%d)==(%d)================================="
+	print fmt0 %(len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt), len(stcsItem.lst_dtft), len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt)+len(stcsItem.lst_dtft))
 	show_dt_info(stcsItem.lst_yzdt, "YZDT", fmt1, param_config)
 	show_dt_info(stcsItem.lst_dt, "DT", fmt2, param_config)
 	show_dt_info(stcsItem.lst_dtft, "DTFT", fmt3, param_config)
