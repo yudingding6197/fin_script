@@ -988,16 +988,28 @@ urlfmt = 'http://pdfm2.eastmoney.com/EM_UBG_PDTI_Fast/api/js?id=%s&TYPE=k&js=%s(
 #'Referer': http://quote.eastmoney.com/chart/h5.html?id=0005202&type=k
 send_headers = {
 'Host': 'pdfm2.eastmoney.com',
+#'Connection': 'keep-alive',
+'Cache-Control': 'max-age=0',
+#'Upgrade-Insecure-Requests': 1,
 'User-Agent':'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0',
 'Accept': '*/*',
 'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
 'Accept-Encoding': 'gzip, deflate',
+'Cookie': 'st_pvi=65131814925934; em_hq_fls=js; emhq_stock=300379%2C510300%2C300059; \
+ct=gSzyZYX428bqF8KFmsvff_vR0WGKJAA0miUW7eR26gofMoK0iklrNPydT7ek5CAYmhkuwM3wbZOI2ZpFPAoWJelbJErRFVm7cCuHKYCtEJprcFnO6Q8wbTA_3JtbNlgYgCT2__I5z8tzKkfVANJw1xeOMTqksUHhEHm5G40vJ_E \
+ut=FobyicMgeV7CWBTmL9Bu1obPhorDA1HbLw1lQWu36v9QOPj992o3gmSvzNX--G0lXhxZqa2MTa_B9Do2KSntZC_ssXb_gCrvSlax_wBf65973PgGLaxGqrqIXmGZFpMqsWk0SUMlQOCNdAg5wVaGd2GzdasuwK_fdFGtI9iJzvtEFnDsNVI5TGTtSqkoYM-oSZn1cY-cKZKPFHub6Gy75x68Dx1tTm5h7LywruhRDToUGB1laoHZIAJbVfqqyUI1RfICpFEaILg5jMTa9eNJPTOGX1YmEYHM; \
+pi=6100112247957528%3byudingding6197%3bgoutou%3b0cW4DqnbVJoMdu1MZiropTm6BV1XLj16XsvJO70kiLEUyKsPMgichDgFLNQAsInwhJERWZz7yHcS7O7W3ZL2dcjA3%2fmZ3C5963s%2bDmkHccsL6pryylhnTIMnse5nSBAA9u4HViDawKBE2J1H99l9hN9FV2EDvHkoUmqLb6Yyf09WAifb%2bdYj9kNpyqiJziuNO7OTlZ8N%3bvNvIvbNvs29ty0dGWHDrlmY9DQZgV43TfP00Z0d5NjJm2tRrZqJ0843uLtzmM0c1G%2fs%2f3JarUusrH2NZdgcxiqLEIitAnfBpEb68QjYndEfZINJ%2bM1Pkry%2fnzvKD6XsX7nSGNF5EmGXIR23aUOrXivsh0bSqVQ%3d%3d; \
+uidal=6100112247957528goutou; sid=4725419; vtpst=|; qgqp_b_id=3351a1846039a4841a7ac4edce9be185; st_si=57858667318678; \
+HAList=a-sz-300059-%u4E1C%u65B9%u8D22%u5BCC%2Ca-sz-002252-%u4E0A%u6D77%u83B1%u58EB%2Ca-sz-300401-%u82B1%u56ED%u751F%u7269%2Ca-sh-600908-%u65E0%u9521%u94F6%u884C%2Ca-sz-002527-%u65B0%u65F6%u8FBE%2Ca-sh-600696-ST%u5339%u51F8%2Ca-sh-603618-%u676D%u7535%u80A1%u4EFD%2Ca-sz-300291-%u534E%u5F55%u767E%u7EB3%2Ca-sz-002815-%u5D07%u8FBE%u6280%u672F%2Ca-sh-603156-%u517B%u5143%u996E%u54C1%2Ca-sh-600845-%u5B9D%u4FE1%u8F6F%u4EF6; \
+st_sn=1; st_psi=20180421183808157-117005300001-2337497230; st_asi=delete; EMSTtokenId=3bbbf98339c2b81dc9c8a173b9a51c54',
+'DNT': 1
+}
+'''
 'Cookie': 'st_pvi=97140791819816; emstat_bc_emcount=24578815992596371324; emstat_ss_emcount=0_1515626347_1914456706; \
 em_hq_fls=old; _ga=GA1.2.1371087654.1472141391; Hm_lvt_557fb74c38569c2da66471446bbaea3f=1506330203; qgqp_b_id=867a67ca83c13fbd622d079314b267df; \
 ct=tTNAoSxXA4HgHmLlK58m5dvCXLfX46zX2EhPxEC0Mp9KXne6YtatYD6Zc0kmqHFH9fEfxnQyVM3cy4d5hDSq4xaCuyjCtoat4MAwVJeFCgQ4jH3xU77tzv2BnAs_YtDRJ5YbPVra0XcbM0-zTxO2seQHPw9FjR4vaKjkGFEoupI; \
 uidal=6100112247957528goutou; vtpst=|; emshistory=%5B%22%E4%BF%9D%E5%8D%83%E9%87%8C%E5%80%BA%E5%88%B8%22%5D; st_si=56676665040049',
-'DNT': 1
-}
+'''
 def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 	rtntype = 1
 	jstr = 'fsData1515847425760'
@@ -1011,10 +1023,10 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 	elif head3 in shcd:
 		ncode = code + "1"
 	urlall = urlfmt %(ncode, jstr, rtntype)
-	while excecount<=3:
+	while excecount<=5:
 		try:
 			req = urllib2.Request(urlall,headers=send_headers)
-			res_data = urllib2.urlopen(req)
+			res_data = urllib2.urlopen(req, timeout=3)
 		except:
 			excecount += 1
 			continue
@@ -1030,6 +1042,7 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 		content1 = zlib.decompress(content1, 16+zlib.MAX_WBITS);
 	else:
 		print "Content not zip"
+	res_data.close()
 
 	content = content1.decode('utf8')
 	if content[-1]==")":
