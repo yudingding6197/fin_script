@@ -130,7 +130,7 @@ def filter_dtft(dtft_list, perc):
 			count += 1
 	return count
 
-def get_all_stk_info(st_list, today_open, stcsItem):
+def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 	today = datetime.date.today()
 	number = len(st_list)
 	if number<=0:
@@ -163,6 +163,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 	if number%base!=0:
 		loop_ct += 1
 
+	dbg_____ = 0
 	pd_list = []
 	for i in range(0, loop_ct):
 		end_idx = min(base*(i+1), number)
@@ -197,6 +198,15 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 				name = row[0].encode('utf8')
 			pre_close = float(row['pre_close'])
 			price = float(row['price'])
+			volumn = int(row['volume'])
+			ask = float(row['ask'])
+			if code=='300':
+				dbg_____=1
+			if dbg_____==1:
+				print index, code, pre_close, price, name, ask, volumn
+				print row
+			if volumn==0 and dc_data==1:
+				return 0
 			change_perc = (price-pre_close)*100/pre_close
 			today_high = float(row['high'])
 			today_low = float(row['low'])
@@ -221,7 +231,7 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 					print "Error for code:", code, name
 				if day_info_df is None:
 					continue
-				#print day_info_df
+				#print code, day_info_df
 				trade_days = len(day_info_df)
 
 				b_open=0
@@ -265,9 +275,21 @@ def get_all_stk_info(st_list, today_open, stcsItem):
 						stcsItem.s_cx_yzzt += 1
 						yzcx_flag = 1
 
-				#认为YZZT不会超过 33 个交易日
-				if trade_days>33:
-					b_get_data = 0
+				#如果是通过东财获得个股排行，不要判断新股的上市天数
+				if dc_data==0:
+					#认为YZZT不会超过 33 个交易日
+					if trade_days>33:
+						b_get_data = 0
+				else:
+					if trade_days>1:
+						l_volume = float(day_info_df.iloc[trade_days-2,2])
+						l_pclose = float(day_info_df.iloc[trade_days-2,2])
+						l_close = float(day_info_df.iloc[trade_days-1,2])
+						l_high = float(day_info_df.iloc[trade_days-1,3])
+						chg_perc = round((l_close-l_pclose)*100/l_pclose,2)
+						if l_close != l_high or chg_perc<9.5:
+							b_get_data = 0
+			
 			stk_type = analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, idx_date)
 	return 0
 
@@ -299,10 +321,11 @@ param_config = {
 	"NoLog":0,
 	"NoDetail":0,
 	"SortByTime":0,
-	"AllInfo":0
+	"AllInfo":0,
+	"DFCF":0,
 }
 
-optlist, args = getopt.getopt(sys.argv[1:], 'ldta')
+optlist, args = getopt.getopt(sys.argv[1:], 'ldtac')
 for option, value in optlist:
 	if option in ["-l","--nolog"]:
 		param_config["NoLog"] = 1
@@ -312,41 +335,45 @@ for option, value in optlist:
 		param_config["SortByTime"] = 1
 	elif option in ["-a","--all"]:
 		param_config["AllInfo"] = 1
+	elif option in ["-c","--dfcf"]:
+		param_config["DFCF"] = 1
 #print param_config
 
 #comment加在这里便于调试
 #得到所有交易item的code
 new_st_list = []
-
-get_today_new_stock(new_st_list)
-
-LOOP_COUNT=0
-st_bas = None
-while LOOP_COUNT<3:
-	try:
-		st_bas = ts.get_stock_basics()
-	except:
-		LOOP_COUNT += 1
-		time.sleep(0.5)
-	else:
-		break;
-if st_bas is None:
-	print "Timeout to get stock basic info"
-	exit(0)
-st_pb_base = st_bas[st_bas.pb!=0]
-st_pb_base = st_pb_base.sort_values(['timeToMarket'], 0, False)
-st_index = st_pb_base.index
-st_bas_list=list(st_index)
-
 st_list = []
-for i in range(0, len(new_st_list)):
-	if new_st_list[i] in st_bas_list[0:10]:
-		pass
-	else:
-		st_list.append(new_st_list[i])
-st_list.extend(st_bas_list)
+if param_config["DFCF"]==1:
+	get_stk_code_by_cond(st_list)
+else:
+	get_today_new_stock(new_st_list)
 
-#st_list = st_list[0:50]
+	LOOP_COUNT=0
+	st_bas = None
+	while LOOP_COUNT<3:
+		try:
+			st_bas = ts.get_stock_basics()
+		except:
+			LOOP_COUNT += 1
+			time.sleep(0.5)
+		else:
+			break;
+	if st_bas is None:
+		print "Timeout to get stock basic info"
+		exit(0)
+	st_pb_base = st_bas[st_bas.pb!=0]
+	st_pb_base = st_pb_base.sort_values(['timeToMarket'], 0, False)
+	st_index = st_pb_base.index
+	st_bas_list=list(st_index)
+
+	for i in range(0, len(new_st_list)):
+		if new_st_list[i] in st_bas_list[0:10]:
+			pass
+		else:
+			st_list.append(new_st_list[i])
+	st_list.extend(st_bas_list)
+
+	#st_list = st_list[0:50]
 
 '''
 st_list = []
@@ -356,7 +383,7 @@ st_list=['603225','600965','600520','002464', '002676']
 
 today_open = []
 stcsItem=statisticsItem()
-status = get_all_stk_info(st_list, today_open, stcsItem)
+status = get_all_stk_info(st_list, param_config["DFCF"], today_open, stcsItem)
 if status==-1:
 	exit(0)
 

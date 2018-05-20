@@ -281,3 +281,17 @@ def get_market_by_chg_per(new_st_list, st='C', sr=-1, ps=80):
 			continue
 		curpage += 1
 	return
+
+def get_stk_code_by_cond(new_st_list, st='C', sr=-1, ps=80):
+	curpage = 1
+	items_list = []
+	while 1:
+		bnext = get_each_page_data(items_list, curpage, st, sr, ps)
+		if bnext==0:
+			break
+		elif bnext==-1:
+			continue
+		curpage += 1
+	for item in items_list:
+		new_st_list.append(item[0:6])
+	return
