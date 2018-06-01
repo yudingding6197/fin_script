@@ -64,6 +64,7 @@ s1.append(['ce',0,23,32])
 s1.append(['vwq',76,923,62])
 print s1
 df1 = pd.DataFrame(s1, columns=list('ABCD'))
+print df1
 #print df1.sort_values(['B'], 0, False)
 #前面是list，在第二列按照list(row0)的方式修改
 row0 = ["a_r",3,23,6]
