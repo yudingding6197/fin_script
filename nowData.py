@@ -7,6 +7,7 @@ import string
 import datetime
 import urllib
 import urllib2
+import getopt
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 import internal.common
@@ -175,10 +176,28 @@ def handle_price(priceList):
 	return
 
 #Main
-pindex = len(sys.argv)
-if pindex<2:
-	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 [睡眠时间] [最大最小值之差 触发消息门限值]\n")
-	exit(1);
+if len(sys.argv)<2:
+	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 -a[分析tick] -t[睡眠时间] -d[最大最小值之差 触发消息门限值]\n")
+	exit(0)
+
+param_config = {
+	"Code":'',
+	"Sleep":0,
+	"Delta":0,
+	"Analyze":0,
+}
+
+optlist, args = getopt.getopt(sys.argv[2:], 'c:s:d:a')
+for option, value in optlist:
+	if option in ["-a","--analyze"]:
+		print 2
+		param_config["Analyze"] = 1
+	elif option in ["-s","--sleep"]:
+		print 3
+		param_config["Sleep"] = int(value)
+	elif option in ["-d","--delta"]:
+		print 4
+		param_config["Delta"] = int(value)
 
 code = sys.argv[1]
 if (len(code) != 6):
@@ -214,18 +233,11 @@ if flag==0:
 	print "非法代码:" +code+ "\n"
 	exit(1);
 
-		
-deltaV = 0
-deltaTg = 0
-if pindex==3:
-	slpTime = int(sys.argv[2])
+if param_config["Sleep"]!=0:
+	slpTime = param_config["Sleep"]
 
-if pindex==5:
-	deltaV = int(sys.argv[2])
-	deltaTg = int(sys.argv[3])
-else:
-	deltaV = 6
-	deltaTg = 2
+deltaV = 6
+deltaTg = 2
 
 idxCount=0
 exgCount=0
@@ -267,6 +279,9 @@ while True:
 		bAnalyze = 1
 	elif (hour==13 or hour==14):
 		bAnalyze = 1
+	if bAnalyze==1:
+		if param_config['Analyze']==0:
+			bAnalyze = 0
 
 	value = 0
 	if bAnalyze==1:

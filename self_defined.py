@@ -9,6 +9,7 @@ import datetime
 import getopt
 import tushare as ts
 from internal.ts_common import *
+from internal.dfcf_interface import *
 
 def list_realtime_info(basic, codeArray):
 	if len(codeArray)==0:
@@ -59,16 +60,18 @@ def list_realtime_info(basic, codeArray):
 		else:
 			str_fmt = "%6s %s %8s(%6s%%) (%4.02f%%)     %8s(%6s) %8s(%6s)"
 			print str_fmt%(codeArray[index], stname, price, change, turnover_rt, low, change_l, high, change_h)
-			
 	return
-
+	
 #Main
 curdate = ''
 data_path = "debug/_self_define.txt"
-optlist, args = getopt.getopt(sys.argv[1:], '?f')
+exclude = 0
+optlist, args = getopt.getopt(sys.argv[1:], '?fe')
 for option, value in optlist:
 	if option in ["-f","--file"]:
 		data_path='../data/entry/miner/filter.txt'
+	elif option in ["-e","--exclude"]:
+		exclude = 1
 	elif option in ["-?","--???"]:
 		print "Usage:", os.path.basename(sys.argv[0]), " [-f filename]"
 		exit()
@@ -140,3 +143,14 @@ st_bas = None
 if show_flag==2:
 	st_bas=ts.get_stock_basics()
 list_realtime_info(st_bas, stockCode)
+
+if exclude==0:
+	stock_array = []
+	getSelfDefStock(stock_array)
+	if len(stock_array)==0:
+		print "Fail to get self defined from DFCF"
+		exit()
+	stockCode = []
+	for i in  stock_array:
+		stockCode.append(i[:6])
+	list_realtime_info(None, stockCode)
