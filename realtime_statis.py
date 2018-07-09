@@ -163,7 +163,6 @@ def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 	if number%base!=0:
 		loop_ct += 1
 
-	dbg_____ = 0
 	pd_list = []
 	for i in range(0, loop_ct):
 		end_idx = min(base*(i+1), number)
@@ -200,11 +199,7 @@ def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 			price = float(row['price'])
 			volumn = int(row['volume'])
 			ask = float(row['ask'])
-			if code=='300':
-				dbg_____=1
-			if dbg_____==1:
-				print index, code, pre_close, price, name, ask, volumn
-				print row
+
 			if volumn==0 and dc_data==1:
 				return 0
 			change_perc = (price-pre_close)*100/pre_close

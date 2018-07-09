@@ -1088,13 +1088,13 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 			continue
 		#print index, trade_date, type, val
 		if type==1:
-			if val>9.8 and high==close:
+			if (val>9.8 and high==close) or (high==low):
 				count += 1
 				if high==low:
 					yzcount += 1
 				bflag = 1
 		elif type==2:
-			if val<-9.88 and low==close:
+			if (val<-9.88 and low==close) or (high==low):
 				count += 1
 				if high==low:
 					yzcount += 1
@@ -1264,7 +1264,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 		dt_price1 = pre_close * 0.9
 	zt_price = spc_round(zt_price1,2)
 	dt_price = spc_round(dt_price1,2)
-	#print name, dt_price1, dt_price
+	print name, pre_close, zt_price, dt_price
 
 	#YZ×´Ì¬´¦Àí
 	stk_list = [0, 0]
