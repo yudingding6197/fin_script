@@ -1264,7 +1264,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 		dt_price1 = pre_close * 0.9
 	zt_price = spc_round(zt_price1,2)
 	dt_price = spc_round(dt_price1,2)
-	print name, pre_close, zt_price, dt_price
+	#print name, pre_close, zt_price, dt_price
 
 	#YZ×´Ì¬´¦Àí
 	stk_list = [0, 0]
