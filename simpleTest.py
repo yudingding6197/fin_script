@@ -16,7 +16,9 @@ def fun1():
 
 if __name__ == '__main__':
 	stkList = []
-	get_stk_code_by_cond(stkList)
-	print stkList[0:30]
+	#get_stk_code_by_cond(stkList)
+	#print stkList[0:30]
+	for _ in range(10):
+		print 111
 	
 	print "END"

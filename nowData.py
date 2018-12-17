@@ -182,19 +182,19 @@ if len(sys.argv)<2:
 
 param_config = {
 	"Code":'',
-	"Sleep":0,
+	"Time":0,
 	"Delta":0,
 	"Analyze":0,
 }
 
-optlist, args = getopt.getopt(sys.argv[2:], 'c:s:d:a')
+optlist, args = getopt.getopt(sys.argv[2:], 'c:t:d:a')
 for option, value in optlist:
 	if option in ["-a","--analyze"]:
 		print 2
 		param_config["Analyze"] = 1
-	elif option in ["-s","--sleep"]:
+	elif option in ["-t","--time"]:
 		print 3
-		param_config["Sleep"] = int(value)
+		param_config["Time"] = int(value)
 	elif option in ["-d","--delta"]:
 		print 4
 		param_config["Delta"] = int(value)
@@ -233,8 +233,8 @@ if flag==0:
 	print "·Ç·¨´úÂë:" +code+ "\n"
 	exit(1);
 
-if param_config["Sleep"]!=0:
-	slpTime = param_config["Sleep"]
+if param_config["Time"]!=0:
+	slpTime = param_config["Time"]
 
 deltaV = 6
 deltaTg = 2

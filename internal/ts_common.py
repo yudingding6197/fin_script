@@ -422,9 +422,11 @@ def ts_handle_data(addcsv, prepath, bhist, url, code, qdate, replace, sarr):
 			df = ts.get_today_ticks(curcode)
 		else:
 			df = ts.get_tick_data(curcode, qdate, src=dtsrc[dtidx])
-		#print df
 		if df is None:
 			excecount += 1
+			if excecount==4 and dtidx<3:
+				excecount = 0
+				dtidx += 1
 			continue;
 		if df.size==18:
 			if bhist==2:
