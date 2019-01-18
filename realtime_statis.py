@@ -198,10 +198,13 @@ def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 			pre_close = float(row['pre_close'])
 			price = float(row['price'])
 			volumn = int(row['volume'])
-			ask = float(row['ask'])
 
+			ask = float(row['ask'])
 			if volumn==0 and dc_data==1:
 				return 0
+			if pre_close==0:
+				print ("%s %s invalid value" %(code, name))
+				continue
 			change_perc = (price-pre_close)*100/pre_close
 			today_high = float(row['high'])
 			today_low = float(row['low'])
