@@ -66,8 +66,10 @@ def show_zt_info(zt_list, desc, fmt, outstr, pconfig):
 		if desc=="YZZT":
 			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag)
 		elif desc=="ZT":
+			cxFlag += ' ' + itm_lst[10]
 			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag,itm_lst[9])
 		elif desc=="ZTHL":
+			cxFlag += ' ' + itm_lst[11]
 			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag,itm_lst[9],itm_lst[10])
 		print str
 		i += 1
@@ -111,8 +113,10 @@ def show_dt_info(dt_list, desc, fmt, pconfig):
 		if desc=="YZDT":
 			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag)
 		elif desc=="DT":
+			cxFlag += ' ' + itm_lst[10]
 			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag,itm_lst[9])
 		elif desc=="DTFT":
+			cxFlag += ' ' + itm_lst[11]
 			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag,itm_lst[9],itm_lst[10])
 		print str
 		i += 1
@@ -375,7 +379,7 @@ else:
 
 '''
 st_list = []
-st_list=['603225','600965','600520','002464', '002676']
+st_list=['603225','300116','600081','002113', '002676', '000862', '600119', '002309', '600262', '603663']
 #print st_list
 '''
 
