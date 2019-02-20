@@ -6,6 +6,7 @@ import re
 import datetime
 import urllib2
 import json
+import zlib
 
 urlall = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._BKGN&sty=FPGBKI&st=c&sr=-1&p=1&ps=5000&cb=&token=7bc05d0d4c3c22ef9fca8c2a912d779c&v=0.2694706493189898"
 send_headers = {
@@ -201,7 +202,17 @@ def getKZZConnect(urlfmt, send_headers, page):
 	if res_data is None:
 		print "Error: Fail to get request"
 		return ''
-	content = res_data.read().decode('utf8')
+
+	content = res_data.read()
+	respInfo = res_data.info()
+	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
+		#print "Content compressed"
+		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
+	#else:
+	#	print "Content not zip"
+
+	content = content.decode('utf8')
+	#print (content)
 	return content
 
 '''

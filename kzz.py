@@ -67,7 +67,7 @@ WdGxX3hARJpanE0qULw%3d%3d; \
 uidal=6100112247957528goutou; vtpst=|; '
 }
 
-rturl = 'http://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeDataSimple?page=1&num=80&sort=symbol&asc=1&node=hskzz_z&_s_r_a=page'
+rturl = 'http://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeDataSimple?page=%d&num=80&sort=symbol&asc=1&node=hskzz_z&_s_r_a=page'
 rt_headers = {
 'Host': 'vip.stock.finance.sina.com.cn',
 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
@@ -114,10 +114,10 @@ def getKZZConnect(page):
 '''
 
 #得到交易日KZZ的实时价格
-def getKZZRtSina(list):
+def getKZZRtSinaByPage(list, page):
 	global content
 	LOOP_COUNT=0
-	urllink = rturl
+	urllink = rturl % (page)
 	res_data = None
 	while LOOP_COUNT<3:
 		try:
@@ -132,19 +132,22 @@ def getKZZRtSina(list):
 			LOOP_COUNT += 1
 		else:
 			break
-	#print res_data
+	#print ("res_data", res_data)
 	if res_data is None:
 		print "Error: Fail to get request"
 		content = ''
-		return
+		return 'error'
 	content = res_data.read()
 	respInfo = res_data.info()
 	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")) :
 		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
-	#print content
+	#print (content)
+	if content=='null':
+		return content
 	if len(content)<=2:
 		content = ''
-		return
+		return 'error'
+
 	if content[0]=='[' and content[-1]==']':
 		content = content [1:-1]
 
@@ -174,7 +177,12 @@ def getKZZRtSina(list):
 			else:
 				dict[dictObj.group(1)] = dictObj.group(2)
 		list.append(dict)
-	return
+	return 'ok'
+def getKZZRtSina(list):
+	for page in range(1,10):
+		ret = getKZZRtSinaByPage(list, page)
+		if ret=='null':
+			break
 
 #['BONDCODE','SNAME','ZQNEW','YJL','ZGJZGJJZ','ZGJ_HQ','SWAPSCODE','SECURITYSHORTNAME','ZGJZGJ']
 def output(kdf):
@@ -251,12 +259,15 @@ def output_rank(mgdf, priority):
 	df = mgdf.sort_values([sortitem],0, flag)
 	rank = 0
 	for code in priority:
+		#print code
 		items = df.ix[code]
 		#print items
 		show_item(rank, items)
 	print '=================================================='
 	print ''
 	for index,items in df.iterrows():
+		if param_config['ALL']==0 and rank>21:
+			break
 		rank += 1
 		show_item(rank, items)
 	return
@@ -265,13 +276,14 @@ param_config = {
 	"Daoxu":0,
 	"Price":0,
 	"YJL":0,
-	"ZGJZ":0
+	"ZGJZ":0,
+	"ALL":0
 }
 
 #Main
 if __name__=="__main__":
 	#倒序，价格，溢价率
-	optlist, args = getopt.getopt(sys.argv[1:], 'dpyz')
+	optlist, args = getopt.getopt(sys.argv[1:], 'dpyza')
 	for option, value in optlist:
 		if option in ["-d","--daoxu"]:
 			param_config["Daoxu"] = 1
@@ -281,6 +293,8 @@ if __name__=="__main__":
 			param_config["YJL"] = 1
 		elif option in ["-z","--zgjz"]:
 			param_config["ZGJZ"] = 1
+		elif option in ["-a","--all"]:
+			param_config["ALL"] = 1
 	pass
 
 	priority = []
@@ -361,4 +375,6 @@ if __name__=="__main__":
 	mgdf = pd.merge(sinadf, kzzdf1, how='left', left_index=True, right_index=True)
 
 	#output(kzzdf)
+#	for indexs in kzzdf.index:
+#		print(kzzdf.loc[indexs].values[0:-1])
 	output_rank(mgdf, priority)
