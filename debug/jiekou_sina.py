@@ -69,7 +69,7 @@ else:
 
 urllink = url + code
 #支持同时查询多个
-#urllink = url + "sz000001,sz000003,sz000520"
+urllink = url + "sz000001,sh600006,sz000520"
 #print("url=" + urllink)
 try:
 	#print urllink

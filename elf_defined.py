@@ -8,7 +8,7 @@ import string
 import datetime
 import getopt
 import tushare as ts
-from internal.ts_common import *
+from internal.common_inf import *
 from internal.dfcf_interface import *
 
 def list_realtime_info(basic, codeArray):
@@ -61,7 +61,7 @@ def list_realtime_info(basic, codeArray):
 			str_fmt = "%6s %s %8s(%6s%%) (%4.02f%%)     %8s(%6s) %8s(%6s)"
 			print str_fmt%(codeArray[index], stname, price, change, turnover_rt, low, change_l, high, change_h)
 	return
-	
+
 #Main
 curdate = ''
 data_path = "debug/_self_define.txt"
@@ -108,9 +108,9 @@ if __name__=="__main__":
 			if not code.isdigit():
 				continue;
 			stockCode.append(code)
-			
-			stockCode_sn.append()
-			#print code
+
+			ncode = sina_code(code)
+			stockCode_sn.append(ncode)
 	else:
 		line = file.readline()
 		while line:
@@ -128,16 +128,26 @@ if __name__=="__main__":
 
 	show_idx = ['000001', '399001', '399005', '399006']
 	idx_df=ts.get_index()
-	show_index_info(idx_df, show_idx)
+	list_index_info(idx_df, show_idx)
 
-	codeArray = ['399678']
-	show_extra_index(codeArray)
+	#codeArray = ['399678']
+	#list_extra_index(codeArray)
 
-	st_bas = None
-	if show_flag==2:
-		st_bas=ts.get_stock_basics()
-	list_realtime_info(st_bas, stockCode)
+	rt_list = []
+	realtime_price(stockCode_sn, rt_list)
 
+	
+	#l = [i for i in range(15)]
+	#l = [stockCode_sn[i:i + n] for i in xrange(0, len(stockCode_sn), n)]
+	#print (l)
+	
+	#print (len(stockCode_sn)/count + (len(stockCode_sn)%count)?1:0)
+	#for item in range(len(stockCode_sn)/count + len(stockCode_sn)%count==0):
+	#	print (stockCode_sn[count*item : count*(item+1)])
+	#realtime_price(st_bas, stockCode)
+
+	'''
+	#Get self def from DFCF(Dong Cai)
 	if exclude==0:
 		stock_array = []
 		getSelfDefStock(stock_array)
@@ -147,99 +157,9 @@ if __name__=="__main__":
 		stockCode = []
 		for i in  stock_array:
 			stockCode.append(i[:6])
-		list_realtime_info(None, stockCode)
-	
-	
-'''
-curdate = ''
-data_path = "debug/_self_define.txt"
-exclude = 0
-optlist, args = getopt.getopt(sys.argv[1:], '?fe')
-for option, value in optlist:
-	if option in ["-f","--file"]:
-		data_path='../data/entry/miner/filter.txt'
-	elif option in ["-e","--exclude"]:
-		exclude = 1
-	elif option in ["-?","--???"]:
-		print "Usage:", os.path.basename(sys.argv[0]), " [-f filename]"
-		exit()
+			ncode = sina_code(i[:6])
+			stockCode_sn.append(ncode)
+			print ("i===" + ncode)
+		#list_realtime_info(None, stockCode)
+	'''
 
-stockCode = []
-today = datetime.date.today()
-curdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
-#print curdate
-
-#说明show_flag
-#0：不获得每一只的流通盘，不会计算换手率
-#1：获得每一只的流通盘，并且计算换手率
-#2：显示每一只最新的新闻，当天的新闻全部显示，当天没有只显示一条news
-pindex = len(sys.argv)
-show_flag = 0
-if pindex==2:
-	if sys.argv[1]=='1':
-		show_flag=1
-	elif sys.argv[1]=='2':
-		show_flag=2
-
-if not os.path.isfile(data_path):
-	print "No file:",data_path
-	exit(0)
-
-file = open(data_path, 'r')
-if '_self_define' in data_path:
-	flag=0
-	lines = file.readlines(100000)
-	for line in lines:
-		line=line.strip()
-		if line=='STK':
-			flag=1
-			continue
-		elif flag==1 and line=='END':
-			break
-		if flag==0:
-			continue
-		code=line.strip()
-		if len(code)!=6:
-			continue;
-		if not code.isdigit():
-			continue;
-		stockCode.append(code)
-		#print code
-else:
-	line = file.readline()
-	while line:
-		if len(line)>=6:
-			code = line[0:6]
-			if code.isdigit():
-				stockCode.append(code)
-		line = file.readline()
-	pass
-file.close()
-
-if show_flag==1:
-	list_latest_news(stockCode, curdate)
-	exit(0)
-
-show_idx = ['000001', '399001', '399005', '399006']
-idx_df=ts.get_index()
-show_index_info(idx_df, show_idx)
-
-codeArray = ['399678']
-show_extra_index(codeArray)
-
-st_bas = None
-if show_flag==2:
-	st_bas=ts.get_stock_basics()
-list_realtime_info(st_bas, stockCode)
-
-if exclude==0:
-	stock_array = []
-	getSelfDefStock(stock_array)
-	if len(stock_array)==0:
-		print "Fail to get self defined from DFCF"
-		exit()
-	stockCode = []
-	for i in  stock_array:
-		stockCode.append(i[:6])
-	list_realtime_info(None, stockCode)
-'''
