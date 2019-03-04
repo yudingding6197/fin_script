@@ -17,6 +17,16 @@ c_shcd = ['600', '601', '603']
 c_szcd = ['000','001','002','003','300']
 
 url_sn = "http://hq.sinajs.cn/list="
+split_ct = 10
+
+#字符串转二进制
+def char2bin(s):
+    return ' '.join([bin(ord(c)).replace('0x', '') for c in s])
+
+#二进制转字符串
+def bin2char(s):
+    return ''.join([chr(i) for i in [int(b, 2) for b in s.split(' ')]])
+
 
 def sina_code(code):
 	ncode = code
@@ -62,24 +72,37 @@ def list_slice(init_list, children_list_len):
 	end_list.append(init_list[-count:]) if count !=0 else end_list
 	return end_list
 
-def handle_hq_data(stockData):
+def handle_hq_data(stockData, rt_list):
 	#print ("===" + stockData + "===")
 	#print ("\n\n")
 	stkObjs = stockData.split(';')
 	for item in stkObjs:
 		if len(item)<10:
-			break
-		print (item)
-		obj = re.match(r'(.*)var hq_str_(.*)="(.*)"', item)
-		if obj:
-			print(obj,obj.group(1),obj.group(2))
-		else:
-			print ("NNNNN")
-		#stockData = obj.group(3)
-		#print(stockData)
-		#print("len=" + str(len(stockData)))
+			#print("Invalid line=" + item)
+			continue
+		#print (item)
+		#print(encode1(item))
 
-def req_data(req_url):
+		stkList = []
+		obj = re.match(r'\n?var hq_str_(.*)="(.*)"', item)
+		if obj is None:
+			print("Invalid line=" + item)
+			continue
+		elif obj.group(2)=="":
+			print("No data line=" + item)
+			stkList.append(obj.group(1)[2:])
+			continue
+
+		#print(obj,obj.group(1),obj.group(2))
+		stkList.append(obj.group(1)[2:])
+		quotation = obj.group(2)
+		dataObj = quotation.split(',')
+		for data in dataObj:
+			stkList.append(data)
+		rt_list.append(stkList)
+		#for END
+
+def req_data(req_url, rt_list):
 	retry = 0
 	while retry<3:
 		try:
@@ -92,23 +115,20 @@ def req_data(req_url):
 			retry += 1
 			continue
 		else:
-			handle_hq_data(stockData)
-			return
-			stockObj = stockData.split(',')
-			stockLen = len(stockObj)
-			if stockLen<10:
-				print "Not find data"
-				exit(0)
+			handle_hq_data(stockData, rt_list)
+			break
 
+			'''
 			for i in range(0, stockLen):
 				sobj = stockObj[i].decode('gbk')
 				print u"%02d:	%s" % (i, sobj)
+			'''
 
 def realtime_price(stockCode, rt_list, source=0):
-	grp_code = list_slice(stockCode, 4)
+	grp_code = list_slice(stockCode, split_ct)
 	for item in grp_code:
 		req_url = url_sn + ",".join(item)
-		req_data(req_url)
+		req_data(req_url, rt_list)
 		break
 
 

@@ -62,6 +62,20 @@ def list_realtime_info(basic, codeArray):
 			print str_fmt%(codeArray[index], stname, price, change, turnover_rt, low, change_l, high, change_h)
 	return
 
+def rt_quotes(dtFrame):
+	#print(dtFrame)
+	for index,row in dtFrame.iterrows():
+		#print(row)
+		r1_len = len(row[1])
+		r1 = row[1].decode('gbk')
+		for i in range(10-r1_len):
+			r1 += ' '
+		line = "%06s %-s %6.2f()" %(row[0], r1, float(row['price']) )
+		print(line)
+		#print(len(row[1]))
+		#print( len(line) )
+	
+
 #Main
 curdate = ''
 data_path = "debug/_self_define.txt"
@@ -135,6 +149,23 @@ if __name__=="__main__":
 
 	rt_list = []
 	realtime_price(stockCode_sn, rt_list)
+	#print(rt_list)
+
+	column = ['code','name']
+	c1 = ['open', 'close', 'price', 'high', 'low']
+	c2 = ['bidb','bids','volume','amount']
+	c3 = ['b1_v','b1','b2_v','b2','b3_v','b3','b4_v','b4','b5_v','b5']
+	c4 = ['s1_v','s1','s2_v','s2','s3_v','s3','s4_v','s4','s5_v','s5']
+	c5 = ['date','time','state']
+	column.extend(c1)
+	column.extend(c2)
+	column.extend(c3)
+	column.extend(c4)
+	column.extend(c5)
+	df = pd.DataFrame(rt_list, columns=column)
+	#print (df)
+	#df.set_index('code')
+	rt_quotes(df)
 
 	
 	#l = [i for i in range(15)]
