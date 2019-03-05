@@ -87,6 +87,7 @@ WdGxX3hARJpanE0qULw%3d%3d; \
 uidal=6100112247957528goutou; vtpst=|; '
 }
 
+urlall = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=0000011,3990012&sty=DFPIU&st=z&sr=&p=&ps=&cb=&js=var%20C1Cache={quotation:[(x)]}&token=44c9d251add88e27b65ed86506f6e5da&0.7034708404131944'
 
 #print urlall
 

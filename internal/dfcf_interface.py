@@ -367,3 +367,23 @@ FLmeuZLUBzGdnNAJb%2bQ%3d%3d; uidal=6100112247957528goutou; sid=4725419; vtpst=|;
 	strstr = stkobj['data']['order']
 	stk_obj = strstr.split(',')
 	stk_arr.extend(stk_obj)
+
+def getIndexStat():
+	urlall = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=0000011,3990012&sty=DFPIU&st=z&sr=&p=&ps=&cb=&js=(x)&token=44c9d251add88e27b65ed86506f6e5da&0.7034708404131944'
+	res_data = None
+	try:
+		req = urllib2.Request(urlall,headers=send_headers)
+		res_data = urllib2.urlopen(req)
+	except:
+		print "Error: open url"
+
+	if res_data is None:
+		print "Open URL fail"
+		return None
+
+	content = res_data.read()
+	respInfo = res_data.info()
+	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
+		#print "Content compressed"
+		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
+	return (content)

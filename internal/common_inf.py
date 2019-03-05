@@ -27,6 +27,20 @@ def char2bin(s):
 def bin2char(s):
     return ''.join([chr(i) for i in [int(b, 2) for b in s.split(' ')]])
 
+def quotation_st():
+	now = datetime.datetime.now()
+	hour = now.hour
+	minute = now.minute
+	if (hour<9 or hour>15 or hour==12):
+		return 0
+	elif (hour==9 and minute<15):
+		return 0
+	elif (hour==15):
+		return 0
+	elif (hour==9 and (minute>=15 and minute<30)):
+		return 1
+	else:
+		return 2
 
 def sina_code(code):
 	ncode = code
@@ -129,7 +143,6 @@ def realtime_price(stockCode, rt_list, source=0):
 	for item in grp_code:
 		req_url = url_sn + ",".join(item)
 		req_data(req_url, rt_list)
-		break
 
 
 	

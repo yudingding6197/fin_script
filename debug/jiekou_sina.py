@@ -7,6 +7,9 @@ import string
 import datetime
 import urllib
 import urllib2
+sys.path.append(".")
+sys.path.append("..")
+from internal.common_inf import *
 #包含中文
 
 '''
@@ -55,24 +58,12 @@ else:
 	sys.stderr.write("Too much param\n")
 	exit(1)
 
-head3 = code[0:3]
-result = (cmp(head3, "000")==0) or (cmp(head3, "002")==0) or (cmp(head3, "300")==0) or (cmp(head3, "131")==0)
-if result is True:
-	code = "sz" + code
-else:
-	result = (cmp(head3, "600")==0) or (cmp(head3, "601")==0) or (cmp(head3, "603")==0) or (cmp(head3, "204")==0)
-	if result is True:
-		code = "sh" + code
-	else:
-		print "非法代码:" +code+ "\n"
-		exit(1);
-
-urllink = url + code
+ncode = sina_code(code)
+urllink = url + ncode
 #支持同时查询多个
-urllink = url + "sz000001,sh600006,sz000520"
-#print("url=" + urllink)
+#urllink = url + "sz000001,sh600006,sz000520"
+print("url=" + urllink)
 try:
-	#print urllink
 	req = urllib2.Request(urllink)
 	stockData = urllib2.urlopen(req, timeout=2).read()
 except:
