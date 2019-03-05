@@ -19,6 +19,21 @@ c_szcd = ['000','001','002','003','300']
 url_sn = "http://hq.sinajs.cn/list="
 split_ct = 10
 
+def rt_column(column):
+	c0 = ['code', 'name']
+	c1 = ['open', 'p_close', 'price', 'high', 'low']
+	c2 = ['bidb','bids','volume','amount']
+	c3 = ['b1_v','b1','b2_v','b2','b3_v','b3','b4_v','b4','b5_v','b5']
+	c4 = ['s1_v','s1','s2_v','s2','s3_v','s3','s4_v','s4','s5_v','s5']
+	c5 = ['date','time','state']
+	column.extend(c0)
+	column.extend(c1)
+	column.extend(c2)
+	column.extend(c3)
+	column.extend(c4)
+	column.extend(c5)
+
+
 #字符串转二进制
 def char2bin(s):
     return ' '.join([bin(ord(c)).replace('0x', '') for c in s])

@@ -12,6 +12,20 @@ from internal.common_inf import *
 from internal.dfcf_interface import *
 from internal.ts_common import *
 
+def rt_column(column):
+	c0 = ['code', 'name']
+	c1 = ['open', 'p_close', 'price', 'high', 'low']
+	c2 = ['bidb','bids','volume','amount']
+	c3 = ['b1_v','b1','b2_v','b2','b3_v','b3','b4_v','b4','b5_v','b5']
+	c4 = ['s1_v','s1','s2_v','s2','s3_v','s3','s4_v','s4','s5_v','s5']
+	c5 = ['date','time','state']
+	column.extend(c0)
+	column.extend(c1)
+	column.extend(c2)
+	column.extend(c3)
+	column.extend(c4)
+	column.extend(c5)
+
 def rt_quotes(dtFrame, source, qt_stage):
 	print(source)
 	for index,row in dtFrame.iterrows():
@@ -141,6 +155,25 @@ def read_def(data_path, stockCode, stockCode_sn):
 			line = file.readline()
 	file.close()
 
+def parse_d(file, key_title, index, dict):
+	stockList = []
+	line = file.readline()
+	while line:
+		if len(line)<=3:
+			dict[key_title[index]] = stockList
+			return
+		#obj = line.split(' ')
+		#print(obj[0], obj[1], obj[2])
+		obj = re.match(r' *([\d]+) ([\d]+) ', line)
+		#print (obj)
+		if obj is None:
+			print("obj is None" + line)
+		else:
+			stockList.append(obj.group(2))
+		line = file.readline()
+	
+
+
 #Main
 curdate = ''
 data_path = "debug/_self_define.txt"
@@ -149,73 +182,79 @@ show_flag = 0
 stockCode = []
 stockCode_sn = []
 qt_stage = 0
+pre_day = 1
 if __name__=="__main__":
-	optlist, args = getopt.getopt(sys.argv[1:], '?fen')
+	optlist, args = getopt.getopt(sys.argv[1:], '?d:')
 	for option, value in optlist:
-		if option in ["-f","--file"]:
-			data_path='../data/entry/miner/filter.txt'
-		elif option in ["-e","--exclude"]:
-			exclude = 1
-		elif option in ["-n","--notice"]:
-			show_flag = 1
+		if option in ["-d","--preday"]:
+			pre_day=int(value)
 		elif option in ["-?","--???"]:
-			print("Usage:", os.path.basename(sys.argv[0]), " [-f filename] [-e] [-t type]")
+			print("Usage:" + os.path.basename(sys.argv[0]) + " [-d pre_day]")
 			exit()
 
+	tradeList = []
+	get_pre_trade_date(tradeList, pre_day+1)
+
+	data_path = "../data/entry/realtime/rt_" + tradeList[pre_day] + ".txt"
+	#print(data_path)
 	if not os.path.isfile(data_path):
-		print("No file:",data_path)
+		print("No file:" + data_path)
 		exit(0)
 
-	today = datetime.date.today()
-	curdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
-
-	read_def(data_path, stockCode, stockCode_sn)
-	if show_flag==1:
-		list_latest_news(stockCode, curdate)
-		exit(0)
-	#当前时间对应情况
-	qt_stage = quotation_st()
-	#Index实时信息
-	qt_index = getIndexStat()
-	#print(qt_index)
-
-	show_idx = ['000001', '399001', '399005', '399006']
-	idx_df=ts.get_index()
-	index_info(idx_df, show_idx, qt_index)
-
-	#codeArray = ['399678']
-	#list_extra_index(codeArray)
-
+	file = open(data_path, 'r')
+	if file is None:
+		print("Error open file" + data_path)
+		exit()
 
 	column = []
 	rt_column(column)
-	#print(column)
+	qt_stage = quotation_st()
 
-	rt_list = []
-	realtime_price(stockCode_sn, rt_list)
-	#print(rt_list)
+	p_flag = 0
+	index = 0
+	line = file.readline()
+	dict = {}
+	key_title = ['YZZT ', 'ZT ', 'ZTHL ', 'YZDT ', 'DT ', 'DTFT ']
+	while line:
+		if len(line)<=6:
+			line = file.readline()
+			continue
+		if p_flag == 1:
+			for i in range(len(key_title)):
+				if line[:3]==key_title[i][:3]:
+					index = i
+					#print(i, key_title[i])
+					parse_d(file, key_title, i, dict)
+					break
+			if line[:6] == "TIME: ":
+				p_flag=0
+				break
+			#print line
+			
+			line = file.readline()
+			continue
 
-	df = pd.DataFrame(rt_list, columns=column)
-	#print (df)
-	#df.set_index('code')
-	rt_quotes(df, '', qt_stage)
+		if line[:6] == "TIME: ":
+			obj = re.match(r'TIME: (.*) (\d+):(\d+)', line)
+			hour = int(obj.group(2))
+			minute = int(obj.group(3))
+			if hour>=15 and minute>0:
+				#print (line)
+				p_flag = 1
+		line = file.readline()
 
-	#Get self def from DFCF(DongCai)
-	rt_list = []
-	stockCode_sn = []
-	if exclude==0:
-		stock_array = []
-		getSelfDefStock(stock_array)
-		if len(stock_array)==0:
-			print "Fail to get self defined from DFCF"
-			exit()
-		stockCode = []
-		for i in  stock_array:
-			stockCode.append(i[:6])
-			ncode = sina_code(i[:6])
-			stockCode_sn.append(ncode)
-			#print ("i===" + ncode)
-		realtime_price(stockCode_sn, rt_list)
-		df = pd.DataFrame(rt_list, columns=column)
-		rt_quotes(df, 'DFCF', qt_stage)
+	for item in key_title:
+		if dict.has_key(item):
+			#print dict[item]
+			sn_code = []
+			for cd in dict[item]:
+				ncode = sina_code(cd)
+				sn_code.append(ncode)
 
+			rt_list = []
+			realtime_price(sn_code, rt_list)
+			df = pd.DataFrame(rt_list, columns=column)
+			rt_quotes(df, item, qt_stage)
+			
+			
+	#print(dict)
