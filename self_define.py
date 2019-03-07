@@ -62,45 +62,33 @@ def rt_quotes(dtFrame, source, qt_stage):
 		line = str_fmt %(row[0], r1, price_f, change, low, change_l, high, change_h)
 		print(line)
 
-def index_follow_ud(head, index_ud):
-	if index_ud!='':
-		obj = index_ud.split('|')
-		up = obj[0]
-		ping = obj[1]
-		down = obj[2]
-		print("%s  %4s %4s %4s"%(head, up, ping, down))
+def index_follow_zd(head, index_ud):
+	if len(index_ud)>3:
+		zhang = index_ud[0]
+		ping  = index_ud[1]
+		die   = index_ud[2]
+		total = int(zhang) + int(ping) + int(die)
+		zh_per = int(zhang) * 100 / total
+		die_per = int(die) * 100 / total
+		
+		print("%s    %4s  %4s  %4s  (%2d vs %2d) "%(head, zhang, ping, die, zh_per, die_per))
 	else:
 		print(head)
-		
 	
-def index_info(df, show_idx, qt_index):
+def index_info(df, show_idx, idxDict):
 	if df is None:
 		return
 	sh_info = ''
 	sz_info = ''
-	if qt_index is not None:
-		qtObj = re.match(r'"(.*?)","(.*)"', qt_index)
-		if qtObj is None:
-			print("Invalid qt_index", qt_index)
-		else:
-			index_dt = qtObj.group(1)
-			#print (index_dt)
-			itemObj = index_dt.split(',')
-			sh_info = itemObj[6]
-			sz_info = itemObj[7]
 	for index,row in df.iterrows():
 		if row[0] not in show_idx:
 			continue
-
 		open = float(row['open'])
 		close = float(row['close'])
 		preclose = float(row['preclose'])
-		if row['code'] == '000001':
+		if idxDict.has_key(row['code']):
 			head = "%8.2f(%6s)"%(close, row[2])
-			index_follow_ud(head, sh_info)
-		elif row['code'] == '399001':
-			head = "%8.2f(%6s)"%(close, row[2])
-			index_follow_ud(head, sz_info)
+			index_follow_zd(head, idxDict[row['code']])
 		else:
 			print("%8.2f(%6s)"%(close, row[2]))
 
@@ -176,12 +164,13 @@ if __name__=="__main__":
 	#当前时间对应情况
 	qt_stage = quotation_st()
 	#Index实时信息
-	qt_index = getIndexStat()
-	#print(qt_index)
+	qt_index = getHSIndexStat()
+	idxDict = {}
+	ret = get4IndexInfo(idxDict)
 
 	show_idx = ['000001', '399001', '399005', '399006']
 	idx_df=ts.get_index()
-	index_info(idx_df, show_idx, qt_index)
+	index_info(idx_df, show_idx, idxDict)
 
 	#codeArray = ['399678']
 	#list_extra_index(codeArray)

@@ -368,7 +368,7 @@ FLmeuZLUBzGdnNAJb%2bQ%3d%3d; uidal=6100112247957528goutou; sid=4725419; vtpst=|;
 	stk_obj = strstr.split(',')
 	stk_arr.extend(stk_obj)
 
-def getIndexStat():
+def getHSIndexStat():
 	urlall = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=0000011,3990012&sty=DFPIU&st=z&sr=&p=&ps=&cb=&js=(x)&token=44c9d251add88e27b65ed86506f6e5da&0.7034708404131944'
 	res_data = None
 	try:
@@ -387,3 +387,84 @@ def getIndexStat():
 		#print "Content compressed"
 		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
 	return (content)
+
+def get4IndexRaw():
+	urlall = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=SZ.CYB,SZ.ZXB&sty=UDFN&js=(x)&token=de1161e2380d231908d46298ae339369'
+	res_data = None
+	try:
+		req = urllib2.Request(urlall,headers=send_headers)
+		res_data = urllib2.urlopen(req)
+	except:
+		print "Error: open url"
+		return None
+
+	if res_data is None:
+		print "Open URL fail"
+		return None
+
+	content = res_data.read()
+	respInfo = res_data.info()
+	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
+		#print "Content compressed"
+		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
+	return (content)
+
+# ["791|63|657|12,1092|78|1028|29,366|23|362|9","791|63|657|12,1092|78|1028|29,468|38|429|14"]
+def get4IndexInfoList(idxList):
+	rawData = get4IndexRaw()
+	if rawData is None:
+		return -1
+	qtObj = re.match(r'"(.*?)","(.*)"', rawData)
+	if qtObj is None:
+		print("Quatate None")
+		return -1
+
+	indexObj = qtObj.group(1).split(',')
+
+	#shang zhen
+	zsObj = indexObj[0].split('|')
+	idxList.append(zsObj)
+	#shen zhen
+	zsObj = indexObj[1].split('|')
+	idxList.append(zsObj)
+	#zxbz
+	zsObj = indexObj[2].split('|')
+	idxList.append(zsObj)
+	
+	indexObj = qtObj.group(2).split(',')
+	#cybz
+	zsObj = indexObj[2].split('|')
+	idxList.append(zsObj)
+
+	#print(idxList)
+	return 0
+
+def get4IndexInfo(idxDict):
+	rawData = get4IndexRaw()
+	if rawData is None:
+		return -1
+	qtObj = re.match(r'"(.*?)","(.*)"', rawData)
+	if qtObj is None:
+		print("Quatate None")
+		return -1
+
+	indexObj = qtObj.group(1).split(',')
+
+	#shang zhen
+	zsObj = indexObj[0].split('|')
+	idxDict['000001'] = zsObj
+	#idxList.append(zsObj)
+	#shen zhen
+	zsObj = indexObj[1].split('|')
+	idxDict['399001'] = zsObj
+	#zxbz
+	zsObj = indexObj[2].split('|')
+	idxDict['399005'] = zsObj
+	
+	indexObj = qtObj.group(2).split(',')
+	#cybz
+	zsObj = indexObj[2].split('|')
+	idxDict['399006'] = zsObj
+
+	#print(idxList)
+	return 0

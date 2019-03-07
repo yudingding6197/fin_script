@@ -19,7 +19,7 @@ c_szcd = ['000','001','002','003','300']
 url_sn = "http://hq.sinajs.cn/list="
 split_ct = 10
 
-def rt_column(column):
+def create_column(column):
 	c0 = ['code', 'name']
 	c1 = ['open', 'p_close', 'price', 'high', 'low']
 	c2 = ['bidb','bids','volume','amount']
@@ -32,7 +32,6 @@ def rt_column(column):
 	column.extend(c3)
 	column.extend(c4)
 	column.extend(c5)
-
 
 #字符串转二进制
 def char2bin(s):

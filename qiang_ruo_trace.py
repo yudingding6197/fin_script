@@ -12,20 +12,6 @@ from internal.common_inf import *
 from internal.dfcf_interface import *
 from internal.ts_common import *
 
-def rt_column(column):
-	c0 = ['code', 'name']
-	c1 = ['open', 'p_close', 'price', 'high', 'low']
-	c2 = ['bidb','bids','volume','amount']
-	c3 = ['b1_v','b1','b2_v','b2','b3_v','b3','b4_v','b4','b5_v','b5']
-	c4 = ['s1_v','s1','s2_v','s2','s3_v','s3','s4_v','s4','s5_v','s5']
-	c5 = ['date','time','state']
-	column.extend(c0)
-	column.extend(c1)
-	column.extend(c2)
-	column.extend(c3)
-	column.extend(c4)
-	column.extend(c5)
-
 def rt_quotes(dtFrame, source, qt_stage):
 	print(source)
 	for index,row in dtFrame.iterrows():
@@ -155,7 +141,7 @@ def read_def(data_path, stockCode, stockCode_sn):
 			line = file.readline()
 	file.close()
 
-def parse_d(file, key_title, index, dict):
+def extract_code(file, key_title, index, dict):
 	stockList = []
 	line = file.readline()
 	while line:
@@ -164,14 +150,14 @@ def parse_d(file, key_title, index, dict):
 			return
 		#obj = line.split(' ')
 		#print(obj[0], obj[1], obj[2])
-		obj = re.match(r' *([\d]+) ([\d]+) ', line)
+		obj = re.match(r' *([\d]+) ([\d]+).* ([-]?\d+\.[\d]+)[ \t]+(\d+) ', line)
 		#print (obj)
 		if obj is None:
 			print("obj is None" + line)
 		else:
-			stockList.append(obj.group(2))
+			if int(obj.group(4))>2 and index<=2:
+				stockList.append(obj.group(2))
 		line = file.readline()
-	
 
 
 #Main
@@ -207,8 +193,9 @@ if __name__=="__main__":
 		exit()
 
 	column = []
-	rt_column(column)
+	create_column(column)
 	qt_stage = quotation_st()
+	print(tradeList[pre_day] + " Info")
 
 	p_flag = 0
 	index = 0
@@ -224,7 +211,7 @@ if __name__=="__main__":
 				if line[:3]==key_title[i][:3]:
 					index = i
 					#print(i, key_title[i])
-					parse_d(file, key_title, i, dict)
+					extract_code(file, key_title, i, dict)
 					break
 			if line[:6] == "TIME: ":
 				p_flag=0
@@ -255,6 +242,6 @@ if __name__=="__main__":
 			realtime_price(sn_code, rt_list)
 			df = pd.DataFrame(rt_list, columns=column)
 			rt_quotes(df, item, qt_stage)
-			
-			
+	#end for key_title
+
 	#print(dict)
