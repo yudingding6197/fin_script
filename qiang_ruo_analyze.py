@@ -11,6 +11,7 @@ import platform
 import tushare as ts
 from internal.common_inf import *
 from internal.dfcf_interface import *
+from internal.sina_interface import *
 from internal.ts_common import *
 from internal.analyze_data import *
 
@@ -282,6 +283,8 @@ param_config = {
 
 sysstr = platform.system()
 if __name__=="__main__":
+	starttime = datetime.datetime.now()
+
 	optlist, args = getopt.getopt(sys.argv[1:], '?p:')
 	for option, value in optlist:
 		if option in ["-p","--preday"]:
@@ -291,8 +294,7 @@ if __name__=="__main__":
 			exit()
 
 	tradeList = []
-	get_pre_trade_date(tradeList, pre_day+2)
-
+	get_his_trade_days(tradeList, pre_day+2)
 	analyze_state(tradeList, pre_day, dict)
 
 	column = []
@@ -305,17 +307,21 @@ if __name__=="__main__":
 		ncode = sina_code(cd)
 		sn_code.append(ncode)
 
-	#rt_list = []
-	#realtime_price(sn_code, rt_list)
-	#df = pd.DataFrame(rt_list, columns=column)
-	#rt_quotes(df, 'Q', qt_stage)
+	stkList = dict['Q']
+	'''
+	print (dict['Q'])
+	stkList = dict['Q'][:3]
+	'''
 
 	today_open = []
 	stcsItem=statisticsItem()
-	status = get_all_stk_info(dict['Q'], 0, today_open, stcsItem)
+	status = get_all_stk_info(stkList, 0, today_open, stcsItem)
 	if status==-1:
 		print("Error Get info")
 		exit(0)
+
+	endtime = datetime.datetime.now()
+	print( "Run Time all STKI: %s"%(endtime-starttime) )
 
 	print("Total %4d" % (len(dict['Q'])) )
 	non_cx_yz = len(stcsItem.lst_non_yzcx_yzzt)
@@ -381,6 +387,8 @@ if __name__=="__main__":
 			str1 = "%s(%.2f%%, %.2f%%), " % (itm_lst[1], itm_lst[2], itm_lst[4])
 			str += str1
 		print str
+	endtime = datetime.datetime.now()
+	print( "Run Time 22: %s"%(endtime-starttime) )
 
 	if 0==0:
 		non_cx = len(stcsItem.lst_non_yzcx_yzzt)+len(stcsItem.lst_non_yzcx_zt)
@@ -404,4 +412,7 @@ if __name__=="__main__":
 		show_dt_info(stcsItem.lst_yzdt, "YZDT", fmt1, param_config)
 		show_dt_info(stcsItem.lst_dt, "DT", fmt2, param_config)
 		show_dt_info(stcsItem.lst_dtft, "DTFT", fmt3, param_config)
+
+	endtime = datetime.datetime.now()
+	print( "Run Time: %s"%(endtime-starttime) )
 

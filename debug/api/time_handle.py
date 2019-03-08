@@ -7,10 +7,12 @@ import time
 import datetime
 import urllib2
 #中文字符
+#通过 time.clock() 和 datetime.datetime.now() 两种方式计算程序执行时间
 
 # Main
 if __name__ == '__main__':
 	start = time.clock()
+	st = datetime.datetime.now()
 
 	delta1=datetime.timedelta(days=5)
 	print delta1
@@ -33,5 +35,9 @@ if __name__ == '__main__':
 	edate = today - delta1
 	print edate
 
+	time.sleep(0.65)
+
 	end = time.clock()
+	ed = datetime.datetime.now()
 	print "Time used:", end-start
+	print ("Time Run:%s" %(ed-st))

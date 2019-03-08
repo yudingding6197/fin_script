@@ -177,7 +177,7 @@ if __name__=="__main__":
 
 
 	column = []
-	rt_column(column)
+	create_column(column)
 	#print(column)
 
 	rt_list = []
