@@ -10,7 +10,7 @@ import zlib
 import json
 import getopt
 import pandas as pd
-from internal.dfcf_interface import *
+from internal.dfcf_inf import *
 
 '''
 urlall = "http://data.eastmoney.com/kzz/default.html"

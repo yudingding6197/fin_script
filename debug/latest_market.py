@@ -9,7 +9,7 @@ import datetime
 import tushare as ts
 sys.path.append(".")
 sys.path.append("..")
-from internal.dfcf_interface import *
+from internal.dfcf_inf import *
 
 if __name__ == '__main__':
 	fpath = "../data/entry/market/latest_stock.txt"

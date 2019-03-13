@@ -38,23 +38,3 @@ def get_history_trade_info_bysn(len=10, code='sh000001', scale=240, ma='no'):
 		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
 	return content
 
-def get_his_trade_days(tradeList, len=10, code='sh000001', scale=240, ma='no'):
-	content = get_history_trade_info_bysn(len, code, scale, ma)
-	if content is None:
-		return
-
-	#print content.decode('utf8')
-	#print(content)
-	left = content[1:-1]
-	while (1):
-		obj = re.match(r'{(.*?)},?(.*)', left)
-		if obj is None:
-			break
-		left = obj.group(2)
-		dayObj = re.match(r'day:"(.*?)"', obj.group(1))
-		if dayObj is None:
-			continue
-		tradeList.insert(0, dayObj.group(1))
-	#end while
-
-

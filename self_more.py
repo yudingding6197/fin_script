@@ -9,7 +9,7 @@ import datetime
 import getopt
 import tushare as ts
 from internal.ts_common import *
-from internal.dfcf_interface import *
+from internal.dfcf_inf import *
 
 def list_realtime_info(basic, codeArray):
 	if len(codeArray)==0:

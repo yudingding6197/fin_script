@@ -10,7 +10,7 @@ import getopt
 import pandas as pd
 sys.path.append(".")
 sys.path.append("..")
-from internal.dfcf_interface import *
+from internal.dfcf_inf import *
 
 #最新的交易代码保存为EBK文件，../data/kzz.EBK
 

@@ -10,8 +10,7 @@ import getopt
 import platform
 import tushare as ts
 from internal.common_inf import *
-from internal.dfcf_interface import *
-from internal.sina_interface import *
+from internal.dfcf_inf import *
 from internal.ts_common import *
 from internal.analyze_data import *
 
@@ -267,11 +266,6 @@ def analyze_state(tradeList, preday, dict):
 			print("No file:" + data_path)
 			continue
 		parse_realtime_data(data_path, dict)
-
-def timeShow(starttime, line=0):
-	endtime = datetime.datetime.now()
-	print( "%d: Run Time: %s"%(line, endtime-starttime) )
-
 
 #Main
 pre_day = 3

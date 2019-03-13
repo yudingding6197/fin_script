@@ -12,7 +12,7 @@ import getopt
 import tushare as ts
 import internal.common
 from internal.ts_common import *
-from internal.dfcf_interface import *
+from internal.dfcf_inf import *
 
 class Logger_IO(object): 
 	def __init__(self, filename="Default.log"):

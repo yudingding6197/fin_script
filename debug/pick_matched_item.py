@@ -8,7 +8,7 @@ import datetime
 sys.path.append(".")
 sys.path.append("..")
 from internal.ts_common import *
-from internal.dfcf_interface import *
+from internal.dfcf_inf import *
 import tushare as ts
 
 def handle_float(str):

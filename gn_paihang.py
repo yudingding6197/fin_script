@@ -6,7 +6,7 @@ import re
 import datetime
 import logging
 import shutil
-from internal.dfcf_interface import *
+from internal.dfcf_inf import *
 
 #Main 开始
 flname = '../data/gnbk.log'

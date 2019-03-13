@@ -8,7 +8,7 @@ import zlib
 import getopt
 import pandas as pd
 import numpy as np
-from internal.dfcf_interface import *
+from internal.dfcf_inf import *
 
 def getStockObjects(command):
 	head = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?ps=500&token=580f8e855db9d9de7cb332b3990b61a3&type=CT&'

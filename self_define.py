@@ -9,7 +9,7 @@ import datetime
 import getopt
 import tushare as ts
 from internal.common_inf import *
-from internal.dfcf_interface import *
+from internal.dfcf_inf import *
 from internal.ts_common import *
 
 def rt_quotes(dtFrame, source, qt_stage):

@@ -9,6 +9,7 @@ import datetime
 import urllib2
 import zlib
 import pandas as pd
+from internal.sina_inf import *
 
 #reload(sys)
 #sys.setdefaultencoding('gbk')
@@ -55,6 +56,10 @@ def quotation_st():
 		return 1
 	else:
 		return 2
+
+def timeShow(starttime, line=0):
+	endtime = datetime.datetime.now()
+	print( "%d: Run Time: %s"%(line, endtime-starttime) )
 
 def sina_code(code):
 	ncode = code
@@ -158,5 +163,28 @@ def realtime_price(stockCode, rt_list, source=0):
 		req_url = url_sn + ",".join(item)
 		req_data(req_url, rt_list)
 
+#对比 get_pre_trade_date(), 从SINA获取的速度更快
+def get_his_trade_days(tradeList, len=10, src='sn'):
+	if src=='sn':
+		code='sh000001'
+		scale=240
+		ma='no'
+		content = get_history_trade_info_bysn(len, code, scale, ma)
+		if content is None:
+			print("Error: Get for SN fail\n")
+			return
 
-	
+		#print(content)
+		left = content[1:-1]
+		while (1):
+			obj = re.match(r'{(.*?)},?(.*)', left)
+			if obj is None:
+				break
+			left = obj.group(2)
+			dayObj = re.match(r'day:"(.*?)"', obj.group(1))
+			if dayObj is None:
+				continue
+			tradeList.insert(0, dayObj.group(1))
+		return
+
+##	

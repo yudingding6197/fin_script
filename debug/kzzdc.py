@@ -11,7 +11,7 @@ import getopt
 import pandas as pd
 sys.path.append(".")
 sys.path.append("..")
-from internal.dfcf_interface import *
+from internal.dfcf_inf import *
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 
