@@ -12,9 +12,16 @@ sys.path.append("..")
 from internal.dfcf_inf import *
 
 if __name__ == '__main__':
-	fpath = "../data/entry/market/latest_stock.txt"
+	file   = "latest_stock.txt"
+	folder = "../data/entry/market"
+
+	if not os.path.isdir(folder):
+		os.makedirs(folder)
+
 	new_st_list = []
 	get_latest_market(new_st_list)
+
+	fpath = os.path.join(folder, file)
 	file=open(fpath, 'w')
 	for item in new_st_list:
 		#file.write(line.encode('gbk'))

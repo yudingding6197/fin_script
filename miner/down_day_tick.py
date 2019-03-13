@@ -92,29 +92,32 @@ def fetch_tick_resource(entry, code, trdate, ds, feedback_list):
 	for item in ds:
 		try:
 			tickdf = ts.get_tick_data(code, trdate, src=item)
+		except HTTPError:
+			print(item, "ERROR")
 		except IOError:
 			if item=='sn':
 				ds.remove(item)
-			print "Error: get data", code, ds
+			print("Error: get data", code, ds)
 		else:
+			#print("END Fetch", code, item)
 			if tickdf is None:
-				print code, trdate, ds, "is None"
+				#print("Fail to get %s(%s) data from source %s "%(code, trdate, item))
 				continue
 			if tickdf.empty:
 				continue
 			#检查sina的数据
-			elif item=='sn':
+			if item=='sn':
 				tm = tickdf.ix[0][0]
 				tmObj = re.match('(\d+):(\d+):(\d+)', tm)
 				if tmObj is None:
 					continue
 			break
 	if tickdf is None:
-		print code, trdate, "is None"
+		print(code, trdate, "is None data")
 		return
 	elif tickdf.empty:
 		feedback_list.append(code)
-		print code, trdate, "EMPTY"
+		print(code, trdate, "EMPTY data")
 		return
 
 	cdpath = entry + '/' + code
@@ -223,8 +226,9 @@ def down_tick_by_day(minePath, codes_list, not_td_list, td):
 		if result!=0:
 			#print "Exist data", code
 			continue
-		#print "Fetch data=", code, td
+		#print("Fetch data=", code, td)
 		fetch_tick_resource(minePath, code, td, ds, feedback_list)
+		#print("Fetch END data=", code, td)
 	return
 
 def get_real_trade_days(code, st_date, trade_list):
@@ -288,7 +292,8 @@ if __name__=='__main__':
 				exit()
 			param_config['Start'] = stdate
 		elif option in ["-?","--??"]:
-			print "Usage:", os.path.basename(sys.argv[0]), " [-d MMDD/YYYYMMDD]"
+			pm = " [-d MMDD/YYYYMMDD] [-c code] [-f file] [-s MMDD/YYYYMMDD]"
+			print("Usage:", os.path.basename(sys.argv[0]), pm)
 			exit()
 
 	if td=='':

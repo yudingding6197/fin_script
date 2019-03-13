@@ -249,9 +249,10 @@ if __name__=="__main__":
 		elif option in ["-r","--range"]:
 			param_config['Range'] = int(value)
 		elif option in ["-?","--??"]:
-			print "Usage:", os.path.basename(sys.argv[0]), " [-d MMDD/YYYYMMDD]"
+			pm = ' [-d MMDD/YYYYMMDD] [-c code] [-f file] [-r range] [-l log]'
+			print("Usage: " + os.path.basename(sys.argv[0]) + pm)
 			exit()
-	pass
+	#end for
 
 	codeList = []
 	code = param_config['Code']
@@ -300,6 +301,7 @@ if __name__=="__main__":
 	tpList = []
 	logList = []
 	folder = '../data/entry/ore_mine/'
+	miner_fd = '../data/entry/miner/'
 	if code!='':
 		for dat in tradeList:
 			item = codeList[0]
@@ -315,7 +317,10 @@ if __name__=="__main__":
 				continue
 			coindf = pd.read_csv(fname)
 			handle_single_res(item, dat, coindf, coinList, logList)
-		fpath = '../data/entry/miner/log_' + td + '.log'
+		if range!=1:
+			fpath = miner_fd+ 'log_' +code+ '_' +td+ '_r' +str(range) + '.log'
+		else:
+			fpath = miner_fd+ 'log_' +code+ '_' +td+ '.log'
 		file = open(fpath, 'w')
 		for item in logList:
 			file.write(item+'\n')
@@ -348,14 +353,17 @@ if __name__=="__main__":
 			file.write(item+'\n')
 		file.close()
 
-	print "Mine " +td+ " ============"
 	fpath = '../data/entry/filter/mine_coin_' + td + '.log'
 	file = open(fpath, 'w')
 	for item in coinList:
 		file.write(item+'\n')
 	file.close()
-	
-	fpath = '../data/entry/miner/log_' + td + '.log'
+	print("Mine coin, please check " +fpath+ " ============")
+
+	if code!='':
+		fpath = '../data/entry/miner/log_' +code+ '_' +td+ '.log'
+	else:
+		fpath = '../data/entry/miner/log__all_' +td+ '.log'
 	file = open(fpath, 'w')
 	for item in logList:
 		file.write(item+'\n')

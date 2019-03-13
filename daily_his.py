@@ -12,6 +12,7 @@ from internal.ts_common import *
 from internal.common_inf import *
 from internal.dfcf_inf import *
 
+#Main
 g_st = datetime.datetime.now()
 if __name__ == "__main__":
 	optlist, args = getopt.getopt(sys.argv[1:], '?d:')
