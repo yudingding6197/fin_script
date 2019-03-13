@@ -268,6 +268,9 @@ def analyze_state(tradeList, preday, dict):
 			continue
 		parse_realtime_data(data_path, dict)
 
+def timeShow(starttime, line=0):
+	endtime = datetime.datetime.now()
+	print( "%d: Run Time: %s"%(line, endtime-starttime) )
 
 
 #Main
@@ -282,9 +285,8 @@ param_config = {
 }
 
 sysstr = platform.system()
+starttime = datetime.datetime.now()
 if __name__=="__main__":
-	starttime = datetime.datetime.now()
-
 	optlist, args = getopt.getopt(sys.argv[1:], '?p:')
 	for option, value in optlist:
 		if option in ["-p","--preday"]:
@@ -319,9 +321,6 @@ if __name__=="__main__":
 	if status==-1:
 		print("Error Get info")
 		exit(0)
-
-	endtime = datetime.datetime.now()
-	print( "Run Time all STKI: %s"%(endtime-starttime) )
 
 	print("Total %4d" % (len(dict['Q'])) )
 	non_cx_yz = len(stcsItem.lst_non_yzcx_yzzt)

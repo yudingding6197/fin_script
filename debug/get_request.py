@@ -4,7 +4,60 @@ import sys
 import urllib2
 import json
 import zlib
+import random
 from bs4 import BeautifulSoup
+
+def http_req(urlall, send_headers1):
+	#print (urlall)
+	#print (send_headers1)
+	filename = 'debug/_html.txt'
+	res_data = None
+	tf_fl = open(filename, 'w+')
+	LOOP_COUNT = 0
+	while LOOP_COUNT<3:
+		try:
+			#方法1
+			#res_data = urllib2.urlopen(urlall)
+
+			#方法2
+			req = urllib2.Request(urlall,headers=send_headers1)
+			res_data = urllib2.urlopen(req, timeout=1)
+		except:
+			if LOOP_COUNT==2:
+				print "Error fupai urlopen"
+			LOOP_COUNT = LOOP_COUNT+1
+		else:
+			break
+		
+	#print res_data
+	if res_data is None:
+		print "Open URL fail"
+		exit(0)
+
+	content = res_data.read()
+	respInfo = res_data.info()
+	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
+		print "Content compressed"
+		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
+	else:
+		print "Content not zip"
+	#print content.decode('utf8')
+
+	tf_fl.write(content)
+
+
+	'''
+	line = res_data.readline()
+	while line:
+		try:
+			tf_fl.write(line)
+		except:
+			#print "?????????????",line.decode('utf8')
+			tf_fl.write(line)
+		line = res_data.readline()
+	'''
+	tf_fl.close()
+
 
 #urlall = "http://quote.eastmoney.com/center/list.html#33"
 #urlall = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._A&sty=FCOIATA&sortType=C&sortRule=-1&page=1&pageSize=20&js=var%20quote_123%3d{rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c&jsName=quote_123&_g=0.6295543580707108"
@@ -88,50 +141,39 @@ uidal=6100112247957528goutou; vtpst=|; '
 }
 
 urlall = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=0000011,3990012&sty=DFPIU&st=z&sr=&p=&ps=&cb=&js=var%20C1Cache={quotation:[(x)]}&token=44c9d251add88e27b65ed86506f6e5da&0.7034708404131944'
-
 #print urlall
 
-filename = 'debug/_html.txt'
+#Main
+#http_req(urlall, send_headers)
 
-res_data = None
-tf_fl = open(filename, 'w+')
-try:
-	#方法1
-	#res_data = urllib2.urlopen(urlall)
+#print random.uniform(0, 1)
+#exit(0)
 
-	#方法2
-	req = urllib2.Request(urlall,headers=send_headers)
-	res_data = urllib2.urlopen(req)
-except:
-	print "Error fupai urlopen"
-	#LOOP_COUNT = LOOP_COUNT+1
+shcd = ['600', '601', '603']
+szcd = ['000','001','002','300']
+codes = ['601311', '601010', '002437', '600864', '300539', '000810', '600375', '600589', '603083', '600613', '603629', 
+'601319', '300278', '000711', '300249', '002600', '300538', '603032', '603000', '300279', '600651', '601608', '300085']
+url = 'http://ifzq.gtimg.cn/appstock/app/kline/mkline?param=%s,m5,,60&_var=m5_today&r=%.16f'
+send_headers = {
+'Host':'ifzq.gtimg.cn',
+'Connection':'keep-alive',
+'Cache-Control': 'max-age=0',
+'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
+'DNT': '1',
+'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+'Accept-Encoding': 'gzip, deflate',
+'Accept-Language': 'zh-CN,zh;q=0.8'
+}
 
-print res_data
-if res_data is None:
-	print "Open URL fail"
-	exit(0)
-
-content = res_data.read()
-respInfo = res_data.info()
-if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
-	print "Content compressed"
-	content = zlib.decompress(content, 16+zlib.MAX_WBITS);
-else:
-	print "Content not zip"
-#print content.decode('utf8')
-
-tf_fl.write(content)
-
-
-'''
-line = res_data.readline()
-while line:
-	try:
-		tf_fl.write(line)
-	except:
-		#print "?????????????",line.decode('utf8')
-		tf_fl.write(line)
-	line = res_data.readline()
-'''
-tf_fl.close()
-
+for code in codes:
+	head3 = code[0:3]
+	if head3 in szcd:
+		ncode = 'sz' + code
+	elif head3 in shcd:
+		ncode = 'sh' + code
+	f1 = random.uniform(0, 1)
+	f2 = random.uniform(0, 1)
+	f3 = f1 * f2
+	urlall = url % (ncode, f3)
+	print urlall
+	http_req(urlall, send_headers)

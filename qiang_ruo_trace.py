@@ -142,23 +142,42 @@ def read_def(data_path, stockCode, stockCode_sn):
 	file.close()
 
 def extract_code(file, key_title, index, dict):
+	list = []
 	stockList = []
+	dayList = []
 	line = file.readline()
+	max_val = 0
 	while line:
 		if len(line)<=3:
+			if index>2:
+				if int(max_val)==0:
+					return
+				#print (stockList)
+				#print (dayList)
+				for idx in range(len(dayList)):
+					#print(idx, dayList[idx], max_val)
+					if max_val==dayList[idx]:
+						list.append(stockList[idx])
+				stockList = list
 			dict[key_title[index]] = stockList
 			return
 		#obj = line.split(' ')
 		#print(obj[0], obj[1], obj[2])
 		obj = re.match(r' *([\d]+) ([\d]+).* ([-]?\d+\.[\d]+)[ \t]+(\d+) ', line)
-		#print (obj)
 		if obj is None:
 			print("obj is None" + line)
 		else:
 			if int(obj.group(4))>2 and index<=2:
 				stockList.append(obj.group(2))
+			elif index>=3:
+				#print(key_title[index], obj.group(2), obj.group(4))
+				stockList.append(obj.group(2))
+				dayInt = int(obj.group(4))
+				dayList.append(dayInt)
+				if max_val<dayInt:
+					max_val = dayInt
 		line = file.readline()
-
+	#end while
 
 #Main
 curdate = ''
@@ -174,14 +193,18 @@ if __name__=="__main__":
 	for option, value in optlist:
 		if option in ["-d","--preday"]:
 			pre_day=int(value)
+			if pre_day<1:
+				print("pre_day must greater than 0")
+				exit()
 		elif option in ["-?","--???"]:
 			print("Usage:" + os.path.basename(sys.argv[0]) + " [-d pre_day]")
 			exit()
 
 	tradeList = []
-	get_pre_trade_date(tradeList, pre_day+1)
+	get_pre_trade_date(tradeList, pre_day+3)
+	#print("td list:", tradeList)
 
-	data_path = "../data/entry/realtime/rt_" + tradeList[pre_day] + ".txt"
+	data_path = "../data/entry/realtime/rt_" + tradeList[pre_day-1] + ".txt"
 	#print(data_path)
 	if not os.path.isfile(data_path):
 		print("No file:" + data_path)
@@ -195,7 +218,7 @@ if __name__=="__main__":
 	column = []
 	create_column(column)
 	qt_stage = quotation_st()
-	print(tradeList[pre_day] + " Info")
+	print(tradeList[pre_day-1] + " Info")
 
 	p_flag = 0
 	index = 0
@@ -232,7 +255,7 @@ if __name__=="__main__":
 
 	for item in key_title:
 		if dict.has_key(item):
-			#print dict[item]
+			#print(dict[item])
 			sn_code = []
 			for cd in dict[item]:
 				ncode = sina_code(cd)
