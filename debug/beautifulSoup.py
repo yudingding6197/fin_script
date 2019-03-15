@@ -23,6 +23,9 @@ html = """
 <a href="http://example.com/tillie" class="sister" id="link3">Tillie</a>;
 and they lived at the bottom of a well.</p>
 <p class="story">...</p>
+<script lang="javascript"></script>
+</body>
+</html>
 """
 
 #通过class(.) 或者 id(#) 查找,用'.' or '#'
@@ -31,9 +34,16 @@ and they lived at the bottom of a well.</p>
 
 print soup.select("head title")
 print soup.select("head > title")
+
+#查找 Tag
+soup.find("<script>") 
+#通过id查找
+soup.find(id="link3")
 #属性查找
 print soup.select('a[href="http://example.com/elsie"]')
 print soup.select('p a[href="http://example.com/elsie"]')
+
+
 '''
 
 def list_stock_news_sum(codeArray, curdate, file):

@@ -187,4 +187,14 @@ def get_his_trade_days(tradeList, len=10, src='sn'):
 			tradeList.insert(0, dayObj.group(1))
 		return
 
+def get_guben_change(code, src='sn'):
+	if src=='':
+		src='sn'
+
+	if src=='sn':
+		content = get_guben_change_bysn(code)
+		
+	else:
+		print("Not support source", src)
+		return
 ##	
