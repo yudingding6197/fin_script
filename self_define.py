@@ -138,10 +138,13 @@ stockCode = []
 stockCode_sn = []
 qt_stage = 0
 if __name__=="__main__":
-	optlist, args = getopt.getopt(sys.argv[1:], '?fen')
+	optlist, args = getopt.getopt(sys.argv[1:], '?f:en')
 	for option, value in optlist:
 		if option in ["-f","--file"]:
-			data_path='../data/entry/miner/filter.txt'
+			if value=='.':
+				data_path='../data/entry/miner/filter.txt'
+			else:
+				data_path=value
 		elif option in ["-e","--exclude"]:
 			exclude = 1
 		elif option in ["-n","--notice"]:
