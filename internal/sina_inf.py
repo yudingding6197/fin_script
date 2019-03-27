@@ -57,22 +57,26 @@ def parse_each_item(tr_obj, key, pos, list):
 			if td.string=='--':
 				list.append(0)
 			else:
-				print(td.string)
+				#print(td.string)
 				s = re.findall("\d+",td.string)[0]
-				print s
+				#print("val=", s, s.isdigit())
+				if not s.isdigit():
+					print("Error: inval digit", s)
+					return -1
 				#print(td.string.split())
 				#print([int(s) for s in td.string.split() if s.isdigit()])
-				list.append(td.string)
-		#print("%s	" %(td.string))
+				list.append(int(s))
+		#end if b_match
+	#end for tr_obj.children
 	#val = tr_obj.td.encode('gbk').find("变动日期")
-
+	#print "\n\n"
 
 url_gb='http://vip.stock.finance.sina.com.cn/corp/go.php/vCI_StockStructure/stockid/%s.phtml'
 url_gb_dt='http://vip.stock.finance.sina.com.cn/corp/go.php/vCI_StockStructurePicture/stockid/%s/alertdate/%s.phtml'
 def get_guben_change_bysn(code):
 	res_data = None
 	url = url_gb % (code)
-	print(url)
+	#print(url)
 	try:
 		req = urllib2.Request(url,headers=send_headers)
 		res_data = urllib2.urlopen(req)
@@ -82,7 +86,7 @@ def get_guben_change_bysn(code):
 		#LOOP_COUNT = LOOP_COUNT+1
 	if res_data is None:
 		print("Open URL fail", url)
-		return
+		return None
 
 	content = res_data.read()
 	respInfo = res_data.info()
@@ -95,21 +99,21 @@ def get_guben_change_bysn(code):
 	item = soup.find(id='con02-1')
 	if item is None:
 		print("No find id con02-1")
-		return
+		return None
 	#print(item.encode('gbk'))
 	scrp_tag = item.find("script")
 	if scrp_tag is None:
 		print("No script tag")
-		return
+		return None
 	scrp_str = scrp_tag.string.strip()
 	scrp_obj = re.match(r'romanceTables\((.*)\);', scrp_str)
 	if scrp_obj is None:
 		print("Not match romanceTables[]", scrp_str)
-		return
+		return None
 	romance = scrp_obj.group(1)
 	if romance=="[]":
 		print("No data in romanceTables[]", code)
-		return
+		return None
 
 	rm_list =literal_eval(romance)
 	title = ['变动日期', '','','','总股本','','流通A股','高管股','限售A股']
@@ -126,10 +130,12 @@ def get_guben_change_bysn(code):
 			if idx in filter:
 				pos = filter.index(idx)
 				temp_list = []
-				parse_each_item(tr_obj, title[idx], pos, temp_list)
-				print(temp_list)
-				
+				ret = parse_each_item(tr_obj, title[idx], pos, temp_list)
+				if ret==-1:
+					return None
 				#print(pos)
+				#print(temp_list)
+
 				if len(total_list)<=pos:
 					total_list.append(temp_list)
 				else:
@@ -140,5 +146,6 @@ def get_guben_change_bysn(code):
 		#end for tr_obj 
 		#break
 	#end for gb_tab
-	print("\n")
-	print(total_list)
+	#print("\n")
+	#print(total_list)
+	return total_list
