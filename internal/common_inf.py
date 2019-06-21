@@ -26,7 +26,7 @@ def create_column(column):
 	c2 = ['bidb','bids','volume','amount']
 	c3 = ['b1_v','b1','b2_v','b2','b3_v','b3','b4_v','b4','b5_v','b5']
 	c4 = ['s1_v','s1','s2_v','s2','s3_v','s3','s4_v','s4','s5_v','s5']
-	c5 = ['date','time','state']
+	c5 = ['date','time','state','']
 	column.extend(c0)
 	column.extend(c1)
 	column.extend(c2)
@@ -135,6 +135,8 @@ def handle_hq_data(stockData, rt_list):
 		rt_list.append(stkList)
 		#for END
 
+#沪市的结果最后是 '00,'
+#深市的结果最后是 '00'
 def req_data(req_url, rt_list):
 	retry = 0
 	while retry<3:

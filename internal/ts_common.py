@@ -16,6 +16,7 @@ from decimal import Decimal
 import platform
 import ctypes
 import tushare as ts
+import time
 
 #reload(sys)
 #sys.setdefaultencoding('gbk')
