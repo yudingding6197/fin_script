@@ -56,12 +56,23 @@ def loginfo(flag=0):
 def initParam():
 	pass
 
-def parseCode(code):
+def parseCode(code, mode):
 	if (len(code) != 6):
 		sys.stderr.write("Len should be 6\n")
 		return (-1, '')
 
 	head3 = code[0:3]
+	if mode==2:
+		if head3 in szcd:
+			ncode = code + '2'
+		else:
+			if head3 in shcd:
+				ncode = code + '1'
+			else:
+				print "·Ç·¨´úÂë:" +code+ "\n"
+				return (-1, '')
+		return (0, ncode)
+
 	if head3 in szcd:
 		ncode = "sz" + code
 	else:

@@ -1019,8 +1019,8 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 	jstr = 'fsData1515847425760'
 	excecount=0
 	df = None
-		
-	ret, ncode = parseCode(code)
+
+	ret, ncode = parseCode(code, 2)
 	if ret!=0:
 		exit(1);
 		
@@ -1627,6 +1627,10 @@ def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 		for index,row in stdf.iterrows():
 			stockInfo = []
 			code = cur_list[index]
+			# Ignore KCB TODO: support it
+			if (code[0:3]=='688'):
+				#print("Filter " + code)
+				continue
 			index += 1
 			if sysstr=="Windows":
 				name = row[0].encode('gbk')
