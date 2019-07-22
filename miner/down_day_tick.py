@@ -43,7 +43,7 @@ lxlrttp=1513341002; FINANCE2=8d5626b3132364178ca15d9e87dc4f27; SINA_FINANCE=yudi
 }
 
 def fetch_tick_resource_sn(entry, code, trdate, ds, feedback_list):
-	shcd = ['600', '601', '603']
+	shcd = ['600', '601', '603', '688']
 	szcd = ['000','001','002','300']
 	head3 = code[0:3]
 	if head3 in szcd:

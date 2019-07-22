@@ -14,7 +14,7 @@ from internal.sina_inf import *
 #reload(sys)
 #sys.setdefaultencoding('gbk')
 
-c_shcd = ['600', '601', '603']
+c_shcd = ['600', '601', '603', '688']
 c_szcd = ['000','001','002','003','300']
 
 url_sn = "http://hq.sinajs.cn/list="
@@ -132,6 +132,9 @@ def handle_hq_data(stockData, rt_list):
 		dataObj = quotation.split(',')
 		for data in dataObj:
 			stkList.append(data)
+		#特殊处理，沪市深市数据不一致，沪市多了一个','
+		if len(stkList)==34:
+			stkList.append('')
 		rt_list.append(stkList)
 		#for END
 
@@ -141,7 +144,7 @@ def req_data(req_url, rt_list):
 	retry = 0
 	while retry<3:
 		try:
-			#print req_url
+			#print(req_url)
 			req = urllib2.Request(req_url)
 			stockData = urllib2.urlopen(req, timeout=2).read()
 		except:

@@ -85,7 +85,7 @@ def get_all_fupai_data(res_data, fl, detail, curdate, stockCode, stockName):
 			#读取每一行，首先得到ST代码
 			code = key.group(1)
 			if (len(code) == 6):
-				shcd = ['600', '601', '603']
+				shcd = ['600', '601', '603', '688']
 				szcd = ['000','001','002','300']
 				head3 = code[0:3]
 				if head3 in szcd:

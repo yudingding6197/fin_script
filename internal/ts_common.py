@@ -1019,16 +1019,15 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 	jstr = 'fsData1515847425760'
 	excecount=0
 	df = None
-	shcd = ['600', '601', '603']
-	szcd = ['000','001','002','300']
-	head3 = code[0:3]
-	if head3 in szcd:
-		ncode = code + "2"
-	elif head3 in shcd:
-		ncode = code + "1"
+		
+	ret, ncode = parseCode(code)
+	if ret!=0:
+		exit(1);
+		
 	urlall = urlfmt %(ncode, jstr, rtntype)
 	while excecount<=5:
 		try:
+			#print("get_zf_days", urlall)
 			req = urllib2.Request(urlall,headers=send_headers)
 			res_data = urllib2.urlopen(req, timeout=3)
 		except:
@@ -1066,6 +1065,7 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 		if len(dayCont)<=8:
 			dayLen -= 1
 			continue
+		#print(dayCont)
 		itemObj = dayCont.strip().split(',')
 
 		index = itemObj[0]

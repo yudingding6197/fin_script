@@ -76,17 +76,8 @@ if (len(code) != 6):
 	sys.stderr.write("Len should be 6\n")
 	exit(1);
 
-shcd = ['600', '601', '603']
-szcd = ['000','001','002','300']
-head3 = code[0:3]
-if head3 in szcd:
-	code = "sz" + code
-	flag = 1
-elif head3 in shcd:
-	code = "sh" + code
-	flag = 1
-else:
-	print "·Ç·¨´úÂë:" +code+ "\n"
+ret, code = parseCode(code)
+if ret!=0:
 	exit(1);
 
 today = datetime.date.today()

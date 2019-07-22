@@ -115,7 +115,7 @@ def list_ting_pai_news(stockCode, stockName, curdate, file):
 prepath = "../data/"
 filetxt = prepath + 'tingpai_detail.txt'
 ball = 0
-headlist = ['600','601','603','000','001','002','300']
+headlist = ['600','601','603','688','000','001','002','300']
 
 pindex = len(sys.argv)
 today = datetime.date.today()

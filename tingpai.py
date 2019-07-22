@@ -37,7 +37,7 @@ print soup.select('p a[href="http://example.com/elsie"]')
 prepath = "../data/"
 filetxt = prepath + 'tingpai.txt'
 ball = 0
-headlist = ['600','601','603','000','001','002','300']
+headlist = ['600','601','603','688','000','001','002','300']
 
 pindex = len(sys.argv)
 today = datetime.date.today()

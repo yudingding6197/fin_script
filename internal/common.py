@@ -39,6 +39,9 @@ Large_Volume = 2000
 Tras_Count = 5
 Large_Vol_Time = []
 
+shcd = ['600', '601', '603', '688']
+szcd = ['000','001','002','300']
+
 # _____ debug print log
 def loginfo(flag=0):
 	if (flag==1):
@@ -58,8 +61,6 @@ def parseCode(code):
 		sys.stderr.write("Len should be 6\n")
 		return (-1, '')
 
-	shcd = ['600', '601', '603']
-	szcd = ['000','001','002','300']
 	head3 = code[0:3]
 	if head3 in szcd:
 		ncode = "sz" + code
