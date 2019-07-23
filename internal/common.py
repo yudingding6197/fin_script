@@ -56,7 +56,7 @@ def loginfo(flag=0):
 def initParam():
 	pass
 
-def parseCode(code, mode):
+def parseCode(code, mode=1):
 	if (len(code) != 6):
 		sys.stderr.write("Len should be 6\n")
 		return (-1, '')
