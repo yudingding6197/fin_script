@@ -12,7 +12,10 @@ import urllib2
 # Main
 if __name__ == '__main__':
 	start = time.clock()
+	#当前日期和时间
 	st = datetime.datetime.now()
+	#当前日期
+	dt = datetime.date.today()
 
 	delta1=datetime.timedelta(days=5)
 	print delta1
@@ -21,11 +24,25 @@ if __name__ == '__main__':
 	fctime = 'TTT### %d-%d-%d %02d:%02d:%02d' %(cur.year, cur.month, cur.day, cur.hour, cur.minute, cur.second)
 	print cur, fctime
 
+	#当前日期
 	today = datetime.date.today()
+	
+	#将时间格式转为字符串格式
 	qdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
 	
+	#将字符串格式转为时间格式，类型为 datetime.datetime
 	curdate = '2017-3-5'
 	idx_date = datetime.datetime.strptime(curdate, '%Y-%m-%d').date()
+	
+	#将字符串格式转为日期格式，类型为 datetime.date，包含2中方案
+	fmt = '%Y-%m-%d'
+	time_tuple = time.strptime(curdate, fmt)
+	year, month, day = time_tuple[:3]
+	a_date = datetime.date(year, month, day)
+	print(a_date, type(a_date))
+	
+	a_date = datetime.date(*map(int, curdate.split('-')))
+	print(a_date, type(a_date))
 
 	#2个日期间隔天数的计算
 	obj = today - idx_date
@@ -34,6 +51,16 @@ if __name__ == '__main__':
 	#'某一天'之前几天的日期
 	edate = today - delta1
 	print edate
+	
+	#'某一天'加一天
+	delta1=datetime.timedelta(days=1)
+	edate = today + delta1
+	print edate
+	
+	
+	#'某一天'加一小时
+	#'某一天'加一分钟
+
 
 	time.sleep(0.65)
 

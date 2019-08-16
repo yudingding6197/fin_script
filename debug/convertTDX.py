@@ -10,7 +10,6 @@ import urllib2
 import binascii
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
-import internal.common
 
 #将TDX的数据转换为excel
 

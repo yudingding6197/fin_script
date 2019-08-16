@@ -140,7 +140,28 @@ WdGxX3hARJpanE0qULw%3d%3d; \
 uidal=6100112247957528goutou; vtpst=|; '
 }
 
-urlall = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=0000011,3990012&sty=DFPIU&st=z&sr=&p=&ps=&cb=&js=var%20C1Cache={quotation:[(x)]}&token=44c9d251add88e27b65ed86506f6e5da&0.7034708404131944'
+r1 = random.random()
+r2 = random.random()
+#r1 = 0.854310854310854310854310122
+
+print (r1, r2)
+r3 = float('%.16f' % r1)
+s = '%f' % r1
+print len(repr(r3))
+print repr(r3)
+
+urlall = 'http://www.szse.cn/api/report/ShowReport/data?SHOWTYPE=JSON&CATALOGID=1803&TABKEY=tab1&txtQueryDate=2019-08-12&random=0.7978766476031434'
+send_headers = {
+'Host': 'www.szse.cn',
+'Connection': 'keep-alive',
+'Upgrade-Insecure-Requests': 1,
+'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36',
+'DNT': 1,
+'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
+'Accept-Encoding': 'gzip, deflate',
+'Accept-Language': 'zh-CN,zh;q=0.9'
+}
+
 #print urlall
 
 #Main
@@ -149,6 +170,7 @@ urlall = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT
 #print random.uniform(0, 1)
 #exit(0)
 
+'''
 shcd = ['600', '601', '603','688']
 szcd = ['000','001','002','300']
 codes = ['601311', '601010', '002437', '600864', '300539', '000810', '600375', '600589', '603083', '600613', '603629', 
@@ -177,3 +199,4 @@ for code in codes:
 	urlall = url % (ncode, f3)
 	print urlall
 	http_req(urlall, send_headers)
+'''

@@ -176,10 +176,6 @@ def handle_price(priceList):
 	return
 
 #Main
-if len(sys.argv)<2:
-	sys.stderr.write("Usage: " +os.path.basename(sys.argv[0])+ " 代码 -a[分析tick] -t[睡眠时间] -d[最大最小值之差 触发消息门限值]\n")
-	exit(0)
-
 param_config = {
 	"Code":'',
 	"Time":0,
@@ -199,6 +195,9 @@ for option, value in optlist:
 		print 4
 		param_config["Delta"] = int(value)
 
+curdate = '2017-3-5'
+idx_date = datetime.datetime.strptime(curdate, '%Y-%m-%d').date()
+		
 code = sys.argv[1]
 if (len(code) != 6):
 	sys.stderr.write("Len should be 6\n")
