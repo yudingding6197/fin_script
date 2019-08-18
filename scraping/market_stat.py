@@ -80,9 +80,11 @@ def http_req(urlall, send_headers1, tp, qdate):
 		# No JY data, return
 		return
 
+	value = json.dumps(item, ensure_ascii=False)
+
 	filename = '../data/entry/index/sz/'+fd+'/sz_'+fd+'_'+qdate+'.txt'
 	tf_fl = open(filename, 'w+')
-	tf_fl.write(content)
+	tf_fl.write(value.encode('utf8'))
 	tf_fl.close()
 
 def genRand(length):
