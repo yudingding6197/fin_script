@@ -108,9 +108,8 @@ if len(syl)==0:
 	print("Fail to get any content", st_date, ed_date)
 	exit(0)
 
-
 # 创建一个点数为 8 x 6 的窗口, 并设置分辨率为 80像素/每英寸
-plt.figure(figsize=(8, 6), dpi=80)
+plt.figure(figsize=(8, 6), dpi=120)
 
 # 再创建一个规格为 1 x 1 的子图
 plt.subplot(1, 1, 1)
@@ -124,22 +123,36 @@ N = len(syl)
 index = np.arange(N)
 
 # 柱子的宽度
-width = 0.2
+width = 0.6
 
 # 绘制柱状图, 每根柱子的颜色为紫罗兰色
 p2 = plt.bar(index, syl, width, label="rainfall", color="#87CEFA")
 
 # 设置横轴标签
-plt.xlabel('Months')
+plt.xlabel('Date')
 # 设置纵轴标签
 plt.ylabel('rainfall (mm)')
 
 # 添加标题
-plt.title('Monthly average rainfall')
+plt.title('SYL')
 
+max_show = 8
+step = N/max_show
+idx = []
+dt = []
+for i in range(0, N):
+	pos = i*step
+	if pos >= N:
+		break
+	idx.append(index[pos])
+	dt.append(trade_dt[pos])
+	print (i, index[pos])
+print(idx)
+
+maxv = max(syl)
 # 添加纵横轴的刻度
-#plt.xticks(index, ('Jan', 'Fub', 'Mar', 'Apr', 'May', 'Jun'))
-plt.yticks(np.arange(0, 200, 10))
+plt.xticks(idx, dt, rotation=40)
+plt.yticks(np.arange(0, int(maxv+10), 10))
 
 # 添加图例
 plt.legend(loc="upper right")
