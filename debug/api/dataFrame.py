@@ -8,8 +8,19 @@ import string
 import datetime
 import pandas as pd
 import numpy as np
+import pickle
+import json
 
 yzzt_list = ['603345','603238','000520','300613','300608','300553','603615']
+
+#显示所有列
+#pd.set_option('display.max_columns', None)
+#显示所有行
+#pd.set_option('display.max_rows',None)
+
+#np.set_printoptions(threshold = np.inf)
+#若想不以科学计数显示:
+#np.set_printoptions(suppress = True)
 
 #空dataFrame
 empty = pd.DataFrame({})
@@ -20,13 +31,38 @@ a = pd.Series([11,34,54,89,39,20,25])
 b = pd.Series(['aa','cc','asd','ew','asd','ew','ce',])
 #df = pd.DataFrame([a,b])
 df = pd.DataFrame({'code':a, 'name':b})
-print df
+print ("dataFrame:::===")
+print (df)
 
 print df.columns.size #列数 2
 print df.iloc[:,0].size #行数 3
 print df.ix[[0]].index.values[0] #索引值 0
 print df.ix[[0]].values[0][0] #第一行第一列的值 11
 print df.ix[[1]].values[0][1] #第二行第二列的值 121
+
+print (":::===  转为json格式的字符创")
+df_bytes = df.to_json()
+print("df_bytes type is ", type(df_bytes))
+print(df_bytes)
+print(type(json.dumps(df_bytes)))
+
+#使用'{ }' 封装
+df_str = '{"code":{"0":11,"1":34,"2":54},"name":{"0":"aa","1":"cc","2":"asd"}}'
+dfobj = pd.read_json(df_str)
+print(type(dfobj))
+print(dfobj)
+
+#使用'[ ]' 封装
+df_str = '[{"0":11,"1":34,"2":54},{"0":"aa","1":"cc","2":"asd"}]'
+dfobj = pd.read_json(df_str)
+print(type(dfobj))
+print(dfobj)
+print("===序列化 and 反序列化 结束=== \n")
+
+#csv cvs 写入文件 write
+dfobj.to_csv('a.df.csv')
+#如果遇到中文，出现错误：'ascii' codec can't encode characters，添加encoding选项试一试
+#dfobj.to_csv('a.df.csv', encoding='gbk / utf-8')
 
 print "2222 ____________________"
 s1=np.array(['a',32,33,4])
@@ -56,6 +92,13 @@ print "指定列:"
 print df1
 print df1.iloc(0)
 
+#append()  contact()
+#res = pd.concat()
+data = pd.DataFrame()
+a = {"x":1,"y":2}
+data = data.append(a,ignore_index=True)
+print(data)
+  
 print "3) ____________________"
 s1=[]
 s1.append(['ab',32,533,4])
