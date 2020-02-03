@@ -6,6 +6,8 @@ import os
 import urllib2
 import datetime
 from ts_common import *
+from global_var import g_shcd
+from global_var import g_szcd
 
 def get_date_with_last():
 	today = datetime.date.today()
@@ -85,15 +87,13 @@ def get_all_fupai_data(res_data, fl, detail, curdate, stockCode, stockName):
 			#读取每一行，首先得到ST代码
 			code = key.group(1)
 			if (len(code) == 6):
-				shcd = ['600', '601', '603', '688']
-				szcd = ['000','001','002','300']
 				head3 = code[0:3]
-				if head3 in szcd:
+				if head3 in g_szcd:
 					stockCode.append(code)
 					stockIdx += 1
 					fl.write(code + ' ')
 				else:
-					if head3 in shcd:
+					if head3 in g_shcd:
 						stockCode.append(code)
 						stockIdx += 1
 						fl.write(code + ' ')

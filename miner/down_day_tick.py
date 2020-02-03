@@ -11,6 +11,8 @@ sys.path.append(".")
 sys.path.append("..")
 from internal.ts_common import *
 import tushare as ts
+from internal.global_var import g_shcd
+from internal.global_var import g_szcd
 
 #下载每一天item的每笔交易数据
 #将停牌的排除，只选择指定日期进行交易的items
@@ -43,12 +45,10 @@ lxlrttp=1513341002; FINANCE2=8d5626b3132364178ca15d9e87dc4f27; SINA_FINANCE=yudi
 }
 
 def fetch_tick_resource_sn(entry, code, trdate, ds, feedback_list):
-	shcd = ['600', '601', '603', '688']
-	szcd = ['000','001','002','300']
 	head3 = code[0:3]
-	if head3 in szcd:
+	if head3 in g_szcd:
 		ncode = "sz" + code
-	elif head3 in shcd:
+	elif head3 in g_shcd:
 		ncode = "sh" + code
 	else:
 		print "非法代码:" +code+ "\n"

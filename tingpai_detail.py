@@ -10,6 +10,8 @@ import bs4
 import json
 from bs4 import BeautifulSoup
 from internal.ts_common import *
+from internal.global_var import g_shcd
+from internal.global_var import g_szcd
 
 '''
 html = """
@@ -115,7 +117,7 @@ def list_ting_pai_news(stockCode, stockName, curdate, file):
 prepath = "../data/"
 filetxt = prepath + 'tingpai_detail.txt'
 ball = 0
-headlist = ['600','601','603','688','000','001','002','300']
+headlist = g_shcd + g_szcd
 
 pindex = len(sys.argv)
 today = datetime.date.today()

@@ -14,6 +14,8 @@ import internal.common
 import internal.ts_common
 import time
 import ctypes
+from internal.global_var import g_shcd
+from internal.global_var import g_szcd
 
 ALERT_HIGH = 0
 COND_COUNT = 0
@@ -204,8 +206,8 @@ if (len(code) != 6):
 	exit(1);
 
 flag = 0
-shcd = ['600','601','603','688','204']
-szcd = ['000','001','002','300','131']
+shcd = g_shcd + ['204']
+szcd = g_szcd + ['131']
 head3 = code[0:3]
 if head3 in szcd:
 	code = "sz" + code

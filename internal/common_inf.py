@@ -10,12 +10,11 @@ import urllib2
 import zlib
 import pandas as pd
 from internal.sina_inf import *
+from internal.global_var import g_shcd
+from internal.global_var import g_szcd
 
 #reload(sys)
 #sys.setdefaultencoding('gbk')
-
-c_shcd = ['600', '601', '603', '688']
-c_szcd = ['000','001','002','003','300']
 
 url_sn = "http://hq.sinajs.cn/list="
 split_ct = 10
@@ -64,9 +63,9 @@ def timeShow(starttime, line=0):
 def sina_code(code):
 	ncode = code
 	head3 = code[0:3]
-	if head3 in c_szcd:
+	if head3 in g_szcd:
 		ncode = 'sz' + code
-	elif head3 in c_shcd:
+	elif head3 in g_shcd:
 		ncode = 'sh' + code
 	else:
 		print("Error: Not match code=" + code)

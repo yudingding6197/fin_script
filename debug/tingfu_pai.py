@@ -11,6 +11,8 @@ from bs4 import BeautifulSoup
 sys.path.append(".")
 sys.path.append("..")
 from internal.ts_common import *
+from internal.global_var import g_shcd
+from internal.global_var import g_szcd
 
 def get_tingfu_item(child, tf_fl):
 	info = ''
@@ -47,7 +49,7 @@ def get_tingfu_item(child, tf_fl):
 prepath = "../data/"
 filetxt = prepath + 'tingfu_pai.txt'
 ball = 0
-headlist = ['600','601','603','688','000','001','002','300']
+headlist = g_shcd + g_szcd
 
 pindex = len(sys.argv)
 today = datetime.date.today()

@@ -9,6 +9,8 @@ import datetime
 import bs4
 from bs4 import BeautifulSoup
 from internal.ts_common import *
+from internal.global_var import g_shcd
+from internal.global_var import g_szcd
 
 '''
 html = """
@@ -37,7 +39,7 @@ print soup.select('p a[href="http://example.com/elsie"]')
 prepath = "../data/"
 filetxt = prepath + 'tingpai.txt'
 ball = 0
-headlist = ['600','601','603','688','000','001','002','300']
+headlist = g_shcd + g_szcd
 
 pindex = len(sys.argv)
 today = datetime.date.today()

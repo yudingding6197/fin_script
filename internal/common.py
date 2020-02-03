@@ -9,6 +9,8 @@ import urllib2
 from openpyxl import Workbook
 from openpyxl.reader.excel  import  load_workbook
 import ctypes
+from global_var import g_shcd
+from global_var import g_szcd
 
 #url = "http://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz300001&date=2015-09-10&page=48"
 #成交时间	成交价	涨跌幅	价格变动	成交量(手)		成交额(元)	性质
@@ -39,9 +41,6 @@ Large_Volume = 2000
 Tras_Count = 5
 Large_Vol_Time = []
 
-shcd = ['600', '601', '603', '688']
-szcd = ['000','001','002','300']
-
 # _____ debug print log
 def loginfo(flag=0):
 	if (flag==1):
@@ -63,20 +62,20 @@ def parseCode(code, mode=1):
 
 	head3 = code[0:3]
 	if mode==2:
-		if head3 in szcd:
+		if head3 in g_szcd:
 			ncode = code + '2'
 		else:
-			if head3 in shcd:
+			if head3 in g_shcd:
 				ncode = code + '1'
 			else:
 				print "非法代码:" +code+ "\n"
 				return (-1, '')
 		return (0, ncode)
 
-	if head3 in szcd:
+	if head3 in g_szcd:
 		ncode = "sz" + code
 	else:
-		if head3 in shcd:
+		if head3 in g_shcd:
 			ncode = "sh" + code
 		else:
 			print "非法代码:" +code+ "\n"
