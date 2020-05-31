@@ -23,6 +23,11 @@ if __name__ == '__main__':
 	cur=datetime.datetime.now()
 	fctime = 'TTT### %d-%d-%d %02d:%02d:%02d' %(cur.year, cur.month, cur.day, cur.hour, cur.minute, cur.second)
 	print cur, fctime
+	
+	ttm = time.strptime('15:23:56', "%H:%M:%S")
+	print("TIME:==", ttm, type(ttm))
+	t1 = time.strptime('2020-05-28 15:23:56', "%Y-%m-%d %H:%M:%S")
+	t2 = time.strptime('2020-05-28 15:25:56', "%Y-%m-%d %H:%M:%S")
 
 	#当前日期
 	today = datetime.date.today()
@@ -33,6 +38,15 @@ if __name__ == '__main__':
 	#将字符串格式转为时间格式，类型为 datetime.datetime
 	curdate = '2017-3-5'
 	idx_date = datetime.datetime.strptime(curdate, '%Y-%m-%d').date()
+	print("data fmt===", type(idx_date), idx_date)
+	
+	dt_str = '2017-3-5 12:23:56'
+	tm1 = datetime.datetime.strptime(dt_str, '%Y-%m-%d  %H:%M:%S')
+	print("tm1 fmt===", type(tm1), tm1)
+	dt_str = '2017-3-15 12:27:56'
+	tm2 = datetime.datetime.strptime(dt_str, '%Y-%m-%d  %H:%M:%S')
+	print("tm2 fmt===", type(tm2), tm2)
+	print((tm2-tm1).seconds, (tm2-tm1).total_seconds() )
 	
 	#将字符串格式转为日期格式，类型为 datetime.date，包含2中方案
 	fmt = '%Y-%m-%d'
@@ -40,7 +54,7 @@ if __name__ == '__main__':
 	year, month, day = time_tuple[:3]
 	a_date = datetime.date(year, month, day)
 	print(a_date, type(a_date))
-	
+
 	a_date = datetime.date(*map(int, curdate.split('-')))
 	print(a_date, type(a_date))
 

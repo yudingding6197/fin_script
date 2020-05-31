@@ -11,9 +11,8 @@ import shutil
 import getopt
 #import tushare as ts
 #import internal.common
-from internal.ts_common import *
+#from internal.ts_common import *
 #from internal.dfcf_inf import *
-#from internal.ts_common import show_index_info
 from internal.trade_date import *
 from internal.update_tday_db import *
 from internal.analyze_realtime import *
@@ -183,20 +182,74 @@ REAL_PRE_FD = "../data/"
 
 #Main Start:
 if __name__=='__main__':
+	
+	trade_day = get_lastday()
+	#trade_day = '2019-03-22'
+	#update_latest_trade(trade_day)
+	pre_day = get_preday(6,trade_day)
+	#print(trade_day, pre_day)
+	
 	beginTm = datetime.datetime.now()
 	sysstr = platform.system()
-	
-	flname = remove_real_file()
-	sys.stdout = Logger_IO(flname)
 
+	cur_day = trade_day
+	for i in range(1, 36):
+		pre_day = get_preday(1,cur_day)
+		if pre_day=='':
+			print("Error: get preday fail", i, cur_day)
+			break
+		#filename = get_path_by_tdate(pre_day)
+		#print("%s \n"%(filename))
+	
+		stoday = statisticsItem()
+		ret = parse_realtime_fl(cur_day, stoday)
+		if ret == -1:
+			break
+
+		sysday = statisticsItem()
+		ret = parse_realtime_fl(pre_day, sysday)
+		if ret == -1:
+			break
+		
+		q_dict = {}
+		r_dict = {}
+		compare_rt(stoday, sysday, q_dict, r_dict)
+		
+		cur_day = pre_day
+	
+
+	exit()
+	
+	
+	
+
+	trade_day = get_lastday()
+	update_latest_trade(trade_day)
+	pre_day = get_preday(1,trade_day)
+	#print(trade_day, pre_day)
+	
+	beginTm = datetime.datetime.now()
+	sysstr = platform.system()
 	handle_argument()
-	t_fmt = '%d-%02d-%02d %02d:%02d'
-	fmt_time = t_fmt %(beginTm.year, beginTm.month, beginTm.day, beginTm.hour, beginTm.minute)
-
-	cur1 = datetime.datetime.now()
-	print "TIME:",fmt_time
-	show_real_index()
 	
+	'''
+	######
+	flname = remove_real_file()
+	#重定向同时输出到console和文件
+	sys.stdout = Logger_IO(flname)
+	
+	fmt_time = '%d-%02d-%02d %02d:%02d' %(beginTm.year, beginTm.month, beginTm.day, beginTm.hour, beginTm.minute)
+	print("TIME: %s"%(fmt_time))
+	#for i in range(3,3):print i, 
+
+	show_real_index()
+	'''
+	
+	filename = REAL_PRE_FD + 'entry/realtime/' + 'rt_' + pre_day + '.txt'
+	parse_realtime_fl(filename, pre_day)
+	
+	exit()
+
 	#comment加在这里便于调试
 	#得到所有交易item的code
 	new_st_list = []
@@ -232,8 +285,6 @@ if __name__=='__main__':
 		st_list.extend(st_bas_list)
 
 		#st_list = st_list[0:50]
-	cur2 = datetime.datetime.now()
-	print ("delta=",(cur2-cur1))
 
 	'''
 	st_list = []
@@ -246,9 +297,6 @@ if __name__=='__main__':
 	status = get_all_stk_info(st_list, param_config["DFCF"], today_open, stcsItem)
 	if status==-1:
 		exit(0)
-		
-	cur2 = datetime.datetime.now()
-	print ("delta=",(cur2-cur1))
 
 	non_cx_yz = len(stcsItem.lst_non_yzcx_yzzt)
 	cx_yz = stcsItem.s_yzzt-non_cx_yz
@@ -344,7 +392,7 @@ if __name__=='__main__':
 		content = log.read()
 		log.close()
 
-		fmt_time = '%d-%02d-%02d' %(beginTm.year, beginTm.month, beginTm.day)
+		fmt_time = '%d-%02d-%02d' %(cur.year, cur.month, cur.day)
 		path = '../data/entry/realtime/'
 		flname = path + "rt_" + fmt_time + ".txt"
 		baklog = open(flname, 'a')
@@ -357,5 +405,3 @@ if __name__=='__main__':
 		shutil.copy(flname, tmp_file)
 	endTm = datetime.datetime.now()
 	print "END ", (endTm-beginTm)
-	cur2 = datetime.datetime.now()
-	print ("delta=",(cur2-cur1))

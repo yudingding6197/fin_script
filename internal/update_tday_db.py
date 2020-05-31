@@ -31,7 +31,7 @@ def get_index_history_byNetease(index_temp):
 	#url='http://quotes.money.163.com/service/chddata.html?code=%s&start=19900101&
 	#end=%s&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;VOTURNOVER;VATURNOVER'%(index_id,time.strftime("%Y%m%d"))
 	url='http://quotes.money.163.com/service/chddata.html?code=%s'%(index_id)
-	print(url)
+	#print(url)
 
 	page=get_page(url)#.decode('gb2312')
 	with open("./internal/db/"+index_temp+".csv", "wb") as code:     

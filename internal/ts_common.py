@@ -34,6 +34,7 @@ STK_ST_YZDT = 1<<9
 trade_data= None
 
 class statisticsItem:
+	s_date = ''
 	s_zt = 0
 	s_dt = 0
 	s_zthl = 0
@@ -50,6 +51,8 @@ class statisticsItem:
 	s_open_dt = 0		#跌停开盘
 	s_st_yzzt = 0
 	s_st_yzdt = 0
+	s_cx_yz = 0
+	s_non_cx_yz = 0
 	s_open_sz = 0		#开盘上涨
 	s_open_xd = 0		#开盘下跌
 	s_open_pp = 0		#开盘平盘

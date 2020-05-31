@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf8 -*-
 import sys
+import datetime
 from internal.url_sina.fetch_sina import *
+import internal.update_tday_db as upday
 
 DB_PATH = 'internal/db'
 filenm = 'sh000001'
@@ -16,6 +18,16 @@ def get_preday(days=1, cur_day=''):
 	#排除第一行
 	line = fl.readline()
 	line = fl.readline()
+	
+	curdate = datetime.datetime.strptime(cur_day, '%Y-%m-%d').date()
+	filedate = datetime.datetime.strptime(line[:10], '%Y-%m-%d').date()
+	#数据库不是最新的，需要更新
+	if (curdate-filedate).days > 0:
+		print("Update trade day DB");
+		fl.close()
+		upday.update_latest_trade(cur_day)
+		fl = open(location, 'r')
+
 	count = 0
 	flag = 0
 	while line:
@@ -25,6 +37,7 @@ def get_preday(days=1, cur_day=''):
 			line = fl.readline()
 			continue
 		if flag==0:
+			line = fl.readline()
 			continue
 		if count+1==days:
 			pre_day = file_day	
