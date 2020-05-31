@@ -9,9 +9,9 @@ import datetime
 import platform
 import shutil
 import getopt
-#import tushare as ts
+import tushare as ts
 #import internal.common
-from internal.ts_common import *
+from internal.handle_realtime import *
 #from internal.dfcf_inf import *
 #from internal.ts_common import show_index_info
 from internal.trade_date import *
