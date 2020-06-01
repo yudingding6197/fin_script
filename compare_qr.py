@@ -193,7 +193,7 @@ if __name__=='__main__':
 	sysstr = platform.system()
 
 	cur_day = trade_day
-	for i in range(1, 36):
+	for i in range(1, 2):
 		pre_day = get_preday(1,cur_day)
 		if pre_day=='':
 			print("Error: get preday fail", i, cur_day)
@@ -214,6 +214,18 @@ if __name__=='__main__':
 		q_dict = {}
 		r_dict = {}
 		compare_rt(stoday, sysday, q_dict, r_dict)
+		if len(q_dict)>0 or len(r_dict)>0:
+			print(cur_day)
+			if len(q_dict)>0:
+				print("QQQ =========")
+				for k in q_dict.keys(): print k
+			if len(r_dict)>0:
+				print("RRR =========")
+				for k in r_dict.keys(): print k
+			
+			
+		#print(q_dict)
+		#print(r_dict)
 		
 		cur_day = pre_day
 	
