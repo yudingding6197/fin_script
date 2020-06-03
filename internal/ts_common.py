@@ -1017,6 +1017,7 @@ em_hq_fls=old; _ga=GA1.2.1371087654.1472141391; Hm_lvt_557fb74c38569c2da66471446
 ct=tTNAoSxXA4HgHmLlK58m5dvCXLfX46zX2EhPxEC0Mp9KXne6YtatYD6Zc0kmqHFH9fEfxnQyVM3cy4d5hDSq4xaCuyjCtoat4MAwVJeFCgQ4jH3xU77tzv2BnAs_YtDRJ5YbPVra0XcbM0-zTxO2seQHPw9FjR4vaKjkGFEoupI; \
 uidal=6100112247957528goutou; vtpst=|; emshistory=%5B%22%E4%BF%9D%E5%8D%83%E9%87%8C%E5%80%BA%E5%88%B8%22%5D; st_si=56676665040049',
 '''
+#返回值是ZDT的天数，stk_list[0]表示上市交易的天数，判断是否是次新
 def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 	rtntype = 1
 	jstr = 'fsData1515847425760'
@@ -1025,8 +1026,8 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 
 	ret, ncode = parseCode(code, 2)
 	if ret!=0:
-		exit(1);
-		
+		exit(-1);
+
 	urlall = urlfmt %(ncode, jstr, rtntype)
 	while excecount<=5:
 		try:
@@ -1039,8 +1040,8 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 		else:
 			break
 	if res_data is None:
-		print "Open URL fail"
-		return
+		print("Open URL fail", code)
+		return -1
 
 	content1 = res_data.read()
 	respInfo = res_data.info()
