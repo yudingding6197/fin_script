@@ -201,6 +201,7 @@ if __name__=='__main__':
 	#得到所有交易item的code
 	new_st_list = []
 	st_list = []
+	##### 其实东财可以得到每只个股的上市日期
 	if param_config["DFCF"]==1:
 		get_stk_code_by_cond(st_list)
 	else:
@@ -234,7 +235,7 @@ if __name__=='__main__':
 		#st_list = st_list[0:50]
 	cur2 = datetime.datetime.now()
 	print ("delta=",(cur2-cur1))
-
+	
 	'''
 	st_list = []
 	st_list=['603225','300116','600081','002113', '002676', '000862', '600119', '002309', '600262', '603663']
@@ -248,7 +249,8 @@ if __name__=='__main__':
 		exit(0)
 		
 	cur2 = datetime.datetime.now()
-	print ("delta=",(cur2-cur1))
+	print ("delta2=",(cur2-cur1))
+	exit(0)
 
 	non_cx_yz = len(stcsItem.lst_non_yzcx_yzzt)
 	cx_yz = stcsItem.s_yzzt-non_cx_yz

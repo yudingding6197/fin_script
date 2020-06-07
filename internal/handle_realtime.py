@@ -114,10 +114,11 @@ def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 	if cmp_delta.days>0:
 		idx_date = rq_idx_dt
 	'''
-	idx_date = get_lastday()
-	print(idx_date)
+	idx_date_str = get_lastday()
+	print(idx_date_str)
+	idx_date = datetime.datetime.strptime(idx_date_str, '%Y-%m-%d').date()
 
-	'''
+
 	b_get_data = 1
 	#ZT一次取出 base 个
 	#截取list，通过配置起始位置
@@ -132,7 +133,7 @@ def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 		cur_list = st_list[i*base:end_idx]
 		if len(cur_list)==0:
 			break
-		#print cur_list
+		print cur_list
 		LOOP_COUNT = 0
 		stdf = None
 		while LOOP_COUNT<5:
@@ -256,8 +257,10 @@ def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 							b_get_data = 0
 			# end if b_get_data
 			#print(index)
-			stk_type = analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, idx_date)
+			#stk_type = analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, idx_date)
+			#pass
 	return 0
 	'''
 	return 0
+	'''
 

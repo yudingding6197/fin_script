@@ -6,7 +6,6 @@ import re
 import datetime
 import urllib2
 import json
-import zlib
 
 urlall = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._BKGN&sty=FPGBKI&st=c&sr=-1&p=1&ps=5000&cb=&token=7bc05d0d4c3c22ef9fca8c2a912d779c&v=0.2694706493189898"
 send_headers = {
@@ -309,160 +308,82 @@ def get_stk_code_by_cond(new_st_list, st='C', sr=-1, ps=80):
 		new_st_list.append(item[0:6])
 	return
 
-def getSelfDefStock(stk_arr):
-	'''
-	h_cook=\
-'ct=0MQGTduqB7_LXzJefU6a84F3axofQVJHEBs6uOpXoMyFssYG4WXsYR9VRS2qe7xEjRbpI0x9NeBLzBXO2pSeXs-EUqnRH6u8\
-G0iKbyXg5WgHZa2DAPg8m5awyb1kz2T5cIf2Ai7eI9dxL2R5_xsHifIJ2Pq0zcUAR9LVVSlR7-I; ut=FobyicMgeV4UJna6Au6ASu7wtul_n26_zn\
-6kEQZ0cxP_TJaAGEHI10yGGvZqOGB_iuq8qRe-QXGC8BrY0FM7PobIY8SwUBNW2WeJuN65h0-s4vjZ_M7hL9xBF7lspjMki1CnUiFTfptLZJn1\
-mb8E_x9ZYWIhCyakraCd0Tl8EWqlDGefSBj6FjSec7PSwye3AgIhmlVY6VMeL3pRsVw6pNPcDG30oX38hevvlF8MMS-dCGgysgIVQtBZ_LfymTDGU\
-pxDm-U8wjNX4i6gUh6HGld3r1jNmdez; uidal=6100112247957528goutou; sid=4725419;'
-	'''
-	h_cook = 'ct=O9ZbuRz1amNRNaHuo6p_zDrKzlpcmMMVE-I1pORXze0hFFJmIfaVfCVT1ZcTmqfm5seYjyHFZQ4JlqFr3PmjCq7nI2KRllEPhWeJC2jpGGqbwT3kR2WmKskG52FVhoqtE5wXs_MWZOwKp5VXHNrLnoGJY7AtPtheKaIA_q-b4cc; ut=FobyicMgeV5ghfUPKWOH5-EbXa3GCsCh6Q30W7-VNW_UnLFG_MdgzYGBtd4GAeTiJtHTVQiNxpl2h0NwV6n1RXoRUuthaz6dCYLKYm2925w4OiK5JsUb8hIH4sIyertjQs-NQXBQYIvk24PwJZxYgZ3KvDkWrRVW-3mRLATfABleSx80pH9rhTMsDI_EMLOB7ok1zVXIDIOs80M32p9bw9HZ0MqKhGyo4E4gUJUohSblEPhcYlXMdzmqnz3qUIStTYsyjHhPTR8kZc7RIrzvLDAAx_nxgfOc; pi=6100112247957528%3byudingding6197%3bgoutou%3bvPGmLLZOT7HuuGpA2MxZSWwqFz3mUhG5n8op%2fwV4R%2bSfU9DXvhqnxHc0jlj%2b3Tk72lPHhT8k1IYVbrFHbTFpQhDTdF2S3lj2Fw862vuvLCrBHEAZg%2fsv7Abkj9ET7Bd7bilQ3uLyaSLDpzFLsOuyt%2b5q%2bAtFdVAxh%2bS50Jfl6bH9UgKzl4ZaSe06BhVIN64bR2u9JRJA%3b2vts%2fCaYY8wl9ETF%2b9x7cLixcC%2f0OdlTSRYCeFwb6vMJGELum8agNvRvvQcxsWRDMKpz5hsFrYXFXJ3k7nwczS2x%2bhcIcZkHCgwX4pEaf2lcy9DYJ8UJ56vIzVzJzxNqAPJjLmqUg%2fKx5FfhK7092iywo5lDpQ%3d%3d; uidal=6100112247957528goutou; '
-	prestr = 'getStockInfo'
-	urlall = 'http://myfavor1.eastmoney.com/mystock?f=gs&cb='+ prestr +'&g=41445869&0.617530589249439'
+
+	
+'''
+"financecode":"37884","companycode":"80975294","securityshortname":"N三峰","securitycode":"601827","subcode":"780827",
+"fxzl":378268000.0,"wsfxsl":340442000.0,"applyont":113000.0,"issuepriceMoney":772920.0,"issueprice":6.84,
+"purchasedate":"2020-05-21T00:00:00","lwrandate":"2020-05-25T00:00:00","listingdate":"2020-06-05T00:00:00",
+"peissuea":22.67,"lwr":0.14984,"cbxjrgbs":246.55989,"sc":"sh",
+"mzyqgs":1000.0,"sgzs":65286100000.0,"applyontMoney":1130000.0,"averagelow":10000000.0,
+"kb":"未开板",
+"zzf":44.0058479532164,"sl":"-","mzyqhl":3010.0,"totaliiqrplaceoff":7539.0,"jg1":6.84,"jg2":6.98,"jg3":6.93,
+"pe1":22.67,"pe2":23.16,"pe3":22.99,"bkpe":23.16,"INDUSTRY":"生态保护和环境治理业","Close":9.85,"ChangePercent":44.01,
+"ZgsmsOrYxs":"AN202005201379971122","Url":"http://topic.eastmoney.com/cqsfhj/",
+"INDUSTRYPE":23.16,"newPrice":9.85,"wszqjkr":"2020-05-25T00:00:00",
+"MAINBUSIN":"垃圾焚烧发电项目投资运营、EPC建造以及垃圾焚烧发电核心设备研发制造等",
+"ycwssgsx":340000.0,"ycwssgzj":3400000.0,"Update":"2020-06-08 00:09:22","sgrqrow":21.0
+'''
+def getNewStockMarket(stk_list):
+	h_cook = ''
+	rslt_pre = 'YexzpM'
+	url_req = 'http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get'
+	param = "?type=XGSG_LB&token=70f12f2f4f091e459a279469fe49eca5&st=listingdate,securitycode&sr=-1&ps=100&js=%s={pages:(tp),data:(x)}"
 	send_headers = {
 	'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
 	'Accept': '*/*',
-	'DNT': 1,
 	'Accept-Encoding': 'gzip, deflate',
 	'Accept-Language': 'zh-CN,zh;q=0.8',
 	'Cookie': h_cook
 	}
 
-	#print(urlall)
+	urlfmt = url_req + param
+	url = urlfmt % (rslt_pre)
+	print(url)
+
 	res_data = None
-	try:
-		#方法1
-		#res_data = urllib2.urlopen(urlall)
+	LOOP_COUNT = 0
+	while LOOP_COUNT<3:
+		try:
+			#方法1
+			#res_data = urllib2.urlopen(urlall)
 
-		#方法2
-		req = urllib2.Request(urlall,headers=send_headers)
-		res_data = urllib2.urlopen(req)
-	except:
-		print "Error fupai urlopen"
-		#LOOP_COUNT = LOOP_COUNT+1
-
+			#方法2
+			req = urllib2.Request(url,headers=send_headers)
+			res_data = urllib2.urlopen(req)
+		except:
+			print "Error fupai urlopen"
+			LOOP_COUNT = LOOP_COUNT+1
+		else:
+			break
 	if res_data is None:
 		print "Open URL fail"
 		return
 
 	content = res_data.read()
-	respInfo = res_data.info()
-	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
-		#print "Content compressed"
-		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
-	else:
-		#print "Content not zip"
+	objs = re.match(rslt_pre+"={pages:(\d+),data:\[(.*)\]}", content)
+	if objs is None:
+		print("Error: format invalid")
+		print rslt_pre, content[:20]
+		return
+	items = objs.group(2).split('},{')
+	for item in items:
+		#print(item)
+		if item[0]!='{':
+			item = '{' + item
+		if item[-1]!='}':
+			item = item + '}'
+		dic = json.loads(item);
+		stk_list.append(dic)
+		#print  dic["securitycode"], dic["securityshortname"]
+	
+def getNoOpenYZStock(yz_list):
+	new_stk_list = []
+	desc = u"未开板"
+	getNewStockMarket(new_stk_list)
+	for item in new_stk_list:
+		if item["kb"]==desc:
+			print "Match", item["securityshortname"]
+			yz_list.append(item)
 		pass
-	#先匹配左右(),去掉括号,再匹配括号内内容
-	obj = re.match(r'^'+ prestr +'\((.*)\)', content)
-	stkobj = json.loads(obj.group(1))
-	if stkobj['result']=='-1':
-		print stkobj['data']['msg']
-		return ''
-
-	strstr = stkobj['data']['order']
-	stk_obj = strstr.split(',')
-	stk_arr.extend(stk_obj)
-
-def getHSIndexStat():
-	urlall = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=0000011,3990012&sty=DFPIU&st=z&sr=&p=&ps=&cb=&js=(x)&token=44c9d251add88e27b65ed86506f6e5da&0.7034708404131944'
-	res_data = None
-	try:
-		req = urllib2.Request(urlall,headers=send_headers)
-		res_data = urllib2.urlopen(req)
-	except:
-		print "Error: open url"
-
-	if res_data is None:
-		print "Open URL fail"
-		return None
-
-	content = res_data.read()
-	respInfo = res_data.info()
-	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
-		#print "Content compressed"
-		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
-	return (content)
-
-def get4IndexRaw():
-	urlall = 'http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=SZ.CYB,SZ.ZXB&sty=UDFN&js=(x)&token=de1161e2380d231908d46298ae339369'
-	res_data = None
-	try:
-		req = urllib2.Request(urlall,headers=send_headers)
-		res_data = urllib2.urlopen(req)
-	except:
-		print "Error: open url"
-		return None
-
-	if res_data is None:
-		print "Open URL fail"
-		return None
-
-	content = res_data.read()
-	respInfo = res_data.info()
-	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
-		#print "Content compressed"
-		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
-	return (content)
-
-# ["791|63|657|12,1092|78|1028|29,366|23|362|9","791|63|657|12,1092|78|1028|29,468|38|429|14"]
-def get4IndexInfoList(idxList):
-	rawData = get4IndexRaw()
-	if rawData is None:
-		return -1
-	qtObj = re.match(r'"(.*?)","(.*)"', rawData)
-	if qtObj is None:
-		print("Quatate None")
-		return -1
-
-	indexObj = qtObj.group(1).split(',')
-
-	#shang zhen
-	zsObj = indexObj[0].split('|')
-	idxList.append(zsObj)
-	#shen zhen
-	zsObj = indexObj[1].split('|')
-	idxList.append(zsObj)
-	#zxbz
-	zsObj = indexObj[2].split('|')
-	idxList.append(zsObj)
 	
-	indexObj = qtObj.group(2).split(',')
-	#cybz
-	zsObj = indexObj[2].split('|')
-	idxList.append(zsObj)
-
-	#print(idxList)
-	return 0
-
-def get4IndexInfo(idxDict):
-	rawData = get4IndexRaw()
-	if rawData is None:
-		return -1
-	qtObj = re.match(r'"(.*?)","(.*)"', rawData)
-	if qtObj is None:
-		print("Quatate None")
-		return -1
-
-	indexObj = qtObj.group(1).split(',')
-
-	#shang zhen
-	zsObj = indexObj[0].split('|')
-	idxDict['000001'] = zsObj
-	#idxList.append(zsObj)
-	#shen zhen
-	zsObj = indexObj[1].split('|')
-	idxDict['399001'] = zsObj
-	#zxbz
-	zsObj = indexObj[2].split('|')
-	idxDict['399005'] = zsObj
-	
-	indexObj = qtObj.group(2).split(',')
-	#cybz
-	zsObj = indexObj[2].split('|')
-	idxDict['399006'] = zsObj
-
-	#print(idxList)
-	return 0

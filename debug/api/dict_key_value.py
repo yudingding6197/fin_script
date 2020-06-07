@@ -35,6 +35,21 @@ if '000520' in d.iterkeys():
 else:
 	print "NNN2"
 
+dict1 = d
+#遍历键 key
+for i in dict1.keys():
+	print(i)  #输出键
+	print(dict1[i]) #输出值
+  
+#遍历键 values
+for i in dict1.values():
+	print(i)
+  
+#遍历键和值
+for key,value in dict1.items():
+	print(key+": "+str(value))
+ 
+
 #3
 d3 = dict(name='Bob',age=45)
 print d3

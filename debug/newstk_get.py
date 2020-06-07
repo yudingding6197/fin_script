@@ -83,6 +83,9 @@ prepath1 = "../data/entry/trade/"
 name = "ns_info.xlsx"
 PAGE_COUNT = 50
 
+if not os.path.exists(prepath1):
+	os.makedirs(prepath1)
+
 wb = Workbook()
 # grab the active worksheet
 ws = wb.active
