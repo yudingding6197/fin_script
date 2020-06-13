@@ -377,7 +377,7 @@ def getNewStockMarket(stk_list):
 		stk_list.append(dic)
 		#print  dic["securitycode"], dic["securityshortname"]
 	
-def getNoOpenYZStock(yz_list):
+def getNoOpenYZB(yz_list):
 	new_stk_list = []
 	desc = u"Î´¿ª°å"
 	getNewStockMarket(new_stk_list)

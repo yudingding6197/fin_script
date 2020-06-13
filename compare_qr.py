@@ -74,7 +74,7 @@ if __name__=='__main__':
 		
 		q_dict = {}
 		r_dict = {}
-		#compare_rt(stoday, sysday, q_dict, r_dict)
+		compare_rt(stoday, sysday, q_dict, r_dict)
 		print(cur_day)
 		if len(q_dict)>0 or len(r_dict)>0:
 			if len(q_dict)>0:

@@ -3,12 +3,14 @@
 import sys
 import re
 import os
+import urllib
 import urllib2
 import datetime
-from ts_common import *
+#from ts_common import *
 from global_var import g_shcd
 from global_var import g_szcd
 
+'''
 def get_date_with_last():
 	today = datetime.date.today()
 	curdate = ''
@@ -46,23 +48,29 @@ def get_date_with_last():
 				if dl < 0:
 					bLast = -1
 	return curdate, bLast
+'''
 
 def get_tingfupai_res(curdate):
-	url = "http://www.cninfo.com.cn/information/memo/jyts_more.jsp?datePara="
+	url = "http://www.cninfo.com.cn/new/information/getSuspensionResumptions?queryDate="
+	#url = "http://www.cninfo.com.cn/information/memo/jyts_more.jsp?datePara="
 	urlall = url + curdate
+	dict = {}
+	data = urllib.urlencode(dict)
 
 	LOOP_COUNT = 0
 	res_data=None
+	print(urlall)
 	while LOOP_COUNT<3:
 		try:
-			req = urllib2.Request(urlall)
+			req = urllib2.Request(urlall, data)
 			res_data = urllib2.urlopen(req)
 		except:
 			print "Error fupai urlopen"
 			LOOP_COUNT = LOOP_COUNT+1
 		else:
 			break
-	return res_data
+	content = res_data.read()
+	return content
 
 def get_all_fupai_data(res_data, fl, detail, curdate, stockCode, stockName):
 	totalline = 0

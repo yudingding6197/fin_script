@@ -11,12 +11,14 @@ import json
 from bs4 import BeautifulSoup
 
 
-urlall = "http://www.cninfo.com.cn/cninfo-new/memo-2"
+#urlall = "http://www.cninfo.com.cn/cninfo-new/memo-2"
 #urlall = "http://www.cninfo.com.cn/information/companyinfo_n.html?fulltext?szmb000615"
 #urlall = "http://www.cninfo.com.cn/cninfo-new/disclosure/szse/fulltext"
+urlall="http://www.cninfo.com.cn/new/information/getSuspensionResumptions?queryDate=2020-06-12"
 filename = 'debug/_html.txt'
 
-dict = {'stock':'300418','searchkey':'','category':'','pageNum':'1','pageSize':'15','column':'szse_gem','tabName':'latest','sortName':'','sortType':'','limit':'','seDate':''}
+#dict = {'stock':'300418','searchkey':'','category':'','pageNum':'1','pageSize':'15','column':'szse_gem','tabName':'latest','sortName':'','sortType':'','limit':'','seDate':''}
+dict = {}
 data = urllib.urlencode(dict)
 #print dict
 #dict['stock']='600060'
@@ -39,6 +41,7 @@ if res_data is None:
 content = res_data.read()
 tf_fl.write(content)
 
+'''
 s = json.loads(content)
 clsAnno = s['classifiedAnnouncements']
 annoLen = len(clsAnno)
@@ -55,6 +58,7 @@ for item in items:
 	break
 #print clsAnno[0][0]
 #print type(clsAnno[0][0])
+'''
 
 '''
 line = res_data.readline()

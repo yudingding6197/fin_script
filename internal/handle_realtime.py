@@ -91,6 +91,7 @@ def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 	sysstr = platform.system()
 	today = datetime.date.today()
 	number = len(st_list)
+	print("all stock =", number)
 	if number<=0:
 		return -1
 
@@ -133,7 +134,7 @@ def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 		cur_list = st_list[i*base:end_idx]
 		if len(cur_list)==0:
 			break
-		print cur_list
+		#print cur_list
 		LOOP_COUNT = 0
 		stdf = None
 		while LOOP_COUNT<5:
