@@ -187,7 +187,7 @@ if __name__=='__main__':
 	sysstr = platform.system()
 	
 	flname = remove_real_file()
-	sys.stdout = Logger_IO(flname)
+	#sys.stdout = Logger_IO(flname)
 
 	handle_argument()
 	t_fmt = '%d-%02d-%02d %02d:%02d'
@@ -201,11 +201,22 @@ if __name__=='__main__':
 	#得到所有交易item的code
 	new_st_list = []
 	st_list = []
+	
+	trade_date = get_lastday()
+	print ("_____ current trd day:", trade_date)
+	get_new_market_stock(trade_date, new_st_list)
+	#getNewStockMarket(new_st_list)
+	for item in new_st_list:
+		#print(type(item[]))
+		print item['securityshortname'], item['securitycode']
+	exit(0)
+	
 	##### 其实东财可以得到每只个股的上市日期
 	if param_config["DFCF"]==1:
 		get_stk_code_by_cond(st_list)
 	else:
 		get_today_new_stock(new_st_list)
+		exit(0)
 
 		LOOP_COUNT=0
 		st_bas = None

@@ -13,6 +13,7 @@ import urllib2,time
 import datetime
 import tushare as ts
 from internal.trade_date import *
+from internal.url_dfcf.new_yzb import *
 
 def show_index_info(df, show_idx):
 	if df is None:
@@ -265,3 +266,15 @@ def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 	return 0
 	'''
 
+def get_new_market_stock(trade_day, new_list, src=''):
+	sort_list = []
+	if src=='' or src=='dc':
+		getNewStockMarket(sort_list)
+	else:
+		print("Unknown source", src)
+		return
+	
+	for item in sort_list:
+		if item['listingdate'][:10]!=trade_day:
+			continue
+		new_list.append(item)
