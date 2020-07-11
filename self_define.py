@@ -7,10 +7,26 @@ import time
 import string
 import datetime
 import getopt
-import tushare as ts
+import pandas as pd
+#import tushare as ts
 from internal.common_inf import *
 from internal.dfcf_inf import *
-from internal.ts_common import *
+#from internal.ts_common import *
+
+def show_real_index(show_idx, src='sn'):
+	idx_list = []
+	get_index_info(idx_list, show_idx, src)
+	for i in idx_list:
+		if len(i)<10:
+			continue
+		str1 = i[i.index('"')+1:-1]
+		idxObj = str1.split(',')
+		f_pre_cls = float(idxObj[2])
+		f_price = float(idxObj[3])
+		ratio = round((f_price-f_pre_cls)*100/f_pre_cls, 2)
+		print "%8.2f(%6s)"%(f_price, ratio)
+	#codeArray = ['399678']
+	#show_extra_index(codeArray)
 
 def rt_quotes(dtFrame, source, qt_stage):
 	print(source)
@@ -171,9 +187,12 @@ if __name__=="__main__":
 	idxDict = {}
 	ret = get4IndexInfo(idxDict)
 
-	show_idx = ['000001', '399001', '399005', '399006']
-	idx_df=ts.get_index()
-	index_info(idx_df, show_idx, idxDict)
+	#show_idx = ['000001', '399001', '399005', '399006']
+	#idx_df=ts.get_index()
+	#index_info(idx_df, show_idx, idxDict)
+	show_idx = ['000001', '399001', '399005', '399006','399678']
+	show_real_index(show_idx)
+	
 
 	#codeArray = ['399678']
 	#list_extra_index(codeArray)
