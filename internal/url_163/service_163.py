@@ -8,22 +8,37 @@ from bs4 import BeautifulSoup
 from bs4 import element
 
 #对数据解析
-def parse_price_list(priceListPage):
+def parse_price_list(priceListPage, price_dict):
 	#soup = BeautifulSoup(content, 'lxml', from_encoding='utf8')
 	soup = BeautifulSoup(priceListPage, 'lxml')
 	#print(soup.prettify())
 	for item in soup.table.children:
 		if type(item)!=element.Tag:
 			continue
-		print (type(item))
-		#print ("========")
+		if item.name!='tr':
+			continue;
+		index=0
+		for tdObj in item.children:
+			if type(tdObj)==element.NavigableString:
+				continue
+			if index==0:
+				key = tdObj.string
+			elif index==1:
+				#超过1000的时候，用','分割，去掉','
+				vol = tdObj.string.replace(',','')
+				value = int(vol)
+			else:
+				break
+			index += 1
+		#print (key, value)
+		price_dict[key] = value
 	#print(soup.table)
-	
+	return
 	
 def get_price_list_163(code, price_dict, sort='PRICE', order=-1):
 	urlfmt = "http://quotes.money.163.com/service/fenjia_table.html?symbol=%s&sort=%s&order=%d"
 	url = urlfmt %(code, sort, order)
-	print (url)
+	#print ("fenjiabiao=",url)
 
 	priceListPage = None
 	LOOP_COUNT=0
@@ -38,11 +53,11 @@ def get_price_list_163(code, price_dict, sort='PRICE', order=-1):
 	if priceListPage is None:
 		print("Get 163 price list fail", url)
 		return
-	#print priceListPage
-	parse_price_list(priceListPage)
+	parse_price_list(priceListPage, price_dict)
+	#print(price_dict)
 	return
 
 if __name__ == "__main__":
 	p_dict={}
-	get_price_list_163('300849', p_dict)
+	get_price_list_163('605108', p_dict)
 	pass

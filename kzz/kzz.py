@@ -10,6 +10,7 @@ import zlib
 import json
 import getopt
 import pandas as pd
+sys.path.append('.')
 from internal.dfcf_inf import *
 
 '''

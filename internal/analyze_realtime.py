@@ -10,7 +10,6 @@ REAL_PRE_FD = "../data/"
 
 def get_rt_time(f, dtObj):
 	line = f.readline()
-	#print("-----", line)
 	while line:
 		objs = re.match("TIME: (.*)", line)
 		if objs is not None:
@@ -45,6 +44,7 @@ def parse_summary_info(f, stcsItem):
 		line = f.readline()
 	'''
 	
+	#print("parse_summary_info", line)
 	while line:
 		objs = re.match(".*ST\((\d+) ZT (\d+) DT\)(.*)", line)
 		#print(line, objs)
@@ -180,24 +180,42 @@ def parse_summary_info(f, stcsItem):
 
 	return 0
 
+def parse_kb_cx(line, stcsItem):
+	cond = '(.*?)\((\d+),(.*?)\),(.*)'
+	obj = re.match(cond, line)
+	while obj:
+		left = obj.group(4)
+		name = obj.group(1).strip()
+		ilist = [name, obj.group(2), obj.group(3).strip()]
+		#print obj.group(1),"#",obj.group(2),"#",obj.group(3)
+		#print "left", left
+		stcsItem.lst_kbcx.append(ilist)
+
+		obj = re.match(cond, left)
+	return
+		
+	
+#获得开班CX的信息
 def parse_cixin_item(f, stcsItem):
 	line = f.readline()
 	while line:
 		if line=="CXKB:\n":
-			#stcsItem.
-			line = f.readline()
+			#line = f.readline()
 			#break
+			pass
 		elif line=="CXKB:=====\n":
 			#break
 			pass
 		elif line=="\n":
+			#line = f.readline()
 			break
 		elif len(line)>10 and line[:5]=="#####":
 			print("Error: Read next block")
 			return -1
 		else:
-			print("Error: cixin line", line)
-			return -1
+			line = line.strip()
+			parse_kb_cx(line, stcsItem)
+			#print ("%d: '%s'" % (len(line), line))
 		line = f.readline()
 	return 0
 
@@ -305,6 +323,7 @@ def parse_zdt_item(f, stcsItem, zdt_type):
 		line = f.readline()
 	return 0
 
+#解析ZT(YZZT ZT ZTHL), DT(YZDT DT DTFT) 6种ZDT数据
 def parse_zt_dt_stcs(f, stcsItem):
 	line = f.readline()
 	objs = re.match("id[ ]+code(.*)", line)
@@ -349,24 +368,27 @@ def parse_zt_dt_stcs(f, stcsItem):
 		line = f.readline()
 	return 0
 
-def parse_realtime_fl(pre_day, stcsItem):
-	filename = get_path_by_tdate(pre_day)
+def parse_realtime_his_file(trade_day, stcsItem):
+	filename = get_path_by_tdate(trade_day)
 	if filename=='':
 		return -1
 
 	if not os.path.isfile(filename):
 		print("Error: not find ",filename)
-		return -1;
+		return -1
 	
 	#print(filename)
 	f = open(filename, 'r')
 
 	dtObj = []
 	ret = get_rt_time(f, dtObj)
+	if ret==-1:
+		print ("Not find matched rt time, Re-get latest realtime")
+		return -1
 	#print(len(dtObj), dtObj)
 	
 	ret = match_rt_date(f)
-	stcsItem.s_date = pre_day
+	stcsItem.s_date = trade_day
 
 	ret = parse_summary_info(f, stcsItem)
 	if ret==-1:

@@ -7,7 +7,6 @@ import string
 import urllib
 import urllib2
 import datetime
-from bs4 import BeautifulSoup
 
 
 #urlall = "http://www.cninfo.com.cn/cninfo-new/memo-2"

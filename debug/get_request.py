@@ -5,7 +5,6 @@ import urllib2
 import json
 import zlib
 import random
-from bs4 import BeautifulSoup
 
 def http_req(urlall, send_headers1):
 	#print (urlall)

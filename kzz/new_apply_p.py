@@ -10,10 +10,10 @@ import zlib
 import json
 import getopt
 import pickle
-import pandas as pd
+#import pandas as pd
 sys.path.append(".")
-sys.path.append("..")
 from internal.dfcf_inf import *
+from internal.trade_date import *
 
 '''
 urlall = "http://data.eastmoney.com/kzz/default.html"
@@ -324,12 +324,63 @@ def getKZZDataFrame(kzzlist):
 		#df = df.append(page_df)
 
 		#分析具体的每一项数据
-		getFilterZhai(dataObj.group(2), 1, kzzlist)
+		getFilterZhai(dataObj.group(2), 0, kzzlist)
 		#print curpage, totalpage
 		#break
-	str1 = "[" + str1 + "]"
-	df = pd.read_json(str1)
-	return df
+	#str1 = "[" + str1 + "]"
+	#df = pd.read_json(str1)
+	#return df
+	return
+
+def showKZZBuyCount(kzzlist, tradeDt):
+	title = ''
+	length = 8
+	
+	new_col = 'PURCS'
+	loc = 'M'
+	s_date = 'Apply'
+	
+	keylist = ['BONDCODE','SNAME',loc,s_date,new_col,'ZGJ_HQ','ZGJZGJJZ','ZGJZGJ','AISSUEVOL']
+	for item in keylist:
+		nlen = len(item)
+		pad = '  '
+		#if item=='SNAME':
+		#	pad += '    '
+		title += item + pad
+	print title
+	
+	linefeed1 = 0
+	linefeed2 = 0
+	fmt1 = "%s %s %s %s %7.2f "
+	fmt2 = "%7.2f %8.2f %8.2f %8.2f"
+	for item in kzzlist:
+		if item['LISTDATE']!='-':
+			continue
+		if item['BONDCODE'][:2]=='11':
+			market = 'H '
+		elif item['BONDCODE'][:2]=='12':
+			market = ' S'
+		sdate = item['STARTDATE'][:10]
+		applyDt = datetime.datetime.strptime(sdate, '%Y-%m-%d').date()
+
+		purs = 10000/item['ZGJ'] * item['FSTPLACVALPERSTK']
+
+		result1 = fmt1 % (item['BONDCODE'],item['SNAME'],market,sdate[5:],purs)
+		issueVol = round(float(item['AISSUEVOL']),2)
+		result2 = fmt2 % (item['ZGJ_HQ'],item['ZGJZGJJZ'],item['ZGJZGJ'],issueVol)
+		result = result1 + result2
+
+		if linefeed1==0:
+			delta = tradeDt-applyDt
+			if delta.days==0:
+				print ('')
+				linefeed1 = 1
+		if linefeed2==0:
+			delta = tradeDt-applyDt
+			if delta.days>0:
+				print ('')
+				linefeed2 = 1
+		print(result)
 
 kzz_file = "a.df.csv"
 param_config = {
@@ -358,6 +409,7 @@ if __name__=="__main__":
 			param_config["ALL"] = 1
 	pass
 
+	trade_date = get_lastday()
 	#pd.set_option('display.max_columns', None)
 	priority = []
 	'''
@@ -388,13 +440,14 @@ if __name__=="__main__":
 
 	#kzzdf = pd.DataFrame()
 	kzzlist = []
-	kzzdf = getKZZDataFrame(kzzlist)
+	getKZZDataFrame(kzzlist)
 
 	if len(kzzlist)==0:
 		print "Not find data"
 		exit()
 
-	#print(kzzdf)
+	#for key,value in (kzzlist[0].items()):
+	#	print key,value
 	#kzzdf.to_csv(kzz_file, encoding='gbk')
 
 	#正股价 'ZGJ'
@@ -402,14 +455,15 @@ if __name__=="__main__":
 	#正股价转股价价值 'ZGJZGJJZ'
 	#可换购数量 'PURS'
 	
-	df = kzzdf[kzzdf['LISTDATE']=='-']
-	new_col = 'PURS'
-	df[new_col] = df.apply(lambda x: 10000/x['ZGJ'] * x['FSTPLACVALPERSTK'], axis=1)
+	#new_col = 'PURS'
+	#df = kzzdf[kzzdf['LISTDATE']=='-']
+	#df[new_col] = df.apply(lambda x: 10000/x['ZGJ'] * x['FSTPLACVALPERSTK'], axis=1)
 
-	keylist = ['BONDCODE','SNAME','ZGJ','ZGJZGJJZ','ZGJZGJ',new_col]
-	df1 = df[keylist]
+	tradeDt = datetime.datetime.strptime(trade_date, '%Y-%m-%d').date()
+	showKZZBuyCount(kzzlist, tradeDt)
+	#df1 = df[keylist]
 	
-	print(df1)
+	#print(df1)
 
 	#i = 0
 	#for index, row in df1.iterrows():

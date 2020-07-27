@@ -8,7 +8,6 @@ import urllib2
 import datetime
 import getopt
 import bs4
-from bs4 import BeautifulSoup
 sys.path.append(".")
 #sys.path.append("..")
 from internal.common_inf import *

@@ -9,7 +9,8 @@ import datetime
 import platform
 import shutil
 import getopt
-import tushare as ts
+import pandas as pd
+#import tushare as ts
 #import internal.common
 from internal.handle_realtime import *
 #from internal.dfcf_inf import *
@@ -18,6 +19,8 @@ from internal.trade_date import *
 from internal.update_tday_db import *
 from internal.analyze_realtime import *
 from internal.compare_realtime import *
+from internal.tingfupai import * 
+from internal.common_inf import * 
 
 
 class Logger_IO(object): 
@@ -140,12 +143,6 @@ def filter_dtft(dtft_list, perc):
 			count += 1
 	return count
 
-def remove_real_file():
-	flname = REAL_PRE_FD + "realtime.txt"
-	if os.path.isfile(flname):
-		os.remove(flname)
-	return flname
-
 def handle_argument():
 	optlist, args = getopt.getopt(sys.argv[1:], 'ldtac')
 	for option, value in optlist:
@@ -161,14 +158,20 @@ def handle_argument():
 			param_config["DFCF"] = 1
 	#print param_config
 
-def show_real_index():
-	#show index information
-	show_idx = ['000001', '399001', '399005', '399006']
-	idx_df=ts.get_index()
-	show_index_info(idx_df, show_idx)
-
-	codeArray = ['399678']
-	show_extra_index(codeArray)
+def show_real_index(show_idx, src='sn'):
+	idx_list = []
+	get_index_info(idx_list, show_idx, src)
+	for i in idx_list:
+		if len(i)<10:
+			continue
+		str1 = i[i.index('"')+1:-1]
+		idxObj = str1.split(',')
+		f_pre_cls = float(idxObj[2])
+		f_price = float(idxObj[3])
+		ratio = round((f_price-f_pre_cls)*100/f_pre_cls, 2)
+		print "%8.2f(%6s)"%(f_price, ratio)
+	#codeArray = ['399678']
+	#show_extra_index(codeArray)
 
 
 param_config = {
@@ -180,13 +183,17 @@ param_config = {
 }
 REAL_PRE_FD = "../data/"
 
+#http://hq.sinajs.cn/list=sh000001,sz399001,sz399005,sz399006,sz399678
 
 #Main Start:
 if __name__=='__main__':
 	beginTm = datetime.datetime.now()
 	sysstr = platform.system()
 	
-	flname = remove_real_file()
+	flname = REAL_PRE_FD + "realtime1.txt"
+	#TODO: open the comment
+	if os.path.isfile(flname):
+		os.remove(flname)
 	#sys.stdout = Logger_IO(flname)
 
 	handle_argument()
@@ -195,73 +202,77 @@ if __name__=='__main__':
 
 	cur1 = datetime.datetime.now()
 	print "TIME:",fmt_time
-	show_real_index()
 	
-	#comment加在这里便于调试
-	#得到所有交易item的code
-	new_st_list = []
-	st_list = []
+	show_idx = ['000001', '399001', '399005', '399006','399678']
+	show_real_index(show_idx)
 	
+	#get_all_stk_info() 进行日期处理，获取最新交易日期
 	trade_date = get_lastday()
-	print ("_____ current trd day:", trade_date)
-	get_new_market_stock(trade_date, new_st_list)
+	pre_date = get_preday(1, trade_date)
+	init_trade_list()
+	print ("Current trade day:", trade_date, pre_date)
+	new_st_list = []
+	new_st_code_list = []
+	non_kb_list = []
+	get_new_market_stock(trade_date, new_st_list, non_kb_list, new_st_code_list)
 	#getNewStockMarket(new_st_list)
-	for item in new_st_list:
-		#print(type(item[]))
-		print item['securityshortname'], item['securitycode']
-	exit(0)
-	
-	##### 其实东财可以得到每只个股的上市日期
-	if param_config["DFCF"]==1:
-		get_stk_code_by_cond(st_list)
-	else:
-		get_today_new_stock(new_st_list)
-		exit(0)
+	#for item in non_kb_list:
+	#	print item['securitycode'], item['securityshortname']
+	#print(non_kb_list)
 
-		LOOP_COUNT=0
-		st_bas = None
-		while LOOP_COUNT<3:
-			try:
-				st_bas = ts.get_stock_basics()
-			except:
-				LOOP_COUNT += 1
-				time.sleep(0.5)
-			else:
-				break;
-		if st_bas is None:
-			print "Timeout to get stock basic info"
-			exit(0)
-		st_pb_base = st_bas[st_bas.pb!=0]
-		st_pb_base = st_pb_base.sort_values(['timeToMarket'], 0, False)
-		st_index = st_pb_base.index
-		st_bas_list=list(st_index)
-
-		for i in range(0, len(new_st_list)):
-			if new_st_list[i] in st_bas_list[0:10]:
-				pass
-			else:
-				st_list.append(new_st_list[i])
-		st_list.extend(st_bas_list)
-
-		#st_list = st_list[0:50]
+	#重出江湖STK
+	fp_list = []
+	fp_code_list = []
+	pickup_fupai_item(trade_date, fp_list, fp_code_list)
 	cur2 = datetime.datetime.now()
-	print ("delta=",(cur2-cur1))
+	print("eee.py: get fupai", (cur2-cur1))
+	#for it in fp_list:
+	#	print it['obSeccode0111'],it['obSecname0111']
 	
+	#获取上一日的Info
+	preFlag = 1
+	preStatItem = statisticsItem()
+	ret = parse_realtime_his_file(pre_date, preStatItem)
+	if ret == -1:
+		preFlag = 0
+		print("Error:No find matched item", pre_date)
+		exit(0)
+	#print(preStatItem.lst_non_yzcx_yzzt)
+	
+	cur2 = datetime.datetime.now()
+	print("eee.py: parse pre-day rt", (cur2-cur1))
+	
+	debug = 0
+	today_open = []
+	
+	#TODO: 如何调试呢？
 	'''
-	st_list = []
 	st_list=['603225','300116','600081','002113', '002676', '000862', '600119', '002309', '600262', '603663']
+	debug = 1
 	#print st_list
 	'''
+	#通过条件查询所有STK, start from 000001
+	st_list = []
+	get_stk_code_by_cond1(st_list, 'A', 0)
+	#调试的时候移动注释到这一行下面
+	cur2 = datetime.datetime.now()
+	print("eee.py: get all stk by cond", (cur2-cur1))
+	
+	st_dict = {}
+	st_dict['fup_stk'] = fp_code_list
+	st_dict['new_stk'] = new_st_code_list
+	st_dict['all_stk'] = st_list
+	st_dict['nkb_stk'] = non_kb_list
 
-	today_open = []
+	#print "=====>", len(stcsItem.lst_non_yzcx_zthl)
 	stcsItem=statisticsItem()
-	status = get_all_stk_info(st_list, param_config["DFCF"], today_open, stcsItem)
+	status = collect_all_stock_data(st_dict, today_open, stcsItem, trade_date, debug)
 	if status==-1:
 		exit(0)
-		
+
 	cur2 = datetime.datetime.now()
 	print ("delta2=",(cur2-cur1))
-	exit(0)
+	#exit(0)
 
 	non_cx_yz = len(stcsItem.lst_non_yzcx_yzzt)
 	cx_yz = stcsItem.s_yzzt-non_cx_yz
@@ -310,6 +321,7 @@ if __name__=='__main__':
 
 	str = ''
 	list = stcsItem.lst_nb
+	print "TODO:handle NB and JC"
 	if len(list)>0:
 		print "NB:"
 		for i in range(0, len(list)):
@@ -351,6 +363,8 @@ if __name__=='__main__':
 		show_dt_info(stcsItem.lst_dt, "DT", fmt2, param_config)
 		show_dt_info(stcsItem.lst_dtft, "DTFT", fmt3, param_config)
 
+	cur2 = datetime.datetime.now()
+	print("eee.py: ready log", (cur2-cur1))
 	if param_config["NoLog"]==0:
 		sys.stdout.flush()
 		log = open(flname, 'r')

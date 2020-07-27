@@ -11,6 +11,13 @@ import zlib
 import bs4
 from ast import literal_eval
 
+sys.path.append(".")
+from internal.format_parse import *
+from internal.global_var import g_shcd
+from internal.global_var import g_szcd
+
+url_sn = "http://hq.sinajs.cn/list="
+
 urlkline = "http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=%s&scale=%d&ma=%s&datalen=%d"
 send_headers = {
 'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
@@ -149,3 +156,113 @@ def get_guben_change_bysn(code):
 	#print("\n")
 	#print(total_list)
 	return total_list
+
+#沪市的结果最后是 '00,'
+#深市的结果最后是 '00'
+def req_data_bysn(fmt_code):
+	retry = 0
+	req_url = url_sn + fmt_code
+	#print(req_url)
+	stockData = None
+	while retry<3:
+		try:
+			req = urllib2.Request(req_url)
+			stockData = urllib2.urlopen(req, timeout=2).read()
+		except:
+			if retry==2:
+				print "URL timeout"
+			retry += 1
+			continue
+		else:
+			break
+			'''
+			for i in range(0, stockLen):
+				sobj = stockObj[i].decode('gbk')
+				print u"%02d:	%s" % (i, sobj)
+			'''
+	return stockData
+
+def get_index_data(idx_list, idx_str):
+	res_data = ''
+	url = "http://hq.sinajs.cn/?_=0.7577027725009173&list=" + idx_str
+	#print("Sine index", url)
+	LOOP_COUNT = 0
+	while LOOP_COUNT<3:
+		try:
+			req = urllib2.Request(url)
+			res_data = urllib2.urlopen(req, timeout=2).read()
+		except:
+			LOOP_COUNT += 1
+			time.sleep(0.5)
+		else:
+			break;
+	resObj = res_data.split(';')
+	for item in resObj:
+		idx_list.append(item)	
+
+def sina_code(code):
+	ncode = code
+	head3 = code[0:3]
+	if head3 in g_szcd:
+		ncode = 'sz' + code
+	elif head3 in g_shcd:
+		ncode = 'sh' + code
+	else:
+		print("Error: Not match code=" + code)
+	return ncode
+
+url_fenshi_k="https://quotes.sina.cn/cn/api/json_v2.php/CN_MarketDataService.getKLineData"
+def get_k5_data_bysn(code, fenshi=5, ma='no', len=240):
+	url_arg = "symbol=%s&scale=%d&ma=%s&datalen=%d"
+	ret, ncode=parseCode(code)
+	url_arg_fill = url_arg % (ncode, fenshi, ma, len)
+	url = "%s?%s" % (url_fenshi_k, url_arg_fill)
+	#print (url)
+	
+	stockData = None
+	LOOP_COUNT=0
+	while LOOP_COUNT<3:
+		try:
+			stockData = urllib2.urlopen(url).read()
+		except:
+			LOOP_COUNT += 1
+			continue
+		else:
+			break
+	if stockData is None:
+		print("Get sina fenshi K fail", url)
+		return None
+	
+	klist = json.loads(stockData)
+	#print(stockData)
+	return klist
+
+def get_kday_data_bysn(code, fenshi=240, ma='no', len=60):
+	url_arg = "symbol=%s&scale=%d&ma=%s&datalen=%d"
+	ret, ncode=parseCode(code)
+	url_arg_fill = url_arg % (ncode, fenshi, ma, len)
+	url = "%s?%s" % (url_fenshi_k, url_arg_fill)
+	#print (url)
+	
+	stockData = None
+	LOOP_COUNT=0
+	while LOOP_COUNT<3:
+		try:
+			stockData = urllib2.urlopen(url).read()
+		except:
+			LOOP_COUNT += 1
+			continue
+		else:
+			break
+	if stockData is None:
+		print("Get sina fenshi K fail", url)
+		return None
+	
+	klist = json.loads(stockData)
+	#print(stockData)
+	return klist
+
+if __name__=="__main__":
+	klist = get_k5_data_bysn('300291')
+	for item in klist:
+		print(item)

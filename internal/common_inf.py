@@ -8,10 +8,7 @@ import string
 import datetime
 import urllib2
 import zlib
-import pandas as pd
-from internal.sina_inf import *
-from internal.global_var import g_shcd
-from internal.global_var import g_szcd
+from internal.url_sina.sina_inf import *
 
 #reload(sys)
 #sys.setdefaultencoding('gbk')
@@ -59,17 +56,6 @@ def quotation_st():
 def timeShow(starttime, line=0):
 	endtime = datetime.datetime.now()
 	print( "%d: Run Time: %s"%(line, endtime-starttime) )
-
-def sina_code(code):
-	ncode = code
-	head3 = code[0:3]
-	if head3 in g_szcd:
-		ncode = 'sz' + code
-	elif head3 in g_shcd:
-		ncode = 'sh' + code
-	else:
-		print("Error: Not match code=" + code)
-	return ncode
 
 def list_index_info(df, show_idx):
 	if df is None:
@@ -121,8 +107,7 @@ def handle_hq_data(stockData, rt_list):
 			print("Invalid line=" + item)
 			continue
 		elif obj.group(2)=="":
-			print("No data line=" + item)
-			stkList.append(obj.group(1)[2:])
+			#print("No data line=" + item)
 			continue
 
 		#print(obj,obj.group(1),obj.group(2))
@@ -137,35 +122,15 @@ def handle_hq_data(stockData, rt_list):
 		rt_list.append(stkList)
 		#for END
 
-#沪市的结果最后是 '00,'
-#深市的结果最后是 '00'
-def req_data(req_url, rt_list):
-	retry = 0
-	while retry<3:
-		try:
-			#print(req_url)
-			req = urllib2.Request(req_url)
-			stockData = urllib2.urlopen(req, timeout=2).read()
-		except:
-			if retry==2:
-				print "URL timeout"
-			retry += 1
-			continue
-		else:
-			handle_hq_data(stockData, rt_list)
-			break
-
-			'''
-			for i in range(0, stockLen):
-				sobj = stockObj[i].decode('gbk')
-				print u"%02d:	%s" % (i, sobj)
-			'''
-
 def realtime_price(stockCode, rt_list, source=0):
 	grp_code = list_slice(stockCode, split_ct)
 	for item in grp_code:
-		req_url = url_sn + ",".join(item)
-		req_data(req_url, rt_list)
+		fmt_code = ",".join(item)
+		stockData = req_data_bysn(fmt_code)
+		if stockData is None:
+			print("stkData is None")
+			continue
+		handle_hq_data(stockData, rt_list)
 
 #对比 get_pre_trade_date(), 从SINA获取的速度更快
 def get_his_trade_days(tradeList, len=10, src='sn'):
@@ -202,4 +167,17 @@ def get_guben_change(code, src='sn'):
 		print("Not support source", src)
 
 	return content
+	
+def get_index_info(idx_list, show_idx, src='sn'):
+	if src=='sn' or src=='':
+		idx_str=''
+		for item in show_idx:
+			if item[:3]=='000':
+				idx_str += 'sh' + item + ','
+			elif item[:3]=='399':
+				idx_str += 'sz' + item + ','
+		idx_str = idx_str[:-1]
+		get_index_data(idx_list, idx_str)
+	else:
+		print("get_index_info WIP...")
 ##	

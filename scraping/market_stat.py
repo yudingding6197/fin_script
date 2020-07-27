@@ -7,7 +7,6 @@ import zlib
 import random
 import getopt
 import datetime
-from bs4 import BeautifulSoup
 sys.path.append(".")
 from internal.common import *
 

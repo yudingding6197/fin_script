@@ -120,6 +120,7 @@ class statisticsItem:
 		self.lst_jc = []
 		self.lst_non_yzcx_zt = []
 		self.lst_non_yzcx_yzzt = []
+		self.lst_non_yzcx_zthl = []
 		self.lst_dt = []
 		self.lst_yzdt = []
 		self.lst_dtft = []
@@ -1024,14 +1025,14 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 	excecount=0
 	df = None
 
-	ret, ncode = parseCode(code, 2)
+	ret, ncode = parseCode(code, 'dc')
 	if ret!=0:
 		exit(-1);
 
 	urlall = urlfmt %(ncode, jstr, rtntype)
+	#print("get_zf_days", urlall)
 	while excecount<=5:
 		try:
-			#print("get_zf_days", urlall)
 			req = urllib2.Request(urlall,headers=send_headers)
 			res_data = urllib2.urlopen(req, timeout=3)
 		except:
@@ -1407,6 +1408,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 
 	#统计开盘涨跌幅度
 	if open_percent>0:
+		#print("%s,%s,%f"%(code,name,open_percent))
 		stcsItem.s_open_sz += 1
 		if open_percent>=4.0:
 			stcsItem.s_open_dz += 1
@@ -1510,24 +1512,37 @@ def get_today_new_stock(new_st_list):
 				new_st_list.append(code)
 	print ''
 	'''
-
+	
+	send_headers = {
+	'Host': 'nufm.dfcfw.com',
+	'DNT': 1,
+	'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
+	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+	'Accept-Encoding': 'gzip, deflate',
+	'Accept-Language': 'zh-CN,zh;q=0.8'
+	}
 	url = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._A&sty=FCOIATA&sortType=C&sortRule=-1&page=1&pageSize=20&js={rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c"
 	LOOP_COUNT = 0
 	response = None
+	#print url
 	while LOOP_COUNT<3:
 		try:
-			req = urllib2.Request(url)
+			req = urllib2.Request(url, headers=send_headers)
 			response = urllib2.urlopen(req, timeout=5)
 		except:
 			LOOP_COUNT += 1
-			print "URL request timeout"
 		else:
 			break
 	if response is None:
 		print "Please check no data from DongCai"
 		return
 
-	line = response.read()
+	content = response.read()
+	respInfo = response.info()
+	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
+		#print "Content compressed"
+		line = zlib.decompress(content, 16+zlib.MAX_WBITS);
+
 	obj = re.match(r'{rank:\["(.*)"\].*', line)
 	rank = obj.group(1)
 	array = rank.split('","')
@@ -1648,7 +1663,7 @@ def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 			if volumn==0 and dc_data==1:
 				return 0
 			if pre_close==0:
-				print ("%s %s invalid value" %(code, name))
+				print ("%s %s invalid value" %(code,name))
 				continue
 			change_perc = (price-pre_close)*100/pre_close
 			today_high = float(row['high'])
@@ -1715,6 +1730,7 @@ def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 					#print code, name, idx_date,last_date
 					cmp_delta = idx_date-last_date
 					if cmp_delta.days==0:
+						#print("%s,%s,CX YZZT"%(code,name))
 						stcsItem.s_cx_yzzt += 1
 						yzcx_flag = 1
 

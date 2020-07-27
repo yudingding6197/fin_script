@@ -11,12 +11,15 @@ def get_sina_lastday():
 	param = 'sh000001'
 	stockData = ''
 	url = "http://hq.sinajs.cn/?_=0.7577027725009173&list=" + param
-	try:
-		stockData = urllib2.urlopen(url).read()
-	except:
-		print "URL timeout"
-		return
-
+	LOOP_COUNT = 0
+	while LOOP_COUNT<3:
+		try:
+			stockData = urllib2.urlopen(url,timeout=3).read()
+		except:
+			LOOP_COUNT += 1
+			time.sleep(0.5)
+		else:
+			break
 	prestr = "var hq_str_" + param
 	objs = re.match(r'^' + prestr + '=\"(.*)\"', stockData)
 	if objs is None:

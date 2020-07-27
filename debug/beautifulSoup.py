@@ -111,6 +111,9 @@ soup = BeautifulSoup(content, 'lxml')
 #print (soup.title.string)
 #print soup.head
 #print soup.head.contents
+#整个数据
+print(soup.prettify())
+#  Tag，BeautifulSoup，NavigableString，comment
 
 stockCode = []
 #首先找到此节点
@@ -141,6 +144,7 @@ for child in item.children:
 	clsattr = ''.join(clslist)
 	if clsattr=='list-a' or clsattr=='list-b':
 		#for lidesc in child.descendants:
+		#	print type(lidesc), lidesc
 		#	print type(lidesc), lidesc
 		#print child.descendants, type(child.children)
 		info = ''

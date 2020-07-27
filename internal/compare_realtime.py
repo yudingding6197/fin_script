@@ -14,8 +14,10 @@ lst_yzdt				lst_dt				lst_dtft
 def get_zt_data(stcsItem, zt_dict):
 	for i in stcsItem.lst_non_yzcx_yzzt:
 		zt_dict[i[0]] = [i[1], 'YZZT']
+		#print "lst_non_yzcx_yzzt", i[0], i[1]
 	for i in stcsItem.lst_non_yzcx_zt:
 		zt_dict[i[0]] = [i[1], ' ZT ']
+		#print "lst_non_yzcx_zt", i[0], i[1]
 
 def get_dt_data(stcsItem, dt_dict):
 	for i in stcsItem.lst_yzdt:
@@ -23,7 +25,7 @@ def get_dt_data(stcsItem, dt_dict):
 	for i in stcsItem.lst_dt:
 		dt_dict[i[0]] = [i[1], ' DT ']
 
-def compare_rt(todayItem, ysdayItem, q_dict, r_dict, flag=''):
+def compare_qiangruo(todayItem, ysdayItem, q_dict, r_dict, flag=''):
 	y_zt_dict = {}
 	y_dt_dict = {}
 	t_zt_dict = {}
@@ -32,6 +34,7 @@ def compare_rt(todayItem, ysdayItem, q_dict, r_dict, flag=''):
 	get_zt_data(ysdayItem, y_zt_dict)
 	get_dt_data(todayItem, t_dt_dict)
 
+	#print("===== today ZT, ytoday DT=====")
 	get_zt_data(todayItem, t_zt_dict)
 	get_dt_data(ysdayItem, y_dt_dict)
 	
@@ -46,7 +49,10 @@ def compare_rt(todayItem, ysdayItem, q_dict, r_dict, flag=''):
 		if i in y_zt_dict.iterkeys():
 			if flag=='' or flag=='R':
 				r_dict[i] = y_zt_dict[i]
-				#print("ZRZT, JRDT RRRRR", i)
+				#print("ZRZT, JRDT RRRRR", i, y_zt_dict[i])
+	#还有开班的CX
+	#r_dict[i] = 
+	
 	#print(r_dict)
 	for i in t_zt_dict.keys():
 		#print("code:", i)

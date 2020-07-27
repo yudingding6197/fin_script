@@ -295,6 +295,11 @@ if len(list)>0:
 
 if param_config["NoDetail"]==0:
 	non_cx = len(stcsItem.lst_non_yzcx_yzzt)+len(stcsItem.lst_non_yzcx_zt)
+	#YZ: %d=%d(%d)+%d 4项
+	#%d: 总共YZZT的item，排除第一天挂牌N
+	#%d: 还没有开板的CX
+	#%d: 还没有开板的CX和第一天挂牌的总和
+	#%d: 已经开板的所有item，不限于CX
 	tol_str = "Total( %d = %d + %d	YZ: %d=%d(%d)+%d   %d CXZT,%d CXDT ):"
 	print tol_str%( stcsItem.s_zt, stcsItem.s_zt-non_cx, non_cx, stcsItem.s_yzzt, cx_yz, stcsItem.s_cx_yzzt, non_cx_yz, stcsItem.s_cxzt, stcsItem.s_cxdt)
 	print "id %6s %-12s	%-10s %-9s %-8s %-8s %-8s %-8s" % ("code","name","change","price","opn_p","hgh_p","low_p","z_d")

@@ -63,26 +63,40 @@ if __name__=='__main__':
 		#print("%s \n"%(filename))
 	
 		stoday = statisticsItem()
-		ret = parse_realtime_fl(cur_day, stoday)
+		ret = parse_realtime_his_file(cur_day, stoday)
 		if ret == -1:
 			break
 
 		sysday = statisticsItem()
-		ret = parse_realtime_fl(pre_day, sysday)
+		ret = parse_realtime_his_file(pre_day, sysday)
 		if ret == -1:
 			break
 		
 		q_dict = {}
 		r_dict = {}
-		compare_rt(stoday, sysday, q_dict, r_dict)
+		r_flag = 0
+		compare_qiangruo(stoday, sysday, q_dict, r_dict)
 		print(cur_day)
-		if len(q_dict)>0 or len(r_dict)>0:
-			if len(q_dict)>0:
-				print("QQQ =========")
-				for k in q_dict.keys(): print k, q_dict[k][0]
-			if len(r_dict)>0:
+		if len(q_dict)>0:
+			print("QQQ =========")
+			for k in q_dict.keys(): print k, q_dict[k][0]
+		if len(r_dict)>0:
+			print("RRR =========")
+			r_flag = 1
+			for k in r_dict.keys(): print k, r_dict[k][0]
+		for k in stoday.lst_kbcx:
+			if not (k[2]=='DT' or k[2]=='YZDT'):
+				continue
+
+			if r_flag==0:
 				print("RRR =========")
-				for k in r_dict.keys(): print k, r_dict[k][0]
+				r_flag = 1
+			for item in stoday.lst_yzdt:
+				if item[1]==k[0]:
+					print item[0], item[1], k[1], 'YZDT'
+			for item in stoday.lst_dt:
+				if item[1]==k[0]:
+					print item[0], item[1], k[1], 'DT'
 			
 		#print(q_dict)
 		#print(r_dict)

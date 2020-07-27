@@ -63,6 +63,7 @@ class statisticsItem:
 	lst_dt = []					#µøÍ£
 	lst_yzdt = []				#YZµøÍ£
 	lst_dtft = []				#µøÍ£·´µ¯
+	lst_kbcx = []				#¿ª°å´ÎÐÂ
 	def __init__(self):
 		self.s_zt = 0
 		self.s_dt = 0
@@ -103,7 +104,9 @@ class statisticsItem:
 		self.lst_jc = []
 		self.lst_non_yzcx_zt = []
 		self.lst_non_yzcx_yzzt = []
+		self.lst_non_yzcx_zthl = []
 		self.lst_dt = []
 		self.lst_yzdt = []
 		self.lst_dtft = []
+		self.lst_kbcx = []
 

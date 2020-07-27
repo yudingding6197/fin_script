@@ -4,6 +4,9 @@ import re
 import os
 import datetime
 
+from global_var import g_shcd
+from global_var import g_szcd
+
 # _____ debug print log
 def loginfo1(flag=0):
 	if (flag==1):
@@ -14,13 +17,14 @@ def loginfo1(flag=0):
 			frame = sys.exc_info()[2].tb_frame.f_back
 		print "%s in line %d" %(str(datetime.datetime.now()), frame.f_lineno)
 
-def parseCode(code, mode=1):
+#TODO: 将mode参数改为字符，'dc','qq','sn','wy'...
+def parseCode(code, mode='sn'):
 	if (len(code) != 6):
 		sys.stderr.write("Len should be 6\n")
 		return (-1, '')
 
 	head3 = code[0:3]
-	if mode==2:
+	if mode=='dc':
 		if head3 in g_szcd:
 			ncode = code + '2'
 		else:
@@ -30,15 +34,18 @@ def parseCode(code, mode=1):
 				print "非法代码:" +code+ "\n"
 				return (-1, '')
 		return (0, ncode)
-
-	if head3 in g_szcd:
-		ncode = "sz" + code
-	else:
-		if head3 in g_shcd:
-			ncode = "sh" + code
+	elif mode=='sn':
+		if head3 in g_szcd:
+			ncode = 'sz' + code
 		else:
-			print "非法代码:" +code+ "\n"
-			return (-1, '')
+			if head3 in g_shcd:
+				ncode = 'sh' + code
+			else:
+				print "非法代码:" +code+ "\n"
+				return (-1, '')
+	else:
+		print("WIP parse code", mode)
+		return (-1, '')
 	return (0, ncode)
 
 def parseDate(qdate, today, ai=0):

@@ -2,7 +2,6 @@
 # -*- coding:utf8 -*-
 import os
 import urllib2,time
-from internal.trade_date import *
 
 DB_PATH = './internal/db'
 
@@ -38,9 +37,10 @@ def get_index_history_byNetease(index_temp):
 		code.write(page)
 	#page.to_csv('_a.csv')
 
-def update_latest_trade(latest_day=''):
+def update_latest_trade(latest_day):
 	if latest_day=='':
-		latest_day = get_lastday()
+		print "Invalid day", latest_day
+		return
 	#print(latest_day)
 	
 	filenm = 'sh000001'
@@ -55,9 +55,10 @@ def update_latest_trade(latest_day=''):
 		return		
 
 	fl = open(location, 'r')
-	lines = fl.readlines(5)
-	file_day = lines[1].split(',')[0]
-	#print(file_day)
+	line = fl.readline()
+	line = fl.readline()
+	file_day = line.split(',')[0]
+	#print("_____ upd_trd", file_day,latest_day)
 
 	if latest_day != file_day:
 		get_index_history_byNetease(filenm)

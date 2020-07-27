@@ -6,6 +6,8 @@ import os
 import urllib
 import urllib2
 import datetime
+import json
+import copy
 #from ts_common import *
 from global_var import g_shcd
 from global_var import g_szcd
@@ -50,6 +52,58 @@ def get_date_with_last():
 	return curdate, bLast
 '''
 
+'''
+{u'obModtime0111': 1595424980000L, 
+u'obIsvalid0111': u'1', 
+u'obRectime0111': 1595424980000L, 
+u'f010v0111': u'Delisting Risk Warning Removal Announcement/Delisting Risk Warning Removal/Risk Warning', 
+u'obSeqId': 6115954884L, 
+u'lastMtime': 1595424984000L, 
+u'obSeccode0111': u'000611', 
+u'f004v0111': u'\u505c\u724c1\u5929', 
+u'f001d0111': 1595467800000L, 
+u'f006v0111': u'A\u80a1', 
+u'f002d0111': 1595554200000L, 
+u'tradeType': None, 
+u'f005v0111': u'\u64a4\u9500\u9000\u5e02\u98ce\u9669\u8b66\u793a\u516c\u544a', 
+u'f009v0111': u'Trading Suspension for 1 Day', u'obMemo0111': None, 
+u'obSecname0111': u'*ST\u5929\u9996', 
+u'f007v0111': u'001001', 
+u'obObjectId': 1001126068
+}
+{
+"date":"2020-07-24",
+"error":null,
+"szshSRTbTrade0111":
+	{
+	"suspensionTbTrades":[
+		{"f001d0111":1595554200000,"obSeccode0111":"002473","obSecname0111":"圣莱达","f002d0111":1595813400000,"f004v0111":"停牌1天","f005v0111":"实行其他风险警示","obMemo0111":null,"obRectime0111":1595513775000,"obModtime0111":1595513775000,"obIsvalid0111":"1","obObjectId":1002380879,"f006v0111":"A股","f007v0111":"001001","obSeqId":6123826506,"f009v0111":"Trading Suspension for 1 Day","f010v0111":"Risk Warning","lastMtime":1595513778000,"tradeType":null},
+		{"f001d0111":1595554201000,"obSeccode0111":"300853","obSecname0111":"N申昊","f002d0111":1595556002000,"f004v0111":null,"f005v0111":"盘中临时停牌","obMemo0111":null,"obRectime0111":1595555057000,"obModtime0111":1595555057000,"obIsvalid0111":"1","obObjectId":1002792209,"f006v0111":"A股","f007v0111":"001001","obSeqId":6127218036,"f009v0111":null,"f010v0111":null,"lastMtime":1595555062000,"tradeType":null},
+	"resumptionTbTrades":[
+		{
+		"f001d0111":1595467800000,
+		"obSeccode0111":"000611",
+		"obSecname0111":"*ST天首",
+		"f002d0111":1595554200000,
+		"f004v0111":"停牌1天",
+		"f005v0111":"撤销退市风险警示公告",
+		"obMemo0111":null,
+		"obRectime0111":1595424980000,
+		"obModtime0111":1595424980000,
+		"obIsvalid0111":"1",
+		"obObjectId":1001126068,
+		"f006v0111":"A股",
+		"f007v0111":"001001",
+		"obSeqId":6115954884,
+		"f009v0111":"Trading Suspension for 1 Day",
+		"f010v0111":"Delisting Risk Warning Removal Announcement/Delisting Risk Warning Removal/Risk Warning",
+		"lastMtime":1595424984000,
+		"tradeType":null
+		}
+		],
+	"keepSuspensionTbTrades":null
+	},
+'''
 def get_tingfupai_res(curdate):
 	url = "http://www.cninfo.com.cn/new/information/getSuspensionResumptions?queryDate="
 	#url = "http://www.cninfo.com.cn/information/memo/jyts_more.jsp?datePara="
@@ -214,3 +268,30 @@ def list_fupai_trade(codeArray, nameArray, curdate, file=None):
 		print "%-8s	%8s(%8s,%8s,%8s)	%8s(%8s,%8s)	%8s" %(stname, change, change_o, change_h, change_l, price, high, low, st)
 	return
 
+def pickup_tingpai_item(curdate, tp_list):
+	res_data = get_tingfupai_res(curdate)
+	if res_data is None:
+		return None
+
+	s = json.loads(res_data)
+	print ("WIP ...")
+	item = s["szshSRTbTrade0111"]["suspensionTbTrades"]
+	for i in item:
+		tp_list.append(copy.deepcopy(i))
+
+def pickup_fupai_item(curdate, fp_list, fp_code_list=None):
+	res_data = get_tingfupai_res(curdate)
+	if res_data is None:
+		return
+
+	s = json.loads(res_data)
+	resumpObj = s["szshSRTbTrade0111"]["resumptionTbTrades"]
+	if resumpObj is None:
+		return
+	for item in resumpObj:
+		#print "pickup_tfp", item
+		fp_list.append(copy.deepcopy(item))
+		#print item['obSeccode0111']
+		if fp_code_list is not None:
+			fp_code_list.append(item['obSeccode0111'])
+	return

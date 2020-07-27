@@ -6,6 +6,7 @@ import re
 import datetime
 import urllib2
 import json
+import zlib
 
 urlall = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._BKGN&sty=FPGBKI&st=c&sr=-1&p=1&ps=5000&cb=&token=7bc05d0d4c3c22ef9fca8c2a912d779c&v=0.2694706493189898"
 send_headers = {
@@ -272,6 +273,77 @@ def get_each_page_data(new_st_list, curpage, st='A', sr=-1, ps=80):
 		return 0
 	return 1
 
+#有一些已经打新还未上市的New
+#一些停牌的，一些退市的
+#但是它包含退市ZhengLi
+def get_each_page_data1(new_st_list, curpage, st='A', sr=-1, ps=80):
+	link = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?"
+	key1 = "type=CT&cmd=C._A&sty=FCOIATA&sortType=%s&sortRule=%d"
+	urlfmt = link + key1 +"&page=%d&pageSize=%d&js={rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c"
+	send_headers = {
+	'Host': 'nufm.dfcfw.com',
+	'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
+	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+	'DNT': 1,
+	'Accept-Encoding': 'gzip, deflate',
+	'Accept-Language': 'zh-CN,zh;q=0.8'
+	}
+	LOOP_COUNT = 0
+	response = None
+	url = urlfmt % (st, sr, curpage, ps)
+	#print(url)
+	while LOOP_COUNT<3:
+		try:
+			req = urllib2.Request(url, headers=send_headers)
+			response = urllib2.urlopen(req, timeout=5)
+		except:
+			LOOP_COUNT += 1
+			#print("URL request timeout ", url)
+		else:
+			break
+	if response is None:
+		print "Please check data from DongCai at", curpage
+		return -1
+
+	content = response.read()
+	respInfo = response.info()
+	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
+		#print "Content compressed"
+		line = zlib.decompress(content, 16+zlib.MAX_WBITS);
+
+	line = line.decode('utf8')
+	#print line
+	obj = re.match(r'{rank:\["(.*)"\],pages:(\d+)', line)
+	if obj is None:
+		print "1Not find matched content at", curpage
+		return -1
+	totalpage = int(obj.group(2))
+	
+	rank = obj.group(1)
+	array = rank.split('","')
+	for i in range(0, len(array)):
+		props = array[i].split(',')
+		#code = props[1]
+		#pre_close = props[9]
+		rt_price = props[3]
+		market_dt = props[-1]
+
+		#print(line)
+		#还未上市
+		if market_dt=='-':
+			continue
+		#上市停牌
+		if rt_price=='-':
+			continue
+		#line = array[i][2:]
+		#new_st_list.append(line.encode('gbk'))
+		new_st_list.append(props)
+
+	#到达最大页面，返回0
+	if totalpage==curpage:
+		return 0
+	return 1
+
 def get_latest_market(new_st_list):
 	curpage = 1
 	while 1:
@@ -294,6 +366,10 @@ def get_market_by_chg_per(new_st_list, st='C', sr=-1, ps=80):
 		curpage += 1
 	return
 
+#sort mode：
+#'A' stock code
+#'B' 股价
+#'C' 涨幅
 def get_stk_code_by_cond(new_st_list, st='C', sr=-1, ps=80):
 	curpage = 1
 	items_list = []
@@ -308,6 +384,25 @@ def get_stk_code_by_cond(new_st_list, st='C', sr=-1, ps=80):
 		new_st_list.append(item[0:6])
 	return
 
+
+
+#sort mode：
+#'A' stock code
+#'B' 股价
+#'C' 涨幅
+def get_stk_code_by_cond1(new_st_list, st='C', sr=-1, ps=80):
+	curpage = 1
+	#items_list = []
+	while 1:
+		bnext = get_each_page_data1(new_st_list, curpage, st, sr, ps)
+		if bnext==0:
+			break
+		elif bnext==-1:
+			continue
+		curpage += 1
+	#for item in items_list:
+	#	new_st_list.append(item[0:6])
+	return
 
 	
 '''
@@ -324,11 +419,12 @@ def get_stk_code_by_cond(new_st_list, st='C', sr=-1, ps=80):
 "MAINBUSIN":"垃圾焚烧发电项目投资运营、EPC建造以及垃圾焚烧发电核心设备研发制造等",
 "ycwssgsx":340000.0,"ycwssgzj":3400000.0,"Update":"2020-06-08 00:09:22","sgrqrow":21.0
 '''
+#获取当日上市New STK
 def getNewStockMarket(stk_list):
 	h_cook = ''
 	rslt_pre = 'YexzpM'
 	url_req = 'http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get'
-	param = "?type=XGSG_LB&token=70f12f2f4f091e459a279469fe49eca5&st=listingdate,securitycode&sr=-1&ps=100&js=%s={pages:(tp),data:(x)}"
+	param = "?type=XGSG_LB&token=70f12f2f4f091e459a279469fe49eca5&st=listingdate,securitycode&sr=-1&ps=80&js=%s={pages:(tp),data:(x)}"
 	send_headers = {
 	'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
 	'Accept': '*/*',
@@ -339,7 +435,7 @@ def getNewStockMarket(stk_list):
 
 	urlfmt = url_req + param
 	url = urlfmt % (rslt_pre)
-	print(url)
+	#print("getNewStockMarket",url)
 
 	res_data = None
 	LOOP_COUNT = 0
@@ -385,5 +481,5 @@ def getNoOpenYZB(yz_list):
 		if item["kb"]==desc:
 			print "Match", item["securityshortname"]
 			yz_list.append(item)
-		pass
+	return
 	

@@ -154,7 +154,7 @@ def checkTradeZhai(kzzdt, filter_tp):
 		return 0
 	return 1
 
-#filter_ty:
+#filter_tp:
 # 0: 不过滤，得到所有的
 # 1: 只保留正在交易的
 # 2: 正在交易的和将要上市还未交易的
@@ -171,11 +171,13 @@ def getFilterZhai(content, filter_tp, kzzlist):
 		content = dataObj.group(2)
 
 		d2 = json.loads(item)
+		#print("item=", type(d2))
 		if filter_tp==0:
 			kzzlist.append(d2)
 			continue
 		if checkTradeZhai(d2, filter_tp)==0:
 			continue
+		#print "filter===",d2['SNAME']
 		kzzlist.append(d2)
 	return
 

@@ -11,10 +11,30 @@ import shutil
 import getopt
 import urllib2,time
 import datetime
-import tushare as ts
+#import tushare as ts
 from internal.trade_date import *
-from internal.url_dfcf.new_yzb import *
+from internal.url_dfcf.dc_hangqing import *
+from internal.url_sina.fetch_sina import *
+from internal.url_sina.sina_inf import *
+from internal.url_163.service_163 import *
+from internal.price_limit import *
+from global_var import g_new_mark
 
+STK_ZT = 1<<0
+STK_DT = 1<<1
+STK_ZTHL = 1<<2
+STK_DTFT = 1<<3
+STK_YZZT = 1<<4
+STK_YZDT = 1<<5
+STK_OPEN_ZT = 1<<6
+STK_OPEN_DT = 1<<7
+STK_ST_YZZT = 1<<8
+STK_ST_YZDT = 1<<9
+
+PRE_DAYS = 33
+desc_notkb=u"未开板"
+desc_willon=u"待上市"
+	
 def show_index_info(df, show_idx):
 	if df is None:
 		return
@@ -88,193 +108,492 @@ def get_today_new_stock(new_st_list):
 			new_st_list.append(code)
 	return
 
-def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
-	sysstr = platform.system()
-	today = datetime.date.today()
-	number = len(st_list)
-	print("all stock =", number)
-	if number<=0:
+def spc_round2(value,bit):
+	b = int(value*10000)
+	b1 = b+51
+	j = b1/100
+	rd_val = float(j)/100
+	return rd_val
+
+
+def get_std_realtime_data(cur_list, src='sn'):
+	if src=='sn' or src=='':
+		get_realtime_data(cur_list)
+	else:
+		print("WIP...\n")
+
+#分析时间得到ZT时间，上午or下午
+# TODO:
+def zt_time_analyze(chuban, stcsItem):
+	timeObj = re.match(r'(\d{2}):(\d{2})', chuban)
+	hour = int(timeObj.group(1))
+	minute = int(timeObj.group(2))
+	if hour<=11:
+		stcsItem.s_sw_zt += 1
+	else:
+		stcsItem.s_xw_zt += 1
+
+def get_price_list(code, price_dict, src='163'):
+	if src=='' or src=='163':
+		get_price_list_163(code, price_dict)
+	elif src=='sina':
+		sn_code = sina_code(code)
+		#get_price_list(sn_code, price_dict)
+	else:
+		print("WIP", src)
+	return
+
+#如果是YZZT，确定是不是还没有开板的CX
+def check_YZ_not_kb(non_kaiban_list, code):
+	for item in non_kaiban_list:
+		if code==item['securitycode']:
+			print "TODO:Need check"
+			#print item['securitycode'],item['securityshortname']
+			return 1
+	return 0
+
+# 判断新股第一天是否YZZT
+def check_YZ_new_market(code, stcsItem):
+	price_dict = {}
+	get_price_list(code, price_dict)
+	p_len = len(price_dict)
+	if p_len==0:
+		print ("Error: no price")
+		return 0
+	elif p_len>3:
+		return -1
+	#print(price_dict)
+	stcsItem.s_cx_yzzt += 1
+	return 1
+
+def analyze_status(st_dict, code, name, props, stcsItem, yzcx_flag, trade_date):
+	if len(code)!=6 or code.isdigit() is False:
+		print("Invalid code", code)
 		return -1
 
+	fp_list = st_dict['fup_stk']
+	new_st_list = st_dict['new_stk']
+	non_kb_list = st_dict['nkb_stk']
+	
+	status = 0
 	'''
-	#得到ZS的信息，但是当天交易的时候，得不到当天的
-	delta1=datetime.timedelta(days=30)
-	sdate = today-delta1
-	fmt_start = '%d-%02d-%02d' %(sdate.year, sdate.month, sdate.day)
-	kdf = ts.get_k_data('000001', index=True, start=fmt_start)
-	kdf = kdf.sort_values(['date'], 0, False)
-	last_idx_date = kdf.iloc[0,0]
-	#idx_date 得到最近一天交易的日期
-	idx_date = datetime.datetime.strptime(last_idx_date, '%Y-%m-%d').date()
-
-	#得到最近一天的实时信息，得到日期
-	rq_idx = get_last_trade_dt()
-	print rq_idx
-	rq_idx_dt = datetime.datetime.strptime(rq_idx, '%Y-%m-%d').date()
-
-	cmp_delta = rq_idx_dt-idx_date
-	if cmp_delta.days>0:
-		idx_date = rq_idx_dt
+	high = round(float(row['high']),2)
+	low = round(float(row['low']),2)
+	open = round(float(row['open']),2)
+	price = round(float(row['price']),2)
+	pre_close = round(float(row['pre_close']),2)
+	volume = int(row['volume'])
+	0,688058,宝兰德,145.52,4.52,3.21%,5.28,11262,164007310,141.00,140.50,147.95,140.50,-,-,-,-,-,-,-,-,0.01%,1.32,11.85,-,2019-11-01
+	0,688159,有方科技,54.15,-0.56,-1.02%,3.33,14117,76108605,54.71,54.85,54.85,53.03,-,-,-,-,-,-,-,-,-0.02%,0.86,7.57,-,2020-01-23
+	0,688178,万德斯,41.21,-0.05,-0.12%,1.89,6398,26208442,41.26,41.19,41.45,40.67,-,-,-,-,-,-,-,-,0.29%,0.63,3.31,102.20,2020-01-14
+	0,688300,XD联瑞新,64.56,-0.54,-0.83%,4.78,11708,76229745,65.10,64.83,67.20,64.09,-,-,-,-,-,-,-,-,0.03%,0.64,5.73,77.80,2019-11-15
+	0,688566,吉贝尔,44.97,-0.33,-0.73%,3.89,38958,174909424,45.30,45.18,45.86,44.10,-,-,-,-,-,-,-,-,0.02%,0.74,10.13,83.72,2020-05-18
 	'''
-	idx_date_str = get_lastday()
-	print(idx_date_str)
-	idx_date = datetime.datetime.strptime(idx_date_str, '%Y-%m-%d').date()
+	high = round(float(props[11]),2)
+	low = round(float(props[12]),2)
+	open = round(float(props[10]),2)
+	price = round(float(props[3]),2)
+	pre_close = round(float(props[9]),2)
+	volume = int(props[8])
+	#print(code, name, price, high, low, open, pre_close, volume)
 
+	#排除当天没有交易
+	if pre_close==0:
+		print "PRE_CLOSE Not exist!!!", code, name
+		return -1
 
-	b_get_data = 1
-	#ZT一次取出 base 个
-	#截取list，通过配置起始位置
-	base = 23
-	loop_ct = number/base
-	if number%base!=0:
-		loop_ct += 1
+	if high==0 or low==0:
+		print("code", code, high, low)
+		return -1
 
-	pd_list = []
-	for i in range(0, loop_ct):
-		end_idx = min(base*(i+1), number)
-		cur_list = st_list[i*base:end_idx]
-		if len(cur_list)==0:
-			break
-		#print cur_list
-		LOOP_COUNT = 0
-		stdf = None
-		while LOOP_COUNT<5:
-			try:
-				stdf = ts.get_realtime_quotes(cur_list)
-			except:
-				print cur_list, "Get real time except:", LOOP_COUNT
-				time.sleep(0.5)
-				LOOP_COUNT += 1
-				stdf = None
-			else:
-				break
-		if stdf is None:
-			print "Get list fail at:", cur_list
-			continue
+	b_ST = 0
+	if name.find("ST")>=0 or name[0:1]=="S":
+		b_ST = 1
+		#print code,name
 
-		#print stdf
-		for index,row in stdf.iterrows():
-			stockInfo = []
-			code = cur_list[index]
-			# Ignore KCB TODO: support it
-			if (code[0:3]=='688'):
-				#print("Filter " + code)
-				continue
-			index += 1
-			if sysstr=="Windows":
-				name = row[0].encode('gbk')
-			elif sysstr == "Linux":
-				name = row[0].encode('utf8')
-			pre_close = float(row['pre_close'])
-			price = float(row['price'])
-			volumn = int(row['volume'])
+	o_percent = (open-pre_close)*100/pre_close
+	c_percent = (price-pre_close)*100/pre_close
+	h_percent = (high-pre_close)*100/pre_close
+	l_percent = (low-pre_close)*100/pre_close
+	open_percent = spc_round2(o_percent,2)
+	change_percent = spc_round2(c_percent,2)
+	high_zf_percent = spc_round2(h_percent,2)
+	low_df_percent = spc_round2(l_percent,2)
 
-			ask = float(row['ask'])
-			if volumn==0 and dc_data==1:
-				return 0
-			if pre_close==0:
-				print ("%s %s invalid value" %(code, name))
-				continue
-			change_perc = (price-pre_close)*100/pre_close
-			today_high = float(row['high'])
-			today_low = float(row['low'])
-			today_b1_p = float(row['b1_p'])
-			today_a1_p = float(row['a1_p'])
-			today_bid = float(row['bid'])
-			#判断今日是否trade suspend
-			if today_high==today_low and today_high==0.0:
-				continue
-			elif today_b1_p==0.0 and today_a1_p==0.0 and today_bid==0.0:
-				continue
+	#获取ZT
+	if b_ST==1:
+		zt_price1 = pre_close * 1.05
+		dt_price1 = pre_close * 0.95
+	else:
+		zt_price1 = pre_close * 1.1
+		dt_price1 = pre_close * 0.9
+	zt_price = spc_round2(zt_price1,2)
+	dt_price = spc_round2(dt_price1,2)
+	#print name, pre_close, zt_price, dt_price
 
-			#通过获得K线数据，判断是否YZZT新股
-			yzcx_flag = 0
-			if b_get_data == 1:
-				#获得每只个股每天交易数据
-				day_info_df = None
-				#新股上市可能有Bug
-				try:
-					day_info_df = ts.get_k_data(code)
-				except:
-					print "Error for code:", code, name
-				if day_info_df is None:
-					continue
-				#print code, day_info_df
-				trade_days = len(day_info_df)
-
-				b_open=0
-				yzzt_day = 0
-				if trade_days==0:
-					if name[0:1]=='N':
-						stcsItem.s_new += 1
-						yzcx_flag = 1
-						continue
-				if trade_days==1:
-					if name[0:1]=='N':
-						stcsItem.s_new += 1
-						yzcx_flag = 1
-				for tdidx,tdrow in day_info_df.iterrows():
-					open = tdrow[1]
-					close = tdrow[2]
-					high = tdrow['high']
-					low = tdrow['low']
-					if high!=low:
-						if yzzt_day!=0:
-							if (yzzt_day+1)==trade_days:
-								chg_perc = round((price-pre_close)*100/pre_close,2)
-								open_list = [code, name, chg_perc, price, yzzt_day]
-								today_open.append(open_list)
-							b_open = 1
-							break
-					#当ZT打开，就会break for 循环
-					yzzt_day += 1
-					pre_close = close
-				if b_open==0:
-					try:
-						dt_str=day_info_df.iloc[trade_days-1,0]
-					except:
-						print code,trade_days
-						print day_info_df
-						exit()
-					last_date = datetime.datetime.strptime(dt_str, '%Y-%m-%d').date()
-					#print code, name, idx_date,last_date
-					cmp_delta = idx_date-last_date
-					if cmp_delta.days==0:
-						stcsItem.s_cx_yzzt += 1
-						yzcx_flag = 1
-
-				#如果是通过东财获得个股排行，不要判断新股的上市天数
-				if dc_data==0:
-					#认为YZZT不会超过 33 个交易日
-					if trade_days>33:
-						b_get_data = 0
+	#YZ状态处理
+	stk_list = [0, 0]
+	if high==low:
+		if open>pre_close:
+			#刚开盘，只有1笔成交，会大量的输出，不合适检查
+			#if high!=zt_price:
+			#	print "Warning: YZ, not ZT??? ", code, high, zt_price
+			if b_ST==1 and high==zt_price:
+				stcsItem.s_st_yzzt += 1
+				status |= STK_ST_YZZT
+			elif b_ST==0 and high==zt_price:
+				if high_zf_percent>15:
+					pass
 				else:
-					if trade_days>1:
-						l_volume = float(day_info_df.iloc[trade_days-2,2])
-						l_pclose = float(day_info_df.iloc[trade_days-2,2])
-						l_close = float(day_info_df.iloc[trade_days-1,2])
-						l_high = float(day_info_df.iloc[trade_days-1,3])
-						chg_perc = round((l_close-l_pclose)*100/l_pclose,2)
-						if l_close != l_high or chg_perc<9.5:
-							b_get_data = 0
-			# end if b_get_data
-			#print(index)
-			#stk_type = analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, idx_date)
-			#pass
-	return 0
-	'''
-	return 0
-	'''
+					stcsItem.s_yzzt += 1
+					status |= STK_YZZT
+					stcsItem.s_zt += 1
+					status |= STK_ZT
+					stcsItem.s_open_zt += 1
+					status |= STK_OPEN_ZT
+					stcsItem.s_close_zt += 1
+					#list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+					#pd_list.append(list)
+					#ret = check_YZ_not_kb(non_kb_list, code)
+					if yzcx_flag==0:
+						count = get_zf_days(code, 1, trade_date, 1, stk_list)
+						if stk_list[0]<300:
+							stcsItem.s_cxzt += 1
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0]]
+						stcsItem.lst_non_yzcx_yzzt.append(list)
+						#print "Not YZCXXXX",code,name
+					#print stcsItem.s_zt,code,name,price,change_percent,open
+		elif open<pre_close:
+			#if low!=dt_price:
+			#	print "Warning: YZ, not DT??? ", code, low, dt_price
+			if b_ST==1 and low==dt_price:
+				stcsItem.s_st_yzdt += 1
+				status |= STK_ST_YZDT
+			elif b_ST==0 and low==dt_price:
+				stcsItem.s_yzdt += 1
+				status |= STK_YZDT
+				stcsItem.s_dt += 1
+				status |= STK_DT
+				stcsItem.s_open_dt += 1
+				status |= STK_OPEN_DT
+				count = get_zf_days(code, 2, trade_date, 1, stk_list)
+				if stk_list[0]<300:
+					stcsItem.s_cxdt += 1
+				list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0]]
+				stcsItem.lst_yzdt.append(list)
+		#print code,name,open,low,high,price,pre_close
+	else:
+		if high==zt_price:
+			if b_ST==0:
+				tmArr = []
+				get_zdt_time(code, trade_date, zt_price, 0, tmArr)
+				chuban = tmArr[0]
+				openban = tmArr[1]
+				zt_st = ''
+				if price==zt_price:
+					#仅仅计算最后还是ZT的item
+					#zt_time_point(code, zt_price, trade_date, stcsItem)
+					zt_time_analyze(chuban, stcsItem)
+					stcsItem.s_zt += 1
+					status |= STK_ZT
+					if open==zt_price:
+						stcsItem.s_open_zt += 1
+						status |= STK_OPEN_ZT
+						if price==open:
+							stcsItem.s_close_zt += 1
+							stcsItem.s_open_T_zt += 1
+							zt_st = 'T'
+					#list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
+					#pd_list.append(list)
+					count = get_zf_days(code, 1, trade_date, 1, stk_list)
+					if yzcx_flag==0:
+						if stk_list[0]<300:
+							stcsItem.s_cxzt += 1
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, zt_st]
+						stcsItem.lst_non_yzcx_zt.append(list)
+				else:
+					count = get_zf_days(code, 1, trade_date, 0, stk_list)
+					stcsItem.s_zthl += 1
+					status |= STK_ZTHL
+					if open==zt_price:
+						stcsItem.s_open_zt += 1
+						status |= STK_OPEN_ZT
+						stcsItem.s_dk_zt += 1
+						zt_st = 'K'
+						#print stcsItem.s_zthl,code,name,price,high,zt_price
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, openban, zt_st]
+					#print len(stcsItem.lst_non_yzcx_zthl)
+					#print list
+					stcsItem.lst_non_yzcx_zthl.append(list)
+				if change_percent<=3:
+					stcsItem.lst_kd.append(name)
+				if price<open:
+					stcsItem.s_zt_o_gt_c += 1
 
-def get_new_market_stock(trade_day, new_list, src=''):
+		if low==dt_price:
+			if b_ST==0:
+				tmArr = []
+				get_zdt_time(code, trade_date, dt_price, 1, tmArr)
+				chuban = tmArr[0]
+				openban = tmArr[1]
+				dt_st = ''
+				if open==dt_price:
+					stcsItem.s_open_dt += 1
+					status |= STK_OPEN_DT
+					if price!=dt_price:
+						stcsItem.s_open_dt_dk += 1
+
+				if price==dt_price:
+					stcsItem.s_dt += 1
+					status |= STK_DT
+					if open==dt_price:
+						dt_st = 'DT'
+					count = get_zf_days(code, 2, trade_date, 1, stk_list)
+					if stk_list[0]<300:
+						stcsItem.s_cxdt += 1
+
+					#DT Data
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, dt_st]
+					stcsItem.lst_dt.append(list)
+				else:
+					stcsItem.s_dtft += 1
+					status |= STK_DTFT
+					if open==dt_price:
+						dt_st = 'K'
+
+					#DTFT Data
+					count = get_zf_days(code, 2, trade_date, 0, stk_list)
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, openban, dt_st]
+					stcsItem.lst_dtft.append(list)
+
+	#统计开盘涨跌幅度
+	if open_percent>0:
+		stcsItem.s_open_sz += 1
+		if open_percent>=4.0:
+			stcsItem.s_open_dz += 1
+	elif open_percent<0:
+		stcsItem.s_open_xd += 1
+		if open_percent<=-4.0:
+			stcsItem.s_open_dd += 1
+	else:
+		#print("%s,%s,%f"%(code,name,open_percent))
+		stcsItem.s_open_pp += 1
+
+	#统计开盘涨跌幅度
+	if change_percent>0:
+		stcsItem.s_close_sz += 1
+		if change_percent>=4.0:
+			stcsItem.s_close_dz += 1
+	elif change_percent<0:
+		stcsItem.s_close_xd += 1
+		if change_percent<=-4.0:
+			stcsItem.s_close_dd += 1
+	else:
+		stcsItem.s_close_pp += 1
+	stcsItem.s_total += 1
+
+	#统计最大涨跌幅度
+	if high_zf_percent>=4.0:
+		stcsItem.s_high_zf += 1
+	if low_df_percent<=-4.0:
+		stcsItem.s_low_df += 1
+
+	#统计表现震撼个股 排除YZZT的新股
+	zf_range = high_zf_percent-low_df_percent
+	if zf_range>=15.0 and yzcx_flag==0:
+		if change_percent>=6.0:
+			list = [code, name, change_percent, price, zf_range]
+			stcsItem.lst_nb.append(list)
+		elif change_percent<=-6.0:
+			list = [code, name, change_percent, price, zf_range]
+			stcsItem.lst_jc.append(list)
+	'''
+	'''
+	return status
+
+def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre30_date, today_open):
+	itemLen = 26
+	if len(props)!=itemLen:
+		print("Stock item length not ", itemLen, code, name)
+		return -1
+
+	market_date = props[itemLen-1]
+	mkDt = datetime.datetime.strptime(market_date, '%Y-%m-%d').date()
+	pre30Dt = datetime.datetime.strptime(pre30_date, '%Y-%m-%d').date()
+
+	if (pre30Dt-mkDt).days>0:
+		#Not CX
+		return 1
+
+	#if props[1]=='300850':
+	#	for i in range(len(props)):
+	#		print i,props[i]
+
+	#强制认为都是KB状态
+	bopen = 1
+	for item in non_kb_list:
+		if item['securitycode']!=code:
+			continue
+		if item['kb']==desc_notkb:
+			#标识为未开，检查今日实际数据
+			#print "handle NOTKB",item['securitycode'], item['securityshortname']
+			preClose = float(props[9])
+			price = float(props[3])
+			high = float(props[11])
+			low = float(props[12])
+			zt_price1 = preClose * 1.1
+			zt_price = spc_round2(zt_price1,2)
+
+			if not (high==low and price==zt_price):
+				klist = get_kday_data(code, 60)
+				yzzt_day = len(klist)
+				tail_day = klist[yzzt_day-1]['day']
+				if tail_day == trade_date:
+					yzzt_day -= 1
+				chg_perc = round((price-preClose)*100/preClose,2)
+				open_list = [code, name, chg_perc, price, yzzt_day]
+				today_open.append(open_list)
+			else:
+				bopen = 0
+		#KB的item，今天是否KB，上一交易日还是封板状态
+		else:
+			listing_date = item['listingdate'][:10]
+			yzb_days = int(float(item['sl']))
+			kb_date = calcu_back_date(listing_date, yzb_days)
+			if kb_date!="" and kb_date==trade_date:
+				#print "handle KB",code,name,item['kb'],item['sl'],yzb_days,kb_date
+				preClose = float(props[9])
+				price = float(props[3])
+				chg_perc = round((price-preClose)*100/preClose,2)
+
+				open_list = [code, name, chg_perc, price, yzb_days]
+				today_open.append(open_list)
+		break
+	if bopen==0:
+		print "Not OpenBan", code, name
+		stcsItem.s_cx_yzzt += 1
+
+	return bopen
+
+#检查是否当日上市新股
+def check_new_market(new_stock_list, code, name, props, stcsItem, trade_day, today_open):
+	itemLen = 26
+	if len(props)!=itemLen:
+		print("Stock item length not ", itemLen, code, name)
+		return -1
+
+	market_date = props[itemLen-1]
+	if market_date!=trade_day:
+		return 0
+
+	#print(props)
+	if code in new_stock_list:
+		#TODO: KeChuanBan KCB
+		if code[:3] in g_new_mark:
+			return 1
+		ret = check_YZ_new_market(code, stcsItem)
+		if ret==-1:
+			price = props[1]
+			chg_perc = round((price-pre_close)*100/pre_close,2)
+			open_list = [code, name, chg_perc, price, 0]
+			today_open.append(open_list)
+	else:
+		#如果上市日期是当前日期，但是并不是新股，这是重新复牌上市的票子
+		if market_date==trade_date:
+			print( "Check the item: %s %s"%(code, name) )
+	return 1
+
+	
+#获取当日上市New STK
+def get_new_market_stock(trade_day, new_list, non_kaiban_list, new_code_list=None, src=''):
 	sort_list = []
 	if src=='' or src=='dc':
 		getNewStockMarket(sort_list)
 	else:
 		print("Unknown source", src)
 		return
-	
+	pre30_date = get_preday(PRE_DAYS, trade_day)
+
 	for item in sort_list:
-		if item['listingdate'][:10]!=trade_day:
+		#if item['securitycode']=='300855' or item['securitycode']=='603087':
+		#	for key,value in (item.items()): print "CXkey-val:",key, value
+
+		#print "get_new_market_stock", item['securitycode'],item['securityshortname']
+		if item['listingdate'][:10]==trade_day:
+			new_list.append(item)
+			if new_code_list is not None:
+				new_code_list.append(item['securitycode'])
+		elif item['kb']==desc_willon:
+			#print "WillOn", item['securitycode'], item['securityshortname'],item['listingdate'][:10]
 			continue
-		new_list.append(item)
+		else:
+			listing = item['listingdate'][:10]
+			listingDt = datetime.datetime.strptime(listing, '%Y-%m-%d').date()
+			pre30Dt = datetime.datetime.strptime(pre30_date, '%Y-%m-%d').date()
+			if (listingDt-pre30Dt).days<=0:
+				continue
+			non_kaiban_list.append(item)
+			#print "CXItem", item['securitycode'], item['securityshortname'],item['kb'],item['sl']
+	return
+
+def collect_all_stock_data(st_dict, today_open, stcsItem, trade_date, debug=0):
+	sysstr = platform.system()
+	
+	st_list = st_dict['all_stk']
+	fp_list = st_dict['fup_stk']
+	new_st_list = st_dict['new_stk']
+	non_kb_list = st_dict['nkb_stk']
+	
+	#print ("non_kb:", non_kb_list)
+	#for item in non_kb_list:
+	#	for key,value in item.items(): print key, value
+	#	break
+	#	print item['securitycode'],item['securityshortname']
+	#print ("new_st:", new_st_list)
+
+	stcsItem.s_new = len(new_st_list)
+	
+	pre30_date = get_preday(PRE_DAYS, trade_date)
+	#print ("collect_all_stock1_data:", pre30_date)
+
+	for item in st_list:
+		if debug==0:
+			code = item[1]
+			name = item[2]
+		else:
+			code = item
+			name = "XXXX"
+
+		#if item[1]=='300291':
+		#	for i in range(len(item)):
+		#		print "DBG_SK,",i,item[i]
+
+		#TODO: KeChuanBan KCB
+		if code[:3] in g_new_mark:
+			continue
+
+		#如果是当天上的就忽略了
+		ret=check_new_market(new_st_list, code, name, item, stcsItem, trade_date, today_open)
+		if ret!=0:
+			continue
+
+		#检查是否今日KB
+		ret = check_CX_open_ban(non_kb_list, code, name, item, stcsItem, trade_date, pre30_date, today_open)
+		if ret==-1:
+			continue
+		elif ret==0:
+			yzcx_flag=1
+		elif ret==1:
+			yzcx_flag=0
+
+		analyze_status(st_dict, code, name, item, stcsItem, yzcx_flag, trade_date)
+		#ret, code = parseCode1(item[:6])
+		#if ret==-1:
+		#	print ("Invalid code", item[:6])
+		#cur_list.append(code)
+		#print(item[0], item[1], item[2])
+		#print cur_list
+		#get_std_realtime_data(cur_list, 'sn')
+		#print (i)
+	
+	pass

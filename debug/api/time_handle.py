@@ -39,6 +39,12 @@ if __name__ == '__main__':
 	curdate = '2017-3-5'
 	idx_date = datetime.datetime.strptime(curdate, '%Y-%m-%d').date()
 	print("data fmt===", type(idx_date), idx_date)
+
+	enddate = '2017-3-11'
+	end_date = datetime.datetime.strptime(enddate, '%Y-%m-%d').date()
+	#计算起始日期相差多少天
+	delta = end_date-idx_date
+	print("day interval1=", delta.days)
 	
 	dt_str = '2017-3-5 12:23:56'
 	tm1 = datetime.datetime.strptime(dt_str, '%Y-%m-%d  %H:%M:%S')
