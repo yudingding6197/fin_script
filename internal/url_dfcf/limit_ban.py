@@ -54,7 +54,7 @@ def get_zdting_by_dc(code, jstr, rtntype):
 		exit(-1);
 
 	urlall = urlfmt %(ncode, jstr, rtntype)
-	#print("get_zf_days", urlall)
+	#print("get_zdting_by_dc", urlall)
 	while excecount<=5:
 		try:
 			req = urllib2.Request(urlall,headers=send_headers)
@@ -66,7 +66,7 @@ def get_zdting_by_dc(code, jstr, rtntype):
 			break
 
 	if res_data is None:
-		print("Open URL fail", code)
+		print("Open URL fail", code, urlall)
 		return None
 
 	content1 = res_data.read()

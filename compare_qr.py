@@ -79,11 +79,11 @@ if __name__=='__main__':
 		print(cur_day)
 		if len(q_dict)>0:
 			print("QQQ =========")
-			for k in q_dict.keys(): print k, q_dict[k][0]
+			for k in q_dict.keys(): print k, q_dict[k][0], q_dict[k][2]
 		if len(r_dict)>0:
 			print("RRR =========")
 			r_flag = 1
-			for k in r_dict.keys(): print k, r_dict[k][0]
+			for k in r_dict.keys(): print k, r_dict[k][0], r_dict[k][2]
 		for k in stoday.lst_kbcx:
 			if not (k[2]=='DT' or k[2]=='YZDT'):
 				continue

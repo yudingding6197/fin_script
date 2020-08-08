@@ -351,7 +351,9 @@ def showKZZBuyCount(kzzlist, tradeDt):
 	
 	linefeed1 = 0
 	linefeed2 = 0
-	fmt1 = "%s %s %s %s %7.2f "
+	#fmt1 = "%s %-s %-3s %s %7.2f "
+	fmt11 = "%s %-s "
+	fmt12 = "%-3s %s %7.2f "
 	fmt2 = "%7.2f %8.2f %8.2f %8.2f"
 	for item in kzzlist:
 		if item['LISTDATE']!='-':
@@ -365,10 +367,18 @@ def showKZZBuyCount(kzzlist, tradeDt):
 
 		purs = 10000/item['ZGJ'] * item['FSTPLACVALPERSTK']
 
-		result1 = fmt1 % (item['BONDCODE'],item['SNAME'],market,sdate[5:],purs)
+		#result1 = fmt1 % (item['BONDCODE'],item['SNAME'],market,sdate[5:],purs)
+		result11 = fmt11 % (item['BONDCODE'],item['SNAME'])
+		if isinstance(result11, unicode):
+			reslen = len(result11.encode('gbk'))
+			for i in range(16-reslen):
+				result11 += ' '
+		result12 = fmt12 % (market,sdate[5:],purs)
+		
 		issueVol = round(float(item['AISSUEVOL']),2)
 		result2 = fmt2 % (item['ZGJ_HQ'],item['ZGJZGJJZ'],item['ZGJZGJ'],issueVol)
-		result = result1 + result2
+		#result = result1 + result2
+		result = result11 + result12 + result2
 
 		if linefeed1==0:
 			delta = tradeDt-applyDt

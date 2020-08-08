@@ -344,6 +344,50 @@ def get_each_page_data1(new_st_list, curpage, st='A', sr=-1, ps=80):
 		return 0
 	return 1
 
+def get_stk_max_page(curpage, st='A', sr=-1, ps=80):
+	link = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?"
+	key1 = "type=CT&cmd=C._A&sty=FCOIATA&sortType=%s&sortRule=%d"
+	urlfmt = link + key1 +"&page=%d&pageSize=%d&js={rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c"
+	send_headers = {
+	'Host': 'nufm.dfcfw.com',
+	'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
+	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+	'DNT': 1,
+	'Accept-Encoding': 'gzip, deflate',
+	'Accept-Language': 'zh-CN,zh;q=0.8'
+	}
+	LOOP_COUNT = 0
+	response = None
+	url = urlfmt % (st, sr, curpage, ps)
+	#print(url)
+	while LOOP_COUNT<3:
+		try:
+			req = urllib2.Request(url, headers=send_headers)
+			response = urllib2.urlopen(req, timeout=5)
+		except:
+			LOOP_COUNT += 1
+			#print("URL request timeout ", url)
+		else:
+			break
+	if response is None:
+		print "Please check data from DongCai at", curpage
+		return -1
+
+	content = response.read()
+	respInfo = response.info()
+	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
+		#print "Content compressed"
+		line = zlib.decompress(content, 16+zlib.MAX_WBITS);
+
+	line = line.decode('utf8')
+	#print line
+	obj = re.match(r'{rank:\["(.*)"\],pages:(\d+)', line)
+	if obj is None:
+		print "1Not find matched content at", curpage
+		return -1
+	totalpage = int(obj.group(2))
+	return totalpage
+
 def get_latest_market(new_st_list):
 	curpage = 1
 	while 1:
@@ -384,8 +428,6 @@ def get_stk_code_by_cond(new_st_list, st='C', sr=-1, ps=80):
 		new_st_list.append(item[0:6])
 	return
 
-
-
 #sort mode：
 #'A' stock code
 #'B' 股价
@@ -402,7 +444,7 @@ def get_stk_code_by_cond1(new_st_list, st='C', sr=-1, ps=80):
 		curpage += 1
 	#for item in items_list:
 	#	new_st_list.append(item[0:6])
-	return
+	return 0
 
 	
 '''
@@ -420,7 +462,7 @@ def get_stk_code_by_cond1(new_st_list, st='C', sr=-1, ps=80):
 "ycwssgsx":340000.0,"ycwssgzj":3400000.0,"Update":"2020-06-08 00:09:22","sgrqrow":21.0
 '''
 #获取当日上市New STK
-def getNewStockMarket(stk_list):
+def get_new_stk_from_dfcf(stk_list):
 	h_cook = ''
 	rslt_pre = 'YexzpM'
 	url_req = 'http://dcfm.eastmoney.com/em_mutisvcexpandinterface/api/js/get'
@@ -435,7 +477,7 @@ def getNewStockMarket(stk_list):
 
 	urlfmt = url_req + param
 	url = urlfmt % (rslt_pre)
-	#print("getNewStockMarket",url)
+	#print("get_new_stk_from_dfcf",url)
 
 	res_data = None
 	LOOP_COUNT = 0
@@ -469,6 +511,7 @@ def getNewStockMarket(stk_list):
 			item = '{' + item
 		if item[-1]!='}':
 			item = item + '}'
+
 		dic = json.loads(item);
 		stk_list.append(dic)
 		#print  dic["securitycode"], dic["securityshortname"]
@@ -476,7 +519,7 @@ def getNewStockMarket(stk_list):
 def getNoOpenYZB(yz_list):
 	new_stk_list = []
 	desc = u"未开板"
-	getNewStockMarket(new_stk_list)
+	get_new_stk_from_dfcf(new_stk_list)
 	for item in new_stk_list:
 		if item["kb"]==desc:
 			print "Match", item["securityshortname"]

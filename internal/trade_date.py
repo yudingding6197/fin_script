@@ -34,7 +34,7 @@ def get_preday(days=1, cur_day=''):
 	flag = 0
 	#数据库不是最新的，需要更新
 	if bFlag==1:
-		print("Update trade day DB");
+		#print("Update trade day DB");
 		fl.close()
 		upday.update_latest_trade(cur_day)
 		#如果在交易时段，交易当天日期没有写入文件中，文件最新日期和当天交易日期不匹配
@@ -64,6 +64,7 @@ def get_preday(days=1, cur_day=''):
 def get_lastday(src='sina'):
 	value = ''
 	if src=='sina':
+		#print "ge_last sn date", src
 		value = get_sina_lastday()
 	elif src=='163':
 		value = get_163_lastday()
@@ -72,6 +73,7 @@ def get_lastday(src='sina'):
 	#print(value)
 	return value
 
+#从文件读取所有的交易日，提供查询判断的基准
 def init_trade_list(cur_day=''):
 	global g_trade_flag
 	global g_trade_list
@@ -86,7 +88,7 @@ def init_trade_list(cur_day=''):
 	#排除第一行
 	line = fl.readline()
 	line = fl.readline()
-	print cur_day, line[:10]
+	#print cur_day, line[:10]
 	g_trade_list.append(cur_day)
 	
 	#存在，则赋值后再读一行

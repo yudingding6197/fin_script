@@ -33,7 +33,7 @@ def show_zt_info(zt_list, desc, fmt, outstr, pconfig):
 	endstr = ''
 	if number<=0:
 		return
-	elif pconfig['AllInfo']==1:
+	elif pconfig['NotAllInfo']==0:
 		number = 10000
 	elif number>30:
 		number = 30
@@ -83,7 +83,7 @@ def show_dt_info(dt_list, desc, fmt, pconfig):
 	str = "%s  [%d]:" % (desc, number)
 	if number<=0:
 		return
-	elif pconfig['AllInfo']==1:
+	elif pconfig['NotAllInfo']==0:
 		number = 10000
 	elif number>30:
 		number = 30
@@ -162,7 +162,7 @@ param_config = {
 	"NoLog":0,
 	"NoDetail":0,
 	"SortByTime":0,
-	"AllInfo":0,
+	"NotAllInfo":0,
 	"DFCF":0,
 }
 
@@ -175,7 +175,7 @@ for option, value in optlist:
 	elif option in ["-t","--sbtime"]:
 		param_config["SortByTime"] = 1
 	elif option in ["-a","--all"]:
-		param_config["AllInfo"] = 1
+		param_config["NotAllInfo"] = 1
 	elif option in ["-c","--dfcf"]:
 		param_config["DFCF"] = 1
 #print param_config

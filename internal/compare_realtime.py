@@ -13,17 +13,19 @@ lst_yzdt				lst_dt				lst_dtft
 
 def get_zt_data(stcsItem, zt_dict):
 	for i in stcsItem.lst_non_yzcx_yzzt:
-		zt_dict[i[0]] = [i[1], 'YZZT']
-		#print "lst_non_yzcx_yzzt", i[0], i[1]
+		zt_dict[i[0]] = [i[1], 'YZZT', i[7]]
+		#print "lst_non_yzcx_yzzt", i[0], i[1], i
 	for i in stcsItem.lst_non_yzcx_zt:
-		zt_dict[i[0]] = [i[1], ' ZT ']
-		#print "lst_non_yzcx_zt", i[0], i[1]
+		zt_dict[i[0]] = [i[1], ' ZT ', i[7]]
+		#print "lst_non_yzcx_zt", i[0], i[1], i
 
 def get_dt_data(stcsItem, dt_dict):
 	for i in stcsItem.lst_yzdt:
-		dt_dict[i[0]] = [i[1], 'YZDT']
+		dt_dict[i[0]] = [i[1], 'YZDT', i[7]]
+		#print "lst_non_yzdt", i[0], i[1]
 	for i in stcsItem.lst_dt:
-		dt_dict[i[0]] = [i[1], ' DT ']
+		dt_dict[i[0]] = [i[1], ' DT ', i[7]]
+		#print "lst_non_dt", i[0], i[1]
 
 def compare_qiangruo(todayItem, ysdayItem, q_dict, r_dict, flag=''):
 	y_zt_dict = {}

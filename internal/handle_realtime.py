@@ -11,6 +11,7 @@ import shutil
 import getopt
 import urllib2,time
 import datetime
+import threading
 #import tushare as ts
 from internal.trade_date import *
 from internal.url_dfcf.dc_hangqing import *
@@ -32,8 +33,10 @@ STK_ST_YZZT = 1<<8
 STK_ST_YZDT = 1<<9
 
 PRE_DAYS = 33
+CX_DAYS = 200
 desc_notkb=u"未开板"
 desc_willon=u"待上市"
+TS_FLAG = 1
 	
 def show_index_info(df, show_idx):
 	if df is None:
@@ -166,7 +169,72 @@ def check_YZ_new_market(code, stcsItem):
 	stcsItem.s_cx_yzzt += 1
 	return 1
 
-def analyze_status(st_dict, code, name, props, stcsItem, yzcx_flag, trade_date):
+def searchInList(code, src_list, desc):
+	bPreZt = 0
+	count = 0
+	for item in src_list:
+		if item[0]==code:
+			#print "Find ", desc, code, item[7], item[8]
+			bPreZt = 1
+			count = int(item[7])
+			break
+	return bPreZt, count
+	
+#type:
+# 0: ZT
+# 1: DT
+def getPreZDtDays(code, type, preStat):
+	bPreZt = 0
+	if type==0:
+		bPreZt, count = searchInList(code, preStat.lst_non_yzcx_yzzt, "yzzt1")
+		if bPreZt==0:
+			bPreZt, count = searchInList(code, preStat.lst_non_yzcx_zt, "zt1")
+	elif type==1:
+		bPreZt, count = searchInList(code, preStat.lst_yzdt, "yzdt1")
+		if bPreZt==0:
+			bPreZt, count = searchInList(code, preStat.lst_dt, "dt1")
+	else:
+		print ("Invalid type", type, code)
+		return -1
+
+	if bPreZt==0:
+		count = 0
+	return count
+
+#上市日期和交易日大约1年前的时间对比
+def verify_one_year_cx(props, pre300_date, type, stk_list):
+	propLen = len(props)
+	market_date = props[propLen-1]
+	mkDt = datetime.datetime.strptime(market_date, '%Y-%m-%d').date()
+	pre300Dt = datetime.datetime.strptime(pre300_date, '%Y-%m-%d').date()
+	if (pre300Dt-mkDt).days<=0:
+		stk_list[0] = CX_DAYS-50
+	else:
+		stk_list[0] = CX_DAYS+50
+	return
+
+#type:
+# 0: ZT
+# 1: DT
+def checkZDTInfo(code, name, fpFlag, type, preStat):
+	if fpFlag==1:
+		#print "FuPai YZZT", code, name.encode('gbk')
+		bGetDays = 1
+		return bGetDays, -1
+	elif TS_FLAG==1:
+		if name[:2]==u'退市':
+			#print code, name.encode('gbk'), "ZT"
+			count = -1
+		elif name[-1:]==u'退':
+			#print code, name.encode('gbk'), "ZT"
+			count = -1
+		else:
+			count = getPreZDtDays(code, type, preStat)
+	else:
+		count = getPreZDtDays(code, type, preStat)
+	return 0,count
+
+def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, trade_date, pre300_date):
 	if len(code)!=6 or code.isdigit() is False:
 		print("Invalid code", code)
 		return -1
@@ -175,6 +243,10 @@ def analyze_status(st_dict, code, name, props, stcsItem, yzcx_flag, trade_date):
 	new_st_list = st_dict['new_stk']
 	non_kb_list = st_dict['nkb_stk']
 	
+	fpFlag = 0
+	if code in fp_list:
+		fpFlag = 1
+
 	status = 0
 	'''
 	high = round(float(row['high']),2)
@@ -231,6 +303,7 @@ def analyze_status(st_dict, code, name, props, stcsItem, yzcx_flag, trade_date):
 	dt_price = spc_round2(dt_price1,2)
 	#print name, pre_close, zt_price, dt_price
 
+	bGetDays = 0
 	#YZ状态处理
 	stk_list = [0, 0]
 	if high==low:
@@ -256,9 +329,31 @@ def analyze_status(st_dict, code, name, props, stcsItem, yzcx_flag, trade_date):
 					#pd_list.append(list)
 					#ret = check_YZ_not_kb(non_kb_list, code)
 					if yzcx_flag==0:
-						count = get_zf_days(code, 1, trade_date, 1, stk_list)
+						bGetDays, count=checkZDTInfo(code, name, fpFlag, 0, preStat)
+						'''
+						if fpFlag==1:
+							#print "FuPai YZZT", code, name.encode('gbk')
+							bGetDays = 1
+						elif TS_FLAG==1:
+							if name[:2]==u'退市':
+								#print code, name.encode('gbk'), "ZT"
+								count = -1
+							elif name[-1:]==u'退':
+								#print code, name.encode('gbk'), "ZT"
+								count = -1
+							else:
+								count = getPreZDtDays(code, 1, preStat)
+						else:
+							count = getPreZDtDays(code, 1, preStat)
+						'''
+						if bGetDays==1 or count==-1:
+							count = get_zf_days(code, 1, trade_date, 1, stk_list)
+						else:
+							count += 1
+							verify_one_year_cx(props, pre300_date, 1, stk_list)
 						if stk_list[0]<300:
 							stcsItem.s_cxzt += 1
+							
 						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0]]
 						stcsItem.lst_non_yzcx_yzzt.append(list)
 						#print "Not YZCXXXX",code,name
@@ -276,24 +371,65 @@ def analyze_status(st_dict, code, name, props, stcsItem, yzcx_flag, trade_date):
 				status |= STK_DT
 				stcsItem.s_open_dt += 1
 				status |= STK_OPEN_DT
-				count = get_zf_days(code, 2, trade_date, 1, stk_list)
+				'''
+				if fpFlag==1:
+					#print "FuPai YZDT", code, name.encode('gbk')
+					bGetDays = 1
+				elif TS_FLAG==1:
+					if name[:2]==u'退市':
+						#print code, name.encode('gbk'), "DT"
+						count = -1
+					elif name[-1:]==u'退':
+						#print code, name.encode('gbk'), "DT"
+						count = -1
+					else:
+						count = getPreZDtDays(code, 1, preStat)
+				else:
+					count = getPreZDtDays(code, 2, preStat)
+				'''
+				bGetDays, count=checkZDTInfo(code, name, fpFlag, 1, preStat)
+
+				if bGetDays==1 or count==-1:
+					count = get_zf_days(code, 2, trade_date, 1, stk_list)
+				else:
+					count += 1
+					verify_one_year_cx(props, pre300_date, 2, stk_list)
 				if stk_list[0]<300:
 					stcsItem.s_cxdt += 1
+
 				list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0]]
 				stcsItem.lst_yzdt.append(list)
 		#print code,name,open,low,high,price,pre_close
 	else:
 		if high==zt_price:
 			if b_ST==0:
-				tmArr = []
-				get_zdt_time(code, trade_date, zt_price, 0, tmArr)
+				tmArr = ['','']
+				#get_zdt_time(code, trade_date, zt_price, 0, tmArr)
 				chuban = tmArr[0]
 				openban = tmArr[1]
 				zt_st = ''
+				bGetDays, count=checkZDTInfo(code, name, fpFlag, 0, preStat)
+				'''
+				if fpFlag==1:
+					#print type(name)
+					#print "FuPai ZT", code, name.encode('gbk')
+					bGetDays = 1
+				elif TS_FLAG==1:
+					if name[:2]==u'退市':
+						#print code, name.encode('gbk'), "ZZT"
+						count = -1
+					elif name[-1:]==u'退':
+						#print code, name.encode('gbk'), "ZZT"
+						count = -1
+					else:
+						count = getPreZDtDays(code, 1, preStat)
+				else:
+					count = getPreZDtDays(code, 1, preStat)
+				'''
+				#最新报价处于ZT
 				if price==zt_price:
 					#仅仅计算最后还是ZT的item
-					#zt_time_point(code, zt_price, trade_date, stcsItem)
-					zt_time_analyze(chuban, stcsItem)
+					#zt_time_analyze(chuban, stcsItem)
 					stcsItem.s_zt += 1
 					status |= STK_ZT
 					if open==zt_price:
@@ -303,16 +439,28 @@ def analyze_status(st_dict, code, name, props, stcsItem, yzcx_flag, trade_date):
 							stcsItem.s_close_zt += 1
 							stcsItem.s_open_T_zt += 1
 							zt_st = 'T'
-					#list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
-					#pd_list.append(list)
+					if bGetDays==1 or count==-1:
+						count = get_zf_days(code, 1, trade_date, 1, stk_list)
+					else:
+						count += 1
+						verify_one_year_cx(props, pre300_date, 1, stk_list)
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, zt_st, zt_price]
+					stcsItem.lst_non_yzcx_zt.append(list)
+
+					'''	
 					count = get_zf_days(code, 1, trade_date, 1, stk_list)
 					if yzcx_flag==0:
 						if stk_list[0]<300:
 							stcsItem.s_cxzt += 1
 						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, zt_st]
 						stcsItem.lst_non_yzcx_zt.append(list)
+					'''
+				#曾经最高报价处于ZT，现在不是了
 				else:
-					count = get_zf_days(code, 1, trade_date, 0, stk_list)
+					if bGetDays==1 or count==-1:
+						count = get_zf_days(code, 1, trade_date, 0, stk_list)
+					else:
+						verify_one_year_cx(props, pre300_date, 1, stk_list)
 					stcsItem.s_zthl += 1
 					status |= STK_ZTHL
 					if open==zt_price:
@@ -321,7 +469,7 @@ def analyze_status(st_dict, code, name, props, stcsItem, yzcx_flag, trade_date):
 						stcsItem.s_dk_zt += 1
 						zt_st = 'K'
 						#print stcsItem.s_zthl,code,name,price,high,zt_price
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, openban, zt_st]
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, openban, zt_st, zt_price]
 					#print len(stcsItem.lst_non_yzcx_zthl)
 					#print list
 					stcsItem.lst_non_yzcx_zthl.append(list)
@@ -332,8 +480,8 @@ def analyze_status(st_dict, code, name, props, stcsItem, yzcx_flag, trade_date):
 
 		if low==dt_price:
 			if b_ST==0:
-				tmArr = []
-				get_zdt_time(code, trade_date, dt_price, 1, tmArr)
+				tmArr = ['','']
+				#get_zdt_time(code, trade_date, dt_price, 1, tmArr)
 				chuban = tmArr[0]
 				openban = tmArr[1]
 				dt_st = ''
@@ -343,17 +491,38 @@ def analyze_status(st_dict, code, name, props, stcsItem, yzcx_flag, trade_date):
 					if price!=dt_price:
 						stcsItem.s_open_dt_dk += 1
 
+				bGetDays, count=checkZDTInfo(code, name, fpFlag, 1, preStat)
+				'''
+				if fpFlag==1:
+					print "FuPai DT or DTFT", code, name
+					bGetDays = 1
+				elif TS_FLAG==1:
+					if name[:2]==u'退市':
+						#print code, name.encode('gbk'), "DDT"
+						count = -1
+					elif name[-1:]==u'退':
+						#print code, name.encode('gbk'), "DDT"
+						count = -1
+					else:
+						count = getPreZDtDays(code, 1, preStat)
+				else:
+					count = getPreZDtDays(code, 2, preStat)
+				'''
 				if price==dt_price:
 					stcsItem.s_dt += 1
 					status |= STK_DT
 					if open==dt_price:
 						dt_st = 'DT'
-					count = get_zf_days(code, 2, trade_date, 1, stk_list)
+					if bGetDays==1 or count==-1:
+						count = get_zf_days(code, 2, trade_date, 1, stk_list)
+					else:
+						count += 1
+						verify_one_year_cx(props, pre300_date, 2, stk_list)
 					if stk_list[0]<300:
 						stcsItem.s_cxdt += 1
 
 					#DT Data
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, dt_st]
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, dt_st, dt_price]
 					stcsItem.lst_dt.append(list)
 				else:
 					stcsItem.s_dtft += 1
@@ -362,8 +531,11 @@ def analyze_status(st_dict, code, name, props, stcsItem, yzcx_flag, trade_date):
 						dt_st = 'K'
 
 					#DTFT Data
-					count = get_zf_days(code, 2, trade_date, 0, stk_list)
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, openban, dt_st]
+					if bGetDays==1 or count==-1:
+						count = get_zf_days(code, 2, trade_date, 0, stk_list)
+					else:
+						verify_one_year_cx(props, pre300_date, 2, stk_list)
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, openban, dt_st, dt_price]
 					stcsItem.lst_dtft.append(list)
 
 	#统计开盘涨跌幅度
@@ -445,7 +617,7 @@ def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre3
 			zt_price = spc_round2(zt_price1,2)
 
 			if not (high==low and price==zt_price):
-				klist = get_kday_data(code, 60)
+				klist = get_kline_day_data(code, 60)
 				yzzt_day = len(klist)
 				tail_day = klist[yzzt_day-1]['day']
 				if tail_day == trade_date:
@@ -470,12 +642,15 @@ def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre3
 				today_open.append(open_list)
 		break
 	if bopen==0:
-		print "Not OpenBan", code, name
+		#print "Not OpenBan", code, name
 		stcsItem.s_cx_yzzt += 1
 
 	return bopen
 
 #检查是否当日上市新股
+# -1: 有错误
+#  0: 不是new stk
+#  1: 是当天上的new stk
 def check_new_market(new_stock_list, code, name, props, stcsItem, trade_day, today_open):
 	itemLen = 26
 	if len(props)!=itemLen:
@@ -491,6 +666,7 @@ def check_new_market(new_stock_list, code, name, props, stcsItem, trade_day, tod
 		#TODO: KeChuanBan KCB
 		if code[:3] in g_new_mark:
 			return 1
+		#检查第一天是否开板了
 		ret = check_YZ_new_market(code, stcsItem)
 		if ret==-1:
 			price = props[1]
@@ -508,7 +684,7 @@ def check_new_market(new_stock_list, code, name, props, stcsItem, trade_day, tod
 def get_new_market_stock(trade_day, new_list, non_kaiban_list, new_code_list=None, src=''):
 	sort_list = []
 	if src=='' or src=='dc':
-		getNewStockMarket(sort_list)
+		get_new_stk_from_dfcf(sort_list)
 	else:
 		print("Unknown source", src)
 		return
@@ -536,7 +712,94 @@ def get_new_market_stock(trade_day, new_list, non_kaiban_list, new_code_list=Non
 			#print "CXItem", item['securitycode'], item['securityshortname'],item['kb'],item['sl']
 	return
 
-def collect_all_stock_data(st_dict, today_open, stcsItem, trade_date, debug=0):
+def qry_loop(index, qryArgs, trade_date, qLock):
+	#print desc
+	#print stcsList
+	for item in qryArgs:
+		tmArr = ['','']
+		code = item[1][0]
+		desc = item[0]
+		type = 0
+		if desc=='zt  ':
+			zdt_price = item[1][11]
+		elif desc=='zthl':
+			zdt_price = item[1][12]
+		elif desc=='dt  ':
+			zdt_price = item[1][11]
+			type = 1
+		elif desc=='dtft':
+			zdt_price = item[1][12]
+			type = 1
+		else:
+			print "Invalid type", desc
+			break
+		get_zdt_time(code, trade_date, zdt_price, type, tmArr)
+
+		chuban = tmArr[0]
+		openban = tmArr[1]
+		item[1][9] = chuban
+		if desc=='zthl' or desc=='dtft':
+			item[1][10] = openban
+
+		#qLock.acquire()
+		#print index, item[0], item[1][0], item[1][1], chuban, openban
+		#print item
+		#qLock.release()
+		#break
+	#print("query_loop quit", index);
+	return
+
+def update_zdt_time(stcsItem, trade_date):
+	thrdNum = 6
+	threadIdx = 0
+	threads = []
+	qryThread = [[] for i in range(thrdNum)]
+	lock = threading.Lock()
+	#print qryThread
+
+	for item in stcsItem.lst_non_yzcx_zt:
+		#print item[0]
+		lst = qryThread[threadIdx%thrdNum]
+		lst.append(['zt  ', item])
+		threadIdx += 1
+	for item in stcsItem.lst_non_yzcx_zthl:
+		#print item[0]
+		lst = qryThread[threadIdx%thrdNum]
+		lst.append(['zthl', item])
+		threadIdx += 1
+	for item in stcsItem.lst_dt:
+		#print item[0]
+		lst = qryThread[threadIdx%thrdNum]
+		lst.append(['dt  ', item])
+		threadIdx += 1
+	for item in stcsItem.lst_dtft:
+		#print item[0]
+		lst = qryThread[threadIdx%thrdNum]
+		lst.append(['dtft', item])
+		threadIdx += 1
+
+	#print "lll=", len(qryThread[0]),len(qryThread[1])
+	threadIdx = 0
+	for threadIdx in range(len(qryThread)):
+		qryArgs = qryThread[threadIdx]
+		t = threading.Thread(target=qry_loop, args=(threadIdx, qryArgs, trade_date, lock))
+		threads.append(t)
+
+	'''
+	'''
+	for item in threads:
+		item.start()
+	for item in threads:
+		item.join()
+		
+	for item in stcsItem.lst_non_yzcx_zt:
+		#print item[0], item[1]
+		chuban = item[9]
+		zt_time_analyze(chuban, stcsItem)
+	
+	return
+
+def collect_all_stock_data(st_dict, today_open, stcsItem, preStat, trade_date, debug=0):
 	sysstr = platform.system()
 	
 	st_list = st_dict['all_stk']
@@ -554,6 +817,7 @@ def collect_all_stock_data(st_dict, today_open, stcsItem, trade_date, debug=0):
 	stcsItem.s_new = len(new_st_list)
 	
 	pre30_date = get_preday(PRE_DAYS, trade_date)
+	pre300_date = get_preday(CX_DAYS, trade_date)
 	#print ("collect_all_stock1_data:", pre30_date)
 
 	for item in st_list:
@@ -586,7 +850,7 @@ def collect_all_stock_data(st_dict, today_open, stcsItem, trade_date, debug=0):
 		elif ret==1:
 			yzcx_flag=0
 
-		analyze_status(st_dict, code, name, item, stcsItem, yzcx_flag, trade_date)
+		analyze_status(st_dict, code, name, item, stcsItem, preStat, yzcx_flag, trade_date, pre300_date)
 		#ret, code = parseCode1(item[:6])
 		#if ret==-1:
 		#	print ("Invalid code", item[:6])
@@ -594,6 +858,75 @@ def collect_all_stock_data(st_dict, today_open, stcsItem, trade_date, debug=0):
 		#print(item[0], item[1], item[2])
 		#print cur_list
 		#get_std_realtime_data(cur_list, 'sn')
-		#print (i)
+
+	update_zdt_time(stcsItem, trade_date)
+	return
+
+def query_stk(index, qryArgs, pageNum, qLock, st, sr, ps):
+	pageStr = index*pageNum + 1
+	pageEnd = pageStr + pageNum - 1
 	
-	pass
+	#qLock.acquire()
+	#print index, pageNum, pageStr, pageEnd
+	#qLock.release()
+
+	curpage = pageStr
+	for curpage in range(pageStr, pageEnd+1):
+		bnext = get_each_page_data1(qryArgs, curpage, st, sr, ps)
+		if bnext==0:
+			break
+	#print("query_stk quit", index);
+	return
+
+#sort mode：
+#'A' stock code
+#'B' 股价
+#'C' 涨幅
+def get_stk_code_by_dfcf(new_st_list, st='C', sr=-1, ps=80):
+	curpage = 1
+	#items_list = []
+	totalpage = get_stk_max_page(0, st, sr, ps)
+	if totalpage==-1:
+		return totalpage
+	#print("Max Page", totalpage)
+	
+	thrdNum = 4
+	pageNum = totalpage/4 + 1
+	threadIdx = 0
+	threads = []
+	qryThread = [[] for i in range(thrdNum)]
+	lock = threading.Lock()
+
+	#print "lll=", len(qryThread[0]),len(qryThread[1])
+	threadIdx = 0
+	for threadIdx in range(len(qryThread)):
+		qryArgs = qryThread[threadIdx]
+		t = threading.Thread(target=query_stk, args=(threadIdx, qryArgs, pageNum, lock, st, sr, ps))
+		threads.append(t)
+
+	for item in threads:
+		item.start()
+	for item in threads:
+		item.join()
+	
+	threadIdx = 0
+	for threadIdx in range(len(qryThread)):
+		if qryThread[threadIdx] == []:
+			print ("Warning: Empty data")
+			continue
+		new_st_list.extend(qryThread[threadIdx])
+	'''
+	while 1:
+		bnext = get_each_page_data1(new_st_list, curpage, st, sr, ps)
+		exit(0)
+		if bnext==0:
+			break
+		elif bnext==-1:
+			continue
+		curpage += 1
+	#for item in items_list:
+	#	new_st_list.append(item[0:6])
+	'''
+	return 0
+
+	

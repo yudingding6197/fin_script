@@ -3,6 +3,8 @@
 import os
 import urllib2,time
 import datetime
+import sys
+sys.path.append('.')
 from internal.realtime_obj import *
 from internal.trade_date import *
 
@@ -15,6 +17,7 @@ def get_rt_time(f, dtObj):
 		if objs is not None:
 			dt = datetime.datetime.strptime(objs.group(1), "%Y-%m-%d %H:%M")
 			if dt.hour>=15:
+				#print "Find matched line", line
 				dtObj.append(dt)
 				return 0
 		line = f.readline()
@@ -27,6 +30,7 @@ def match_rt_date(f):
 	while line:
 		objs = re.match("(\d+)-(\d+)-(\d+)", line)
 		if objs is not None:
+			#print "date line", line
 			return 0
 		line = f.readline()
 	return -1
@@ -377,7 +381,7 @@ def parse_realtime_his_file(trade_day, stcsItem):
 		print("Error: not find ",filename)
 		return -1
 	
-	#print(filename)
+	#print("realtime file", filename)
 	f = open(filename, 'r')
 
 	dtObj = []
@@ -435,7 +439,16 @@ def get_path_by_tdate(pre_day):
 		return filename
 	print("Warning: not find file",pre_day)
 	return ''
-	
+
 #Main
 if __name__=='__main__':
+	trade_date = get_lastday()
+	pre_date = get_preday(1, trade_date)	
+	preStatItem = statisticsItem()
+	ret = parse_realtime_his_file(pre_date, preStatItem)
+	for item in preStatItem.lst_non_yzcx_yzzt:
+		print item[0],item[1]
+	print "-----\n"
+	for item in preStatItem.lst_non_yzcx_zt:
+		print item[0],item[1]
 	pass

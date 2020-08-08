@@ -29,3 +29,20 @@ if __name__=="__main__":
 	print '\n遍历列表方法3 （设置遍历开始初始位置，只改变了起始序号）：'
 	for i, val in enumerate(list, 2):
 		print ("序号：%s   值：%s" % (i + 1, val))
+
+	lists = [[]] * 3
+	print lists
+	lists[0].append(3)
+	print lists
+	# 3列数组的值同时更新 [[3], [3], [3]]
+
+	lists = [[] for i in range(3)]
+	lists[0].append(3)
+	print lists
+	lists[1].append(7)
+	print lists
+	
+	#二维数组创建方式修改为
+	myList = [([0] * 3) for i in range(4)]
+	print myList
+	

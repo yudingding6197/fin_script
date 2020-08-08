@@ -399,7 +399,7 @@ def get4IndexRaw():
 		return None
 
 	if res_data is None:
-		print "Open URL fail"
+		print "Open URL fail", urlall
 		return None
 
 	content = res_data.read()

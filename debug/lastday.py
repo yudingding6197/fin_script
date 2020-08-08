@@ -11,10 +11,17 @@ def get_sina_lastday():
 	param = 'sh000001'
 	stockData = ''
 	url = "http://hq.sinajs.cn/?_=0.7577027725009173&list=" + param
+	print "get sina lastday",url
 	LOOP_COUNT = 0
 	while LOOP_COUNT<3:
 		try:
-			stockData = urllib2.urlopen(url,timeout=3).read()
+			print "create url"
+			time.sleep(0.1)
+			urlObj = urllib2.urlopen(url,timeout=3)
+			print "urlObj", urlObj
+			stockData = urlObj.read()
+			print "Read Data Fin"
+			#stockData = urllib2.urlopen(url,timeout=3).read()
 		except:
 			LOOP_COUNT += 1
 			time.sleep(0.5)

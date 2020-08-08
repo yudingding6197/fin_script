@@ -84,25 +84,45 @@ def parseDate2(qdate):
 	dlen = len(qdate)
 	beginTm = datetime.datetime.now()
 	dateObj = None
-	if dlen==8:
-		dateObj = re.match(r'^(\d{4})(\d{2})(\d{2})', qdate)
-		year = int(dateObj.group(1))
-		month = int(dateObj.group(2))
-		day = int(dateObj.group(3))
-	elif dlen==6:
-		dateObj = re.match(r'^(\d{2})(\d{2})(\d{2})', qdate)
-		year = 2000+int(dateObj.group(1))
-		month = int(dateObj.group(2))
-		day = int(dateObj.group(3))
-	elif dlen==4:
-		dateObj = re.match(r'^(\d{2})(\d{2})', qdate)
-		year = beginTm.year
-		month = int(dateObj.group(1))
-		day = int(dateObj.group(2))
+	if '-' in qdate:
+		if dlen==10:
+			dateObj = re.match(r'^(\d{4})-(\d{2})-(\d{2})', qdate)
+			year = int(dateObj.group(1))
+			month = int(dateObj.group(2))
+			day = int(dateObj.group(3))
+		elif dlen==8:
+			dateObj = re.match(r'^(\d{2})-(\d{2})-(\d{2})', qdate)
+			year = 2000+int(dateObj.group(1))
+			month = int(dateObj.group(2))
+			day = int(dateObj.group(3))
+		elif dlen==5:
+			dateObj = re.match(r'^(\d{2})-(\d{2})', qdate)
+			year = beginTm.year
+			month = int(dateObj.group(1))
+			day = int(dateObj.group(2))
+		else:
+			print("非法日期 %s,期望格式:YYYY-MM-DD or YY-MM-DD or MM-DD"%(qdate))
+			return (-1, '')
 	else:
-		print("非法日期 %s,期望格式:YYYYMMDD or YYMMDD or MMDD"%(qdate))
-		return (-1, '')
-	
+		if dlen==8:
+			dateObj = re.match(r'^(\d{4})(\d{2})(\d{2})', qdate)
+			year = int(dateObj.group(1))
+			month = int(dateObj.group(2))
+			day = int(dateObj.group(3))
+		elif dlen==6:
+			dateObj = re.match(r'^(\d{2})(\d{2})(\d{2})', qdate)
+			year = 2000+int(dateObj.group(1))
+			month = int(dateObj.group(2))
+			day = int(dateObj.group(3))
+		elif dlen==4:
+			dateObj = re.match(r'^(\d{2})(\d{2})', qdate)
+			year = beginTm.year
+			month = int(dateObj.group(1))
+			day = int(dateObj.group(2))
+		else:
+			print("非法日期 %s,期望格式:YYYYMMDD or YYMMDD or MMDD"%(qdate))
+			return (-1, '')
+
 	#验证日期的合法性
 	try:
 		datetime.date(year,month,day)

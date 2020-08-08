@@ -9,6 +9,7 @@ import datetime
 import platform
 import shutil
 import getopt
+import chardet
 import pandas as pd
 #import tushare as ts
 #import internal.common
@@ -42,7 +43,7 @@ def show_zt_info(zt_list, desc, fmt, outstr, pconfig):
 	endstr = ''
 	if number<=0:
 		return
-	elif pconfig['AllInfo']==1:
+	elif pconfig['NotAllInfo']==0:
 		number = 10000
 	elif number>30:
 		number = 30
@@ -80,6 +81,7 @@ def show_zt_info(zt_list, desc, fmt, outstr, pconfig):
 		elif desc=="ZTHL":
 			cxFlag += ' ' + itm_lst[11]
 			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag,itm_lst[9],itm_lst[10])
+		if isinstance(str, unicode): str = str.encode('gbk')
 		print str
 		i += 1
 		if i>number:
@@ -92,7 +94,7 @@ def show_dt_info(dt_list, desc, fmt, pconfig):
 	str = "%s  [%d]:" % (desc, number)
 	if number<=0:
 		return
-	elif pconfig['AllInfo']==1:
+	elif pconfig['NotAllInfo']==0:
 		number = 10000
 	elif number>30:
 		number = 30
@@ -114,6 +116,7 @@ def show_dt_info(dt_list, desc, fmt, pconfig):
 		elif desc=="DTFT":
 			df = df.sort_values([2,7], 0, False)
 	i = 1
+	if isinstance(str, unicode): str = str.encode('gbk')
 	print str
 	for index,itm_lst in df.iterrows():
 		cxFlag = ''
@@ -127,6 +130,7 @@ def show_dt_info(dt_list, desc, fmt, pconfig):
 		elif desc=="DTFT":
 			cxFlag += ' ' + itm_lst[11]
 			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag,itm_lst[9],itm_lst[10])
+		if isinstance(str, unicode): str = str.encode('gbk')
 		print str
 		i += 1
 		if i>number:
@@ -153,7 +157,7 @@ def handle_argument():
 		elif option in ["-t","--sbtime"]:
 			param_config["SortByTime"] = 1
 		elif option in ["-a","--all"]:
-			param_config["AllInfo"] = 1
+			param_config["NotAllInfo"] = 1
 		elif option in ["-c","--dfcf"]:
 			param_config["DFCF"] = 1
 	#print param_config
@@ -178,7 +182,7 @@ param_config = {
 	"NoLog":0,
 	"NoDetail":0,
 	"SortByTime":0,
-	"AllInfo":0,
+	"NotAllInfo":0,
 	"DFCF":0,
 }
 REAL_PRE_FD = "../data/"
@@ -190,11 +194,11 @@ if __name__=='__main__':
 	beginTm = datetime.datetime.now()
 	sysstr = platform.system()
 	
-	flname = REAL_PRE_FD + "realtime1.txt"
+	flname = REAL_PRE_FD + "realtime.txt"
 	#TODO: open the comment
 	if os.path.isfile(flname):
 		os.remove(flname)
-	#sys.stdout = Logger_IO(flname)
+	sys.stdout = Logger_IO(flname)
 
 	handle_argument()
 	t_fmt = '%d-%02d-%02d %02d:%02d'
@@ -210,12 +214,12 @@ if __name__=='__main__':
 	trade_date = get_lastday()
 	pre_date = get_preday(1, trade_date)
 	init_trade_list()
-	print ("Current trade day:", trade_date, pre_date)
+	#print ("Current trade day:", trade_date, pre_date)
 	new_st_list = []
 	new_st_code_list = []
 	non_kb_list = []
 	get_new_market_stock(trade_date, new_st_list, non_kb_list, new_st_code_list)
-	#getNewStockMarket(new_st_list)
+	lst=new_st_list[0]
 	#for item in non_kb_list:
 	#	print item['securitycode'], item['securityshortname']
 	#print(non_kb_list)
@@ -225,7 +229,7 @@ if __name__=='__main__':
 	fp_code_list = []
 	pickup_fupai_item(trade_date, fp_list, fp_code_list)
 	cur2 = datetime.datetime.now()
-	print("eee.py: get fupai", (cur2-cur1))
+	#print("eee.py: get fupai", (cur2-cur1))
 	#for it in fp_list:
 	#	print it['obSeccode0111'],it['obSecname0111']
 	
@@ -240,7 +244,7 @@ if __name__=='__main__':
 	#print(preStatItem.lst_non_yzcx_yzzt)
 	
 	cur2 = datetime.datetime.now()
-	print("eee.py: parse pre-day rt", (cur2-cur1))
+	#print("eee.py: parse pre rt file Fin", (cur2-cur1))
 	
 	debug = 0
 	today_open = []
@@ -253,11 +257,15 @@ if __name__=='__main__':
 	'''
 	#通过条件查询所有STK, start from 000001
 	st_list = []
-	get_stk_code_by_cond1(st_list, 'A', 0)
+	ret = get_stk_code_by_dfcf(st_list, 'A', 0)
+	#ret = get_stk_code_by_cond1(st_list, 'A', 0)
+	if ret==-1:
+		exit(0)
+	
 	#调试的时候移动注释到这一行下面
 	cur2 = datetime.datetime.now()
-	print("eee.py: get all stk by cond", (cur2-cur1))
-	
+	#print("eee.py: get all stk by cond Fin", (cur2-cur1))
+
 	st_dict = {}
 	st_dict['fup_stk'] = fp_code_list
 	st_dict['new_stk'] = new_st_code_list
@@ -266,12 +274,13 @@ if __name__=='__main__':
 
 	#print "=====>", len(stcsItem.lst_non_yzcx_zthl)
 	stcsItem=statisticsItem()
-	status = collect_all_stock_data(st_dict, today_open, stcsItem, trade_date, debug)
+	print trade_date
+	status = collect_all_stock_data(st_dict, today_open, stcsItem, preStatItem, trade_date, debug)
 	if status==-1:
 		exit(0)
 
 	cur2 = datetime.datetime.now()
-	print ("delta2=",(cur2-cur1))
+	#print ("collect all Fin",(cur2-cur1))
 	#exit(0)
 
 	non_cx_yz = len(stcsItem.lst_non_yzcx_yzzt)
@@ -296,7 +305,9 @@ if __name__=='__main__':
 
 	dtft_qiang = filter_dtft(stcsItem.lst_dtft, -3)
 	print "%4d-ZT		%4d-DT		%d-X %d--(%d+%d) %s" % (stcsItem.s_zt,stcsItem.s_dt,stcsItem.s_new,stcsItem.s_yzzt, cx_yz, non_cx_yz, str_opn)
-	print "%4d-CG(%d)	%4d-FT(%d)	%2d-YIN  KD:[%s]" %(stcsItem.s_zthl,len(stcsItem.lst_kd),stcsItem.s_dtft,dtft_qiang,stcsItem.s_zt_o_gt_c,','.join(stcsItem.lst_kd))
+	kd_str = ','.join(stcsItem.lst_kd)
+	if isinstance(kd_str, unicode): kd_str = kd_str.encode('gbk')
+	print "%4d-CG(%d)	%4d-FT(%d)	%2d-YIN  KD:[%s]" %(stcsItem.s_zthl,len(stcsItem.lst_kd),stcsItem.s_dtft,dtft_qiang,stcsItem.s_zt_o_gt_c,kd_str)
 	print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_open_sz, stcsItem.s_open_dz, stcsItem.s_open_pp, stcsItem.s_open_xd, stcsItem.s_open_dd)
 	print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_close_sz, stcsItem.s_close_dz, stcsItem.s_close_pp, stcsItem.s_close_xd, stcsItem.s_close_dd)
 	print "4%%:%4d	%4d" %(stcsItem.s_high_zf,stcsItem.s_low_df)
@@ -314,6 +325,8 @@ if __name__=='__main__':
 			else:
 				str1 = "%s(%d, %.2f%%), " % (itm_lst[1], itm_lst[4],itm_lst[2])
 			str += str1
+		if isinstance(str, unicode):
+			str = str.encode('gbk')
 		print str
 	else:
 		print "CXKB:====="
@@ -321,12 +334,15 @@ if __name__=='__main__':
 
 	str = ''
 	list = stcsItem.lst_nb
-	print "TODO:handle NB and JC"
 	if len(list)>0:
 		print "NB:"
 		for i in range(0, len(list)):
 			itm_lst = list[i]
-			str1 = "%s(%.2f%%, %.2f%%), " % (itm_lst[1], itm_lst[2], itm_lst[4])
+			if type(itm_lst[1]) is unicode:
+				sname = itm_lst[1].encode('gbk')
+			else:
+				sname = itm_lst[1]
+			str1 = "%s(%.2f%%, %.2f%%), " % (sname, itm_lst[2], itm_lst[4])
 			str += str1
 		print str
 
@@ -336,7 +352,11 @@ if __name__=='__main__':
 		print "JC:"
 		for i in range(0, len(list)):
 			itm_lst = list[i]
-			str1 = "%s(%.2f%%, %.2f%%), " % (itm_lst[1], itm_lst[2], itm_lst[4])
+			if type(itm_lst[1]) is unicode:
+				sname = itm_lst[1].encode('gbk')
+			else:
+				sname = itm_lst[1]
+			str1 = "%s(%.2f%%, %.2f%%), " % (sname, itm_lst[2], itm_lst[4])
 			str += str1
 		print str
 
@@ -364,7 +384,6 @@ if __name__=='__main__':
 		show_dt_info(stcsItem.lst_dtft, "DTFT", fmt3, param_config)
 
 	cur2 = datetime.datetime.now()
-	print("eee.py: ready log", (cur2-cur1))
 	if param_config["NoLog"]==0:
 		sys.stdout.flush()
 		log = open(flname, 'r')
@@ -375,13 +394,15 @@ if __name__=='__main__':
 		path = '../data/entry/realtime/'
 		flname = path + "rt_" + fmt_time + ".txt"
 		baklog = open(flname, 'a')
-		baklog.write('##############################################################\n')
+		baklog.write('#####quik_rt#########################################################\n')
 		baklog.write(content)
 		baklog.write('\n')
 		baklog.close()
 
 		tmp_file = path + "b_rt.txt"
 		shutil.copy(flname, tmp_file)
+	'''
+	'''
 	endTm = datetime.datetime.now()
 	print "END ", (endTm-beginTm)
 	cur2 = datetime.datetime.now()

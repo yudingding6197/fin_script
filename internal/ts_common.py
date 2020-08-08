@@ -1041,7 +1041,7 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 		else:
 			break
 	if res_data is None:
-		print("Open URL fail", code)
+		print("Open URL fail", code, urlall)
 		return -1
 
 	content1 = res_data.read()
@@ -1590,6 +1590,7 @@ def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 	today = datetime.date.today()
 	number = len(st_list)
 	if number<=0:
+		print("st_list is NULL")
 		return -1
 
 	#得到ZS的信息，但是当天交易的时候，得不到当天的
@@ -1632,15 +1633,13 @@ def get_all_stk_info(st_list, dc_data, today_open, stcsItem):
 			try:
 				stdf = ts.get_realtime_quotes(cur_list)
 			except:
-				print cur_list, "Get real time except:", LOOP_COUNT
 				time.sleep(0.5)
 				LOOP_COUNT += 1
-				stdf = None
 			else:
 				break
 		if stdf is None:
 			print "Get list fail at:", cur_list
-			continue
+			return -1
 
 		#print stdf
 		for index,row in stdf.iterrows():

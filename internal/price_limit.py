@@ -12,7 +12,7 @@ import getopt
 import urllib2,time
 import datetime
 
-#sys.path.append(".")
+sys.path.append(".")
 from url_dfcf.dc_hangqing import *
 from url_dfcf.limit_ban import *
 from url_sina.sina_inf import *
@@ -21,11 +21,11 @@ def handle_today_ticks(df, code, trade_date, chk_price, type):
 	tmstr = '??:??'
 	return tmstr
 
-def get_k5_data(code, length):
+def get_kline5_data(code, length):
 	klist = get_k5_data_bysn(code, len=length)
 	return klist
 
-def get_kday_data(code, length):
+def get_kline_day_data(code, length):
 	klist = get_kday_data_bysn(code, len=length)
 	return klist
 	
@@ -69,10 +69,9 @@ def handle_k5_data(klist, code, trade_date, chk_price, type, tm_array):
 			continue
 		#print(row['day'][:10])
 
-		close = float(row['close'])
 		#ZT
 		if type==0:
-			price = float(row['high'])
+			price = round(float(row['high']), 2)
 			if mx_prc<price:
 				mx_prc = price
 				tmobj = row['day']
@@ -80,8 +79,8 @@ def handle_k5_data(klist, code, trade_date, chk_price, type, tm_array):
 			elif mx_prc==price:
 				tmend = row['day']
 		#DT
-		else:
-			price = row['low']
+		elif type==1:
+			price = round(float(row['low']), 2)
 			if mx_prc==0:
 				mx_prc = price
 				tmobj = row['day']
@@ -92,17 +91,21 @@ def handle_k5_data(klist, code, trade_date, chk_price, type, tm_array):
 				tmend = row['day']
 			elif mx_prc==price:
 				tmend = row['day']
+		else:
+			print ("Error:Unknown type", type)
+			break
 	binst = 0
+	#print mx_prc, chk_price
 	if mx_prc!=chk_price:
 		binst = 1
 
 	#print tmobj, tmend
 	if tmobj!='':
 		tmstr = covert_time_fmt(tmobj, 5, binst)
-		tm_array.append(tmstr)
+		tm_array[0]=tmstr
 	if tmend!='':
 		tmstr = covert_time_fmt(tmend, 0, binst)
-		tm_array.append(tmstr)
+		tm_array[1]=tmstr
 	#print(tmstr)
 	return tmstr
 		
@@ -156,9 +159,11 @@ def handle_k5_data(klist, code, trade_date, chk_price, type, tm_array):
 #获取首次触板ZT or DT的时间
 #type  0:ZT  1:DT
 def get_zdt_time(code, trade_date, chk_price, type, tm_array):
-	tmstr = '??:??'
-	#tm_array.append("17:17")
-	#tm_array.append("18:18")
+	'''
+	tm_array.append("17:17")
+	tm_array.append("18:18")
+	return tmstr
+	'''
 
 	flag = 0
 	today = datetime.date.today()
@@ -166,7 +171,7 @@ def get_zdt_time(code, trade_date, chk_price, type, tm_array):
 	#	flag = 1
 	
 	flag = 1
-	klist = get_k5_data(code, 240)
+	klist = get_kline5_data(code, 120)
 	tmstr = handle_k5_data(klist, code, trade_date, chk_price, type, tm_array)
 
 	'''
@@ -247,6 +252,7 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 if __name__=="__main__":
 	stk_list=[0, 0]
 	#get_zf_days('000796', 1, '2020-07-12', 1, stk_list)
-	tm_array=[]
-	get_zdt_time('603988', '2020-07-16', 6.62, 1, tm_array)
+	tm_array=['','']
+	get_zdt_time('000822', '2020-07-31', 4.37, 1, tm_array)
+	print "TM Array", tm_array[0],tm_array[1]
 	
