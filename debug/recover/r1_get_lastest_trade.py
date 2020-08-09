@@ -11,18 +11,10 @@ import datetime
 import platform
 import shutil
 import getopt
-import chardet
 
 sys.path.append('.')
-from internal.handle_realtime import *
-#from internal.dfcf_inf import *
-#from internal.ts_common import show_index_info
 from internal.trade_date import *
 from internal.update_tday_db import *
-from internal.analyze_realtime import *
-from internal.compare_realtime import *
-from internal.tingfupai import * 
-from internal.common_inf import * 
 
 def handle_argument():
 	optlist, args = getopt.getopt(sys.argv[1:], 'ldtac')

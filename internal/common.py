@@ -80,6 +80,15 @@ def parseCode(code, mode='sn'):
 			else:
 				print "非法代码:" +code+ "\n"
 				return (-1, '')
+	elif mode=='wy':
+		if head3 in g_szcd:
+			ncode = code + '1'
+		else:
+			if head3 in g_shcd:
+				ncode = code + '0'
+			else:
+				print "非法代码:" +code+ "\n"
+				return (-1, '')
 	else:
 		print("WIP parse code", mode)
 		return (-1, '')

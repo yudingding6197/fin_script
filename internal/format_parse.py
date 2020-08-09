@@ -33,13 +33,21 @@ def parseCode(code, mode='sn'):
 			else:
 				print "非法代码:" +code+ "\n"
 				return (-1, '')
-		return (0, ncode)
 	elif mode=='sn':
 		if head3 in g_szcd:
 			ncode = 'sz' + code
 		else:
 			if head3 in g_shcd:
 				ncode = 'sh' + code
+			else:
+				print "非法代码:" +code+ "\n"
+				return (-1, '')
+	elif mode=='wy':
+		if head3 in g_szcd:
+			ncode = '1' + code
+		else:
+			if head3 in g_shcd:
+				ncode = '0' + code
 			else:
 				print "非法代码:" +code+ "\n"
 				return (-1, '')

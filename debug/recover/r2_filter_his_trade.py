@@ -54,12 +54,15 @@ if __name__=='__main__':
 	#get_all_stk_info() 进行日期处理，获取最新交易日期
 	#trade_date = get_lastday()
 	flname = REAL_PRE_FD + "dailydb_19base.txt"
+	tradefl = REAL_PRE_FD + def_dt[:4] + '/' + "trade_" + def_dt + ".txt"
 	
 	defDt = datetime.datetime.strptime(def_dt, '%Y-%m-%d').date()
 	pre30_date = get_preday(PRE_DAYS, def_dt)
 	pre300_date = get_preday(CX_DAYS, def_dt)
 	print "dt, pre30, pre300", defDt, pre30_date, pre300_date
 
+	fmt = "%s,%s,%s\n"
+	tdFile = open(tradefl, "w")
 	file = open(flname, "r")
 	line = file.readline()
 	while line:
@@ -68,13 +71,19 @@ if __name__=='__main__':
 			continue
 
 		obj = line.split(',')		
-		mark_dt = obj[len(obj)-1]
-		#print mark_dt
+		mark_dt = obj[len(obj)-1].strip()
 		markDt = datetime.datetime.strptime(mark_dt, '%Y-%m-%d').date()
-		print defDt, markDt
+		#print defDt, markDt
 		if (defDt-markDt).days<0:
 			line = file.readline()
 			continue
 
 		line = file.readline()
+		
+		tdLine = fmt % (obj[1], obj[2], mark_dt)
+		tdFile.write(tdLine)
+		#print line
 	file.close()
+	
+	#TODO: 增加退市的个股
+	tdFile.close()

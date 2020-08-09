@@ -46,6 +46,13 @@ if __name__ == '__main__':
 	delta = end_date-idx_date
 	print("day interval1=", delta.days)
 	
+	print("Loop date")
+	while idx_date<=end_date:
+		date_str = idx_date.strftime('%Y%m%d')
+		idx_date += datetime.timedelta(days=1)	
+		print("%s%s"%("    ", date_str))
+	
+	
 	dt_str = '2017-3-5 12:23:56'
 	tm1 = datetime.datetime.strptime(dt_str, '%Y-%m-%d  %H:%M:%S')
 	print("tm1 fmt===", type(tm1), tm1)

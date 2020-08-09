@@ -1,10 +1,16 @@
 #!/usr/bin/env python
 # -*- coding:utf8 -*-
 
-#两种方法：
+'''
+#两种方法获取函数名称：
 #1.通过系统函数
 #2.通过inspect模块
 
+获取当前文件名:
+
+'''
+
+import os
 import sys
 import inspect
 from datetime import *
@@ -45,3 +51,11 @@ if __name__ == "__main__":
 	a()
 	
 	call_func()
+	
+	print ("获取当前文件名".decode('utf8'))
+	name=os.path.basename(__file__)
+	print(name)
+
+	print ("去掉文件后缀，只要文件名称".decode('utf8'))
+	name=os.path.basename(__file__).split(".")[0]
+	print(name)

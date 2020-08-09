@@ -114,6 +114,7 @@ def get_tingfupai_res(curdate):
 	LOOP_COUNT = 0
 	res_data=None
 	#print('tingfup', urlall)
+	#’‚ «POST«Î«Û
 	while LOOP_COUNT<3:
 		try:
 			req = urllib2.Request(urlall, data)

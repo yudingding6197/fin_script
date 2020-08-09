@@ -46,3 +46,10 @@ if __name__=="__main__":
 	myList = [([0] * 3) for i in range(4)]
 	print myList
 	
+	num_list = [0,1,2,3,4,5,6,7,8,9]
+	num_list_new = [str(x) for x in num_list]
+	print ",".join(num_list_new)
+
+	num_list = ['aa','cc',1,2,3,4,5,6,7,8,9]
+	num_list_new = map(lambda x:str(x), num_list)
+	print ",".join(num_list_new)	
