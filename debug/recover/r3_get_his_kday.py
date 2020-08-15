@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:gbk -*-
 
-#保存每日的交易信息
+#根据code获取对应指定年的日K
+#保存为kday_...文件，或者通过 json格式存储
 import sys
 import re
 import os
@@ -33,7 +34,7 @@ param_config = {
 	"Year":'',
 	"Format":'',
 }
-REAL_PRE_FD = "../data/daily/"
+REAL_DAILY_PRE_FD = "../data/daily/"
 
 #Main Start:
 if __name__=='__main__':
@@ -44,8 +45,7 @@ if __name__=='__main__':
 	beginTm = datetime.datetime.now()
 	year = param_config["Year"]
 	#get_all_stk_info() 进行日期处理，获取最新交易日期
-	#trade_date = get_lastday()
-	tradeFl = REAL_PRE_FD + year + '/' + "_trade_" + year + ".txt"
+	tradeFl = REAL_DAILY_PRE_FD + year + '/' + "_trade_" + year + ".txt"
 
 	file = open(tradeFl, "r")
 	line = file.readline()
@@ -68,11 +68,11 @@ if __name__=='__main__':
 	
 		bExist = 0
 		if param_config["Format"]=='':
-			kFl = REAL_PRE_FD + year + '/' + 'kday_' + obj[0] + ".txt"
+			kFl = REAL_DAILY_PRE_FD + year + '/' + 'kday_' + obj[0] + ".txt"
 			if os.path.exists(kFl):
 				bExist = 1
 		elif param_config["Format"]=='json':
-			kFl = REAL_PRE_FD + year + '/json/' + 'j' + obj[0] + ".txt"
+			kFl = REAL_DAILY_PRE_FD + year + '/json/' + 'j' + obj[0] + ".txt"
 			#print kFl
 			if os.path.exists(kFl):
 				bExist = 1

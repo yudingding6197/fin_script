@@ -1,4 +1,4 @@
-#def get_trade_tips(curdate)
+#def get_trade__tips(curdate)
 #www.cninfo.com.cn/new/information/memoQuery?queryDate=2020-08-05
 
 {

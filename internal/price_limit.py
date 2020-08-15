@@ -16,6 +16,7 @@ sys.path.append(".")
 from url_dfcf.dc_hangqing import *
 from url_dfcf.limit_ban import *
 from url_sina.sina_inf import *
+from internal.math_common import *
 
 def handle_today_ticks(df, code, trade_date, chk_price, type):
 	tmstr = '??:??'
@@ -185,6 +186,7 @@ def get_zdt_time(code, trade_date, chk_price, type, tm_array):
 	return tmstr
 
 #返回值是ZDT的天数，stk_list[0]表示上市交易的天数，判断是否是次新
+#cur_zdt:表示当天是否是ZDT状态
 def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 	rtntype = 1
 	jstr = 'fsData1515847425760'
@@ -249,10 +251,92 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 		dayLen -= 1
 	return count
 
+#返回值是ZDT的天数，stk_list[0]表示上市交易的天数，判断是否是次新
+def check_pre_day_state(code, trade_date):
+	rtntype = 1
+	jstr = 'fsData1515847425760'
+	content = get_zdting_by_dc(code, jstr, rtntype)
+	if content is None:
+		return 'ERROR'
+
+	jslen = len(jstr)
+	content = content[(jslen+1):]
+	if len(content) < 30:
+		print "Warning, TuiShi?", code, trade_date
+		return 'TUISHI'
+
+	#print code, content
+	contObj = content.split("\n")
+	dayLen = len(contObj)
+	#print contObj[dayLen-1][:10]
+	#print contObj[dayLen-2][:10]
+	
+	last_dt = contObj[dayLen-1][:10].strip()
+	lastDate = datetime.datetime.strptime(last_dt, '%Y-%m-%d').date()
+	trdDate = datetime.datetime.strptime(trade_date, '%Y-%m-%d').date()
+	preDayItem = ''
+	pre2DayItem = ''
+	if (trdDate-lastDate).days>0:
+		#trade_data的数据还没有，意味着这天还正在交易中
+		preDayItem = contObj[dayLen-1]
+		pre2DayItem = contObj[dayLen-2]
+		#print "nnn", preDayItem, pre2DayItem
+	else:
+		while dayLen>0:
+			dayCont = contObj[dayLen-1]
+			if len(dayCont)<=8:
+				dayLen -= 1
+				continue
+			#print(dayCont)
+			cur_dt = dayCont[:10].strip()
+			if cur_dt == trade_date:
+				#print "cccc",cur_dt
+				preDayItem = contObj[dayLen-2]
+				pre2DayItem = contObj[dayLen-3]
+				break
+			dayLen -= 1
+		#print "yyy", preDayItem, pre2DayItem
+	#end if-else
+	
+	if preDayItem=='':
+		print "Not find pre day info"
+		return 'ERROR'
+
+	itemObj = preDayItem.strip().split(',')
+
+	#前一天的信息
+	preDayDt = itemObj[0]
+	close = float(itemObj[2])
+	high = float(itemObj[3])
+	low = float(itemObj[4])
+
+	#获取前两天的信息，计算后一天的ZDT价格
+	preItemObj = pre2DayItem.strip().split(',')
+	preClose = float(preItemObj[2])
+	
+	zt_price1 = preClose * 1.1
+	dt_price1 = preClose * 0.9
+	zt_price = spc_round2(zt_price1,2)
+	dt_price = spc_round2(dt_price1,2)
+
+	desc = ''
+	if close == zt_price:
+		if high==low:
+			desc="YZZT"
+		else:
+			desc = "ZT"
+	elif close==dt_price:
+		if high==low:
+			desc = "YZDT"
+		else:
+			desc = "DT"
+	return desc
+
 if __name__=="__main__":
 	stk_list=[0, 0]
 	#get_zf_days('000796', 1, '2020-07-12', 1, stk_list)
 	tm_array=['','']
-	get_zdt_time('000822', '2020-07-31', 4.37, 1, tm_array)
+	#get_zdt_time('000822', '2020-07-31', 4.37, 1, tm_array)
+	check_pre_day_state('600158', '2019-06-27')
 	print "TM Array", tm_array[0],tm_array[1]
 	

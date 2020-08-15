@@ -337,6 +337,13 @@ def get_each_page_data1(new_st_list, curpage, st='A', sr=-1, ps=80):
 			continue
 		#line = array[i][2:]
 		#new_st_list.append(line.encode('gbk'))
+		
+		#TODO: debug, can remove it
+		if i==11:
+			if array[i]=='-':
+				print rank
+		#TODO: END
+		
 		new_st_list.append(props)
 
 	#到达最大页面，返回0

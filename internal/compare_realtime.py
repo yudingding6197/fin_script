@@ -13,18 +13,18 @@ lst_yzdt				lst_dt				lst_dtft
 
 def get_zt_data(stcsItem, zt_dict):
 	for i in stcsItem.lst_non_yzcx_yzzt:
-		zt_dict[i[0]] = [i[1], 'YZZT', i[7]]
+		zt_dict[i[0]] = [i[1], i[7], 'YZZT', '']
 		#print "lst_non_yzcx_yzzt", i[0], i[1], i
 	for i in stcsItem.lst_non_yzcx_zt:
-		zt_dict[i[0]] = [i[1], ' ZT ', i[7]]
+		zt_dict[i[0]] = [i[1], i[7], ' ZT ', '']
 		#print "lst_non_yzcx_zt", i[0], i[1], i
 
 def get_dt_data(stcsItem, dt_dict):
 	for i in stcsItem.lst_yzdt:
-		dt_dict[i[0]] = [i[1], 'YZDT', i[7]]
+		dt_dict[i[0]] = [i[1], i[7], 'YZDT', '']
 		#print "lst_non_yzdt", i[0], i[1]
 	for i in stcsItem.lst_dt:
-		dt_dict[i[0]] = [i[1], ' DT ', i[7]]
+		dt_dict[i[0]] = [i[1], i[7], ' DT ', '']
 		#print "lst_non_dt", i[0], i[1]
 
 def compare_qiangruo(todayItem, ysdayItem, q_dict, r_dict, flag=''):
@@ -35,6 +35,9 @@ def compare_qiangruo(todayItem, ysdayItem, q_dict, r_dict, flag=''):
 	
 	get_zt_data(ysdayItem, y_zt_dict)
 	get_dt_data(todayItem, t_dt_dict)
+	#print json.dumps(y_zt_dict, ensure_ascii=False)
+	#print ""
+	#print json.dumps(t_dt_dict, ensure_ascii=False)
 
 	#print("===== today ZT, ytoday DT=====")
 	get_zt_data(todayItem, t_zt_dict)
@@ -51,8 +54,9 @@ def compare_qiangruo(todayItem, ysdayItem, q_dict, r_dict, flag=''):
 		if i in y_zt_dict.iterkeys():
 			if flag=='' or flag=='R':
 				r_dict[i] = y_zt_dict[i]
-				#print("ZRZT, JRDT RRRRR", i, y_zt_dict[i])
-	#还有开班的CX
+				r_dict[i][2] = y_zt_dict[i][2] + '-' + t_dt_dict[i][2]
+				#print("ZRZT, JRDT RRRRR", i, r_dict[i])
+	#还有开板的CX
 	#r_dict[i] = 
 	
 	#print(r_dict)
@@ -61,6 +65,7 @@ def compare_qiangruo(todayItem, ysdayItem, q_dict, r_dict, flag=''):
 		if i in y_dt_dict.iterkeys():
 			if flag=='' or flag=='Q':
 				q_dict[i] = y_dt_dict[i]
+				q_dict[i][2] = y_dt_dict[i][2] + '-' + t_zt_dict[i][2]
 				#print("ZRDT, JRZT QQQQQ", i)
 	#print(q_dict)
 	

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:gbk -*-
 
-#保存每日的交易信息
+#从dailydb_YYbase.txt读取所有个股
+#保存为[code, name, 上市日期]格式
 import sys
 import re
 import os
@@ -37,7 +38,7 @@ param_config = {
 	"NotAllInfo":0,
 	"DFCF":0,
 }
-REAL_PRE_FD = "../data/daily/"
+REAL_DAILY_PRE_FD = "../data/daily/"
 
 #Main Start:
 if __name__=='__main__':
@@ -51,10 +52,8 @@ if __name__=='__main__':
 	if ret==-1:
 		exit(0)
 	
-	#get_all_stk_info() 进行日期处理，获取最新交易日期
-	#trade_date = get_lastday()
-	flname = REAL_PRE_FD + "dailydb_19base.txt"
-	tradefl = REAL_PRE_FD + def_dt[:4] + '/' + "trade_" + def_dt + ".txt"
+	flname = REAL_DAILY_PRE_FD + "dailydb_19base.txt"
+	tradefl = REAL_DAILY_PRE_FD + def_dt[:4] + '/' + "trade_" + def_dt + ".txt"
 	
 	defDt = datetime.datetime.strptime(def_dt, '%Y-%m-%d').date()
 	pre30_date = get_preday(PRE_DAYS, def_dt)

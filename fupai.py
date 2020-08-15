@@ -9,17 +9,21 @@ import urllib2
 import datetime
 import binascii
 import shutil
-from openpyxl import Workbook
-from openpyxl.reader.excel  import  load_workbook
-from internal.common import *
-from internal.ts_common import *
+#from openpyxl import Workbook
+#from openpyxl.reader.excel  import  load_workbook
+#from internal.common import *
+#from internal.ts_common import *
 from internal.tingfupai import *
+from internal.trade_date import *
+from internal.url_juchao.tips_res import *
 
 #Main
 if __name__=="__main__":
 	curdate = ''
 	bLast = 0
-	curdate, bLast = get_date_with_last()
+	#curdate, bLast = get_date_with_last()
+	curdate = get_lastday()
+	bLast = 1
 	print curdate, bLast
 
 	res_data = get_tingfupai_res(curdate)

@@ -12,8 +12,10 @@ import getopt
 import urllib2,time
 import datetime
 import threading
-#import tushare as ts
+
 from internal.trade_date import *
+from internal.math_common import *
+from internal.url_juchao.tips_res import *
 from internal.url_dfcf.dc_hangqing import *
 from internal.url_sina.fetch_sina import *
 from internal.url_sina.sina_inf import *
@@ -111,14 +113,6 @@ def get_today_new_stock(new_st_list):
 			new_st_list.append(code)
 	return
 
-def spc_round2(value,bit):
-	b = int(value*10000)
-	b1 = b+51
-	j = b1/100
-	rd_val = float(j)/100
-	return rd_val
-
-
 def get_std_realtime_data(cur_list, src='sn'):
 	if src=='sn' or src=='':
 		get_realtime_data(cur_list)
@@ -128,6 +122,7 @@ def get_std_realtime_data(cur_list, src='sn'):
 #分析时间得到ZT时间，上午or下午
 # TODO:
 def zt_time_analyze(chuban, stcsItem):
+	#print "chubn", chuban
 	timeObj = re.match(r'(\d{2}):(\d{2})', chuban)
 	hour = int(timeObj.group(1))
 	minute = int(timeObj.group(2))
@@ -208,9 +203,9 @@ def verify_one_year_cx(props, pre300_date, type, stk_list):
 	mkDt = datetime.datetime.strptime(market_date, '%Y-%m-%d').date()
 	pre300Dt = datetime.datetime.strptime(pre300_date, '%Y-%m-%d').date()
 	if (pre300Dt-mkDt).days<=0:
-		stk_list[0] = CX_DAYS-50
+		stk_list[0] = CX_DAYS-40
 	else:
-		stk_list[0] = CX_DAYS+50
+		stk_list[0] = CX_DAYS+60
 	return
 
 #type:
@@ -260,6 +255,25 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 	0,688178,万德斯,41.21,-0.05,-0.12%,1.89,6398,26208442,41.26,41.19,41.45,40.67,-,-,-,-,-,-,-,-,0.29%,0.63,3.31,102.20,2020-01-14
 	0,688300,XD联瑞新,64.56,-0.54,-0.83%,4.78,11708,76229745,65.10,64.83,67.20,64.09,-,-,-,-,-,-,-,-,0.03%,0.64,5.73,77.80,2019-11-15
 	0,688566,吉贝尔,44.97,-0.33,-0.73%,3.89,38958,174909424,45.30,45.18,45.86,44.10,-,-,-,-,-,-,-,-,0.02%,0.74,10.13,83.72,2020-05-18
+	'''
+	#print(("%s %s,'%s','%s'"%(code, name, props[11], props[12])).encode('gbk'))
+	#TODO: 有时候获取数据不全，需要数据校验，重新获取数据
+	try:
+		high1 = round(float(props[11]),2)
+		low1 = round(float(props[12]),2)
+	except:
+		print(("%s %s,'%s','%s'"%(code, name, props[11], props[12])).encode('gbk'))
+		for prop in props:
+			if isinstance(prop, unicode):
+				prop = prop.encode("gbk")
+			print prop
+		#debug,force error and quit APP
+		aa = float("---")
+	else:
+		pass
+	'''
+	if props[11]=='-' or props[12]=='-':
+		return -1
 	'''
 	high = round(float(props[11]),2)
 	low = round(float(props[12]),2)
@@ -351,7 +365,7 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 						else:
 							count += 1
 							verify_one_year_cx(props, pre300_date, 1, stk_list)
-						if stk_list[0]<300:
+						if stk_list[0]<CX_DAYS:
 							stcsItem.s_cxzt += 1
 							
 						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0]]
@@ -394,7 +408,7 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 				else:
 					count += 1
 					verify_one_year_cx(props, pre300_date, 2, stk_list)
-				if stk_list[0]<300:
+				if stk_list[0]<CX_DAYS:
 					stcsItem.s_cxdt += 1
 
 				list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0]]
@@ -444,13 +458,15 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 					else:
 						count += 1
 						verify_one_year_cx(props, pre300_date, 1, stk_list)
+					if stk_list[0]<CX_DAYS:
+						stcsItem.s_cxzt += 1
 					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, zt_st, zt_price]
 					stcsItem.lst_non_yzcx_zt.append(list)
 
 					'''	
 					count = get_zf_days(code, 1, trade_date, 1, stk_list)
 					if yzcx_flag==0:
-						if stk_list[0]<300:
+						if stk_list[0]<CX_DAYS:
 							stcsItem.s_cxzt += 1
 						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, zt_st]
 						stcsItem.lst_non_yzcx_zt.append(list)
@@ -518,7 +534,7 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 					else:
 						count += 1
 						verify_one_year_cx(props, pre300_date, 2, stk_list)
-					if stk_list[0]<300:
+					if stk_list[0]<CX_DAYS:
 						stcsItem.s_cxdt += 1
 
 					#DT Data
@@ -703,6 +719,7 @@ def get_new_market_stock(trade_day, new_list, non_kaiban_list, new_code_list=Non
 			#print "WillOn", item['securitycode'], item['securityshortname'],item['listingdate'][:10]
 			continue
 		else:
+			#获取前30天上市的，不论是否KB，先加入list
 			listing = item['listingdate'][:10]
 			listingDt = datetime.datetime.strptime(listing, '%Y-%m-%d').date()
 			pre30Dt = datetime.datetime.strptime(pre30_date, '%Y-%m-%d').date()
@@ -791,9 +808,9 @@ def update_zdt_time(stcsItem, trade_date):
 		item.start()
 	for item in threads:
 		item.join()
-		
+
 	for item in stcsItem.lst_non_yzcx_zt:
-		#print item[0], item[1]
+		#print("upZdt %s %s '%s'"%(item[0], item[1], item[9])).encode('gbk')
 		chuban = item[9]
 		zt_time_analyze(chuban, stcsItem)
 	
@@ -834,6 +851,10 @@ def collect_all_stock_data(st_dict, today_open, stcsItem, preStat, trade_date, d
 
 		#TODO: KeChuanBan KCB
 		if code[:3] in g_new_mark:
+			continue
+		#排除退市的个股
+		if name[:2]==u'退市' or name[-1:]==u'退':
+			st_dict['tui_stk'].append(item)
 			continue
 
 		#如果是当天上的就忽略了

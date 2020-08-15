@@ -49,7 +49,7 @@ if __name__ == '__main__':
 	print("Loop date")
 	while idx_date<=end_date:
 		date_str = idx_date.strftime('%Y%m%d')
-		idx_date += datetime.timedelta(days=1)	
+		idx_date += datetime.timedelta(days=1)
 		print("%s%s"%("    ", date_str))
 	
 	

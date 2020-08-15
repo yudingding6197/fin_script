@@ -8,13 +8,18 @@ sys.path.append('.')
 from internal.realtime_obj import *
 from internal.trade_date import *
 
-REAL_PRE_FD = "../data/"
+REALTM_PRE_FD = "../data/"
 
-def get_rt_time(f, dtObj):
+def get_rt_time(f, dtObj, bTrade=False):
+	finalTm = ''
+	pos = 0
 	line = f.readline()
 	while line:
 		objs = re.match("TIME: (.*)", line)
 		if objs is not None:
+			pos = f.tell()
+			finalTm = objs.group(1)[-5:]
+			#print finalTm
 			dt = datetime.datetime.strptime(objs.group(1), "%Y-%m-%d %H:%M")
 			if dt.hour>=15:
 				#print "Find matched line", line
@@ -22,6 +27,12 @@ def get_rt_time(f, dtObj):
 				return 0
 		line = f.readline()
 		continue
+
+	if bTrade:
+		print "current day", finalTm, pos
+		f.seek(pos)
+		dtObj.append(dt)
+		return 0
 	return -1
 
 #找到显示日期那一行，然后就可以处理统计数据了
@@ -103,9 +114,12 @@ def parse_summary_info(f, stcsItem):
 		line = objs.group(5)
 		cond = "\((\d+)\+(\d+)\)[\t ]+\[(\d+) (\d+) (\d+) (\d+)\][\t ]+(\d+) 上,[\t ]*(\d+) 下"
 		objs = re.match(cond.decode('utf8').encode('gbk'), line)
-		#print(line, objs)
 		if objs is None:
-			print("Error: parse fail2", line)
+			cond = "\((\d+)\+(\d+)\)[\t ]+\[(\d+) (\d+) (\d+) (\d+)\][\t ]+(\d+) 上,[\t ]*(\d+) 下"
+			objs = re.match(cond, line)
+			#print('BB', line, objs)
+		if objs is None:
+			print "Error: parse fail2", line.decode('utf8').encode('gbk')
 			return -1
 		stcsItem.s_cx_yz = int(objs.group(1))
 		stcsItem.s_non_cx_yz = int(objs.group(2))
@@ -115,6 +129,7 @@ def parse_summary_info(f, stcsItem):
 		stcsItem.s_dk_zt = int(objs.group(6))
 		stcsItem.s_sw_zt = int(objs.group(7))
 		stcsItem.s_xw_zt = int(objs.group(8))
+		#print stcsItem.s_cx_yz,stcsItem.s_non_cx_yz,stcsItem.s_open_zt,stcsItem.s_close_zt
 
 		break
 		
@@ -273,6 +288,7 @@ def parse_nb_jc_item(f, stcsItem):
 		line = f.readline()
 	return ret
 
+#解析history realtm文件中指定每一行数据
 def parse_zdt_item(f, stcsItem, zdt_type):
 	#fmt1 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %3s"
 	#fmt2 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %3s %9s"
@@ -308,10 +324,11 @@ def parse_zdt_item(f, stcsItem, zdt_type):
 			line = f.readline()
 			continue
 		objs = re.match(cond, line)
+		#print "rtlne:",line
 		if objs is None:
 			print(objs, line)
 			return -1
-		#print(zdt_type, objs.group(2)[7:] )
+		#print(zdt_type, objs.group(2))
 		code = objs.group(2)[:6]
 		name = objs.group(2)[7:].replace(" ", "").replace("\t","").strip()
 		change_percent = float(objs.group(3))
@@ -321,6 +338,7 @@ def parse_zdt_item(f, stcsItem, zdt_type):
 		low_df_percent = float(objs.group(7))
 		count = int(objs.group(8))
 		desc = objs.group(9)
+		#print ("here-'%s','%s'"%(count,desc))
 		item = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, desc]
 		stkList.append(item)
 
@@ -367,12 +385,14 @@ def parse_zt_dt_stcs(f, stcsItem):
 		elif line=="\n":
 			break
 		else:
-			print("Error: DT issue", line)
-			return -1
+			#print("Error: DT issue", line)
+			break
 		line = f.readline()
 	return 0
 
-def parse_realtime_his_file(trade_day, stcsItem):
+#解析history 生成的realtm文件
+def parse_realtime_his_file(trade_day, stcsItem, bTrade=False):
+	#print "ps rt", trade_day, bTrade
 	filename = get_path_by_tdate(trade_day)
 	if filename=='':
 		return -1
@@ -385,7 +405,7 @@ def parse_realtime_his_file(trade_day, stcsItem):
 	f = open(filename, 'r')
 
 	dtObj = []
-	ret = get_rt_time(f, dtObj)
+	ret = get_rt_time(f, dtObj, bTrade)
 	if ret==-1:
 		print ("Not find matched rt time, Re-get latest realtime")
 		return -1
@@ -410,10 +430,17 @@ def parse_realtime_his_file(trade_day, stcsItem):
 	if ret==-1:
 		return ret
 
-	ret = get_rt_time(f, dtObj)
+	#再继续读取，理论上还有最后一次按照时间排序的数据
+	#两者后面时间将进行对比
+	ret = get_rt_time(f, dtObj, bTrade)
 	#print(len(dtObj), dtObj)
 
 	f.close()
+
+	if bTrade==True:
+		curTm = datetime.datetime.now()
+		if curTm.hour<15:
+			return 0
 	
 	if len(dtObj)==0:
 		print("Error: no matched time", filename)
@@ -430,11 +457,11 @@ def parse_realtime_his_file(trade_day, stcsItem):
 	return 0
 
 def get_path_by_tdate(pre_day):
-	filename = REAL_PRE_FD + 'entry/realtime/' + 'rt_' + pre_day + '.txt'
+	filename = REALTM_PRE_FD + 'entry/realtime/' + 'rt_' + pre_day + '.txt'
 	if os.path.isfile(filename):
 		return filename
 	syear = pre_day[:4]
-	filename = REAL_PRE_FD + 'entry/realtime/' + syear + '/rt_' + pre_day + '.txt'
+	filename = REALTM_PRE_FD + 'entry/realtime/' + syear + '/rt_' + pre_day + '.txt'
 	if os.path.isfile(filename):
 		return filename
 	print("Warning: not find file",pre_day)

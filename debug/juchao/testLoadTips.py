@@ -12,7 +12,7 @@ import getopt
 
 sys.path.append('.')
 from internal.format_parse import *
-from internal.url_juchao.trade_info import *
+from internal.url_juchao.tips_res import *
 
 def handle_argument():
 	optlist, args = getopt.getopt(sys.argv[1:], 'hd:s:e:')
@@ -33,7 +33,7 @@ param_config = {
 	"End":'',
 	"DFCF":0,
 }
-REAL_PRE_FD = "../data/entry/juchao/"
+JUCHAO_PRE_FD = "../data/entry/juchao/"
 
 #Main Start:
 if __name__=='__main__':
@@ -45,7 +45,7 @@ if __name__=='__main__':
 	dt = '2019-06-20'
 	#dt = '2020-08-03'
 	year = dt[:4]
-	fn = REAL_PRE_FD + year + "/jc" + dt + ".txt"
+	fn = JUCHAO_PRE_FD + year + "/jc" + dt + ".txt"
 	file = open(fn, 'r')
 	dobj = json.load(file)
 	if isinstance(dobj, list) is False:

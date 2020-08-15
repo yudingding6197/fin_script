@@ -15,6 +15,8 @@ def get_preday(days=1, cur_day=''):
 	pre_day = ''
 	if cur_day=='':
 		cur_day = get_lastday()
+	if days==0:
+		return cur_day
 
 	bFlag = 0
 	location = DB_PATH + '/' + filenm + '.csv'
@@ -36,7 +38,8 @@ def get_preday(days=1, cur_day=''):
 	if bFlag==1:
 		#print("Update trade day DB");
 		fl.close()
-		upday.update_latest_trade(cur_day)
+		if upday.update_latest_trade(cur_day)==-1:
+			return ''
 		#如果在交易时段，交易当天日期没有写入文件中，文件最新日期和当天交易日期不匹配
 		fl = open(location, 'r')
 		

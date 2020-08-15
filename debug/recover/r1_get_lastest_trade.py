@@ -38,14 +38,14 @@ param_config = {
 	"NotAllInfo":0,
 	"DFCF":0,
 }
-REAL_PRE_FD = "../data/daily/"
+REAL_DAILY_PRE_FD = "../data/daily/"
 
 #Main Start:
 if __name__=='__main__':
 	beginTm = datetime.datetime.now()
 	sysstr = platform.system()
 	
-	#flname = REAL_PRE_FD + "realtime.txt"
+	#flname = REAL_DAILY_PRE_FD + "realtime.txt"
 
 	handle_argument()
 	t_fmt = '%d-%02d-%02d %02d:%02d'
@@ -59,7 +59,7 @@ if __name__=='__main__':
 	
 	#get_all_stk_info() 进行日期处理，获取最新交易日期
 	trade_date = get_lastday()
-	flname = REAL_PRE_FD + "dailydb_" + fmt_time1 + ".txt"
+	flname = REAL_DAILY_PRE_FD + "dailydb_" + fmt_time1 + ".txt"
 	print "TIME:",today_date, trade_date, flname
 
 	#通过条件查询所有STK, start from 000001

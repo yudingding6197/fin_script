@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:gbk -*-
 
-#恢复指定日期所有交易item的数据
+#提供日期，获取匹配日期的日K
+#如果没有则意味着TP
+#保存到 data/daily/日期/日期.txt,需要再处理XD和第一天上的item
+#[code,name,上市日,preClose,open,close,high,low,vol,percent]
 import sys
 import re
 import os
@@ -10,8 +13,7 @@ import getopt
 
 sys.path.append('.')
 from internal.handle_realtime import *
-from internal.global_var import g_shcd
-from internal.global_var import g_szcd
+from internal.parse_juchao import *
 
 def handle_argument():
 	optlist, args = getopt.getopt(sys.argv[1:], 'd:f:')
@@ -34,12 +36,12 @@ def handle_data(lobj, his_date, code, name, mark_date, jc_dict, allist):
 			if i==0:
 				#The is N flag
 				#print code, i, lobj[i]
-				list.append(0)
+				list.append(-11)
 			else:
 				preClose = lobj[i-1][2]
 				#print code, name, preClose, type(preClose)
 				if code in jc_dict['fenhong']:
-					list.append(-1)
+					list.append(-12)
 				else:
 					list.append(preClose)
 			list.extend(lobj[i][1:])
@@ -49,67 +51,11 @@ def handle_data(lobj, his_date, code, name, mark_date, jc_dict, allist):
 	#if bFind==0:
 	#	print code, lobj[0]
 
-def handle_tips(jcLoc, jc_dict):
-	jcFile = open(jcLoc, 'r')
-	jcJson = json.load(jcFile)
-	jcFile.close()
-
-	headlist = g_shcd + g_szcd
-	jc_dict['fupai'] = []
-	jc_dict['tingpai'] = []
-	jc_dict['fenhong'] = []
-	for item in jcJson:
-		#print item['tradingTipsName']
-		if item['tradingTipsName'] == u'停牌日':
-			list = []
-			for dict in item['tbTrade0112s']:
-				code = dict['obSeccode0110']
-				#print dict['obSeccode0110'], dict['obSecname0110']
-				if code[:3] in headlist:
-					list.append(dict['obSeccode0110'])
-			jc_dict['tingpai'] = list
-			#print list
-		elif item['tradingTipsName']==u'复牌日':
-			list = []
-			#print item['tradingTipsName']
-			for dict in item['tbTrade0112s']:
-				code = dict['obSeccode0110']
-				#print dict['obSeccode0110'], dict['obSecname0110']
-				if code[:3] in headlist:
-					list.append(dict['obSeccode0110'])
-			jc_dict['fupai'] = list
-			#print dict['fupai']
-		elif item['tradingTipsName']==u'分红转增除权除息日':
-			list = jc_dict['fenhong']
-			#print item['tradingTipsName']
-			for dict in item['tbTrade0112s']:
-				code = dict['obSeccode0110']
-				#print dict['obSeccode0110'], dict['obSecname0110']
-				if code[:3] not in headlist:
-					continue
-				if code not in list:
-					list.append(code)
-			jc_dict['fenhong'] = list
-		elif item['tradingTipsName']==u'分红转增红利发放日':
-			list = jc_dict['fenhong']
-			#print item['tradingTipsName']
-			for dict in item['tbTrade0112s']:
-				code = dict['obSeccode0110']
-				#print dict['obSeccode0110'], dict['obSecname0110']
-				if code[:3] not in headlist:
-					continue
-				if code not in list:
-					list.append(code)
-			jc_dict['fenhong'] = list
-		'''
-		'''
-	#print jc_dict
-	
 param_config = {
 	"Date":'',
 	"Format":'json',
 }
-REAL_PRE_FD = "../data/daily/"
+REAL_DAILY_PRE_FD = "../data/daily/"
 
 #Main Start:
 if __name__=='__main__':
@@ -121,8 +67,7 @@ if __name__=='__main__':
 	hisDt = param_config["Date"]
 	ret, hisDate = parseDate2(hisDt)
 	year = hisDt[:4]
-	#trade_date = get_lastday()
-	tradeFl = REAL_PRE_FD + year + '/' + "_trade_" + year + ".txt"
+	tradeFl = REAL_DAILY_PRE_FD + year + '/' + "_trade_" + year + ".txt"
 	jcLoc = "../data/entry/juchao/" + year + '/jc' + hisDate + ".txt"
 
 	if os.path.exists(tradeFl) is False:
@@ -132,7 +77,7 @@ if __name__=='__main__':
 		print(jcLoc,"not exist.")
 		exit(0)
 	jc_dict = {}
-	handle_tips(jcLoc, jc_dict)
+	read_tips_info(jcLoc, jc_dict)
 	
 	file = open(tradeFl, "r")
 	line = file.readline()
@@ -155,11 +100,11 @@ if __name__=='__main__':
 	
 		bNotExist = 0
 		if param_config["Format"]=='':
-			kFl = REAL_PRE_FD + year + '/' + 'kday_' + obj[0] + ".txt"
+			kFl = REAL_DAILY_PRE_FD + year + '/' + 'kday_' + obj[0] + ".txt"
 			if os.path.exists(kFl) is False:
 				bNotExist = 1
 		elif param_config["Format"]=='json':
-			kFl = REAL_PRE_FD + year + '/json/' + 'j' + obj[0] + ".txt"
+			kFl = REAL_DAILY_PRE_FD + year + '/json/' + 'j' + obj[0] + ".txt"
 			#print kFl
 			if os.path.exists(kFl) is False:
 				bNotExist = 1
@@ -196,6 +141,9 @@ if __name__=='__main__':
 
 	if len(allist)>0:
 		flname = '../data/daily/' + hisDate +"/"+ hisDate + ".txt"
+		if os.path.exists(flname):
+			print "Data file exist"
+			exit(0)
 		hisFile = open(flname, "w")
 		
 		#所有数据全一行

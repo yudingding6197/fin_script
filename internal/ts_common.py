@@ -18,6 +18,7 @@ import ctypes
 import tushare as ts
 import time
 
+CX_DAYS=200
 #reload(sys)
 #sys.setdefaultencoding('gbk')
 
@@ -1300,7 +1301,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 					#pd_list.append(list)
 					if yzcx_flag==0:
 						count = get_zf_days(code, 1, trade_date, 1, stk_list)
-						if stk_list[0]<300:
+						if stk_list[0]<CX_DAYS:
 							stcsItem.s_cxzt += 1
 						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0]]
 						stcsItem.lst_non_yzcx_yzzt.append(list)
@@ -1319,7 +1320,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 				stcsItem.s_open_dt += 1
 				status |= STK_OPEN_DT
 				count = get_zf_days(code, 2, trade_date, 1, stk_list)
-				if stk_list[0]<300:
+				if stk_list[0]<CX_DAYS:
 					stcsItem.s_cxdt += 1
 				list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0]]
 				stcsItem.lst_yzdt.append(list)
@@ -1349,7 +1350,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 					#pd_list.append(list)
 					count = get_zf_days(code, 1, trade_date, 1, stk_list)
 					if yzcx_flag==0:
-						if stk_list[0]<300:
+						if stk_list[0]<CX_DAYS:
 							stcsItem.s_cxzt += 1
 						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, zt_st]
 						stcsItem.lst_non_yzcx_zt.append(list)
@@ -1389,7 +1390,7 @@ def analyze_status(code, name, row, stcsItem, yzcx_flag, pd_list, trade_date):
 					if open==dt_price:
 						dt_st = 'DT'
 					count = get_zf_days(code, 2, trade_date, 1, stk_list)
-					if stk_list[0]<300:
+					if stk_list[0]<CX_DAYS:
 						stcsItem.s_cxdt += 1
 
 					#DT Data

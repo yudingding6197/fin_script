@@ -8,49 +8,10 @@ import urllib2
 import datetime
 import json
 import copy
-#from ts_common import *
+
+from internal.url_juchao.tips_res import *
 from global_var import g_shcd
 from global_var import g_szcd
-
-'''
-def get_date_with_last():
-	today = datetime.date.today()
-	curdate = ''
-	bLast = 0
-
-	pindex = len(sys.argv)
-	lastdt = get_last_trade_dt()
-	if (pindex == 1):
-		curdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
-		edate = datetime.datetime.strptime(curdate, '%Y-%m-%d').date()
-		#如果是当日的数据通过history链接目前不能得到，所以暂时得到前一天的数据
-		#今日数据通过getToday获取
-		#edate = edate - delta1
-		
-		#目前通过周六日进行简单判断
-		#ts.is_holiday()  or chk_holiday()
-		today = datetime.datetime.strptime(curdate, '%Y-%m-%d')
-		if today.isoweekday() in [6, 7]:
-			curdate = lastdt
-		bLast = 1
-	else:
-		curdate = sys.argv[1]
-		if curdate=='.':
-			curdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
-		else:
-			ret,curdate = parseDate(sys.argv[1], today)
-			if ret==-1:
-				return '', -2
-			if curdate==lastdt:
-				bLast = 1
-			else:
-				#如果是查看明天复牌个股，返回-1
-				edate = datetime.datetime.strptime(curdate, '%Y-%m-%d').date()
-				dl = (today-edate).days
-				if dl < 0:
-					bLast = -1
-	return curdate, bLast
-'''
 
 '''
 {u'obModtime0111': 1595424980000L, 
@@ -104,29 +65,6 @@ u'obObjectId': 1001126068
 	"keepSuspensionTbTrades":null
 	},
 '''
-def get_tingfupai_res(curdate):
-	url = "http://www.cninfo.com.cn/new/information/getSuspensionResumptions?queryDate="
-	#url = "http://www.cninfo.com.cn/information/memo/jyts_more.jsp?datePara="
-	urlall = url + curdate
-	dict = {}
-	data = urllib.urlencode(dict)
-
-	LOOP_COUNT = 0
-	res_data=None
-	#print('tingfup', urlall)
-	#这是POST请求
-	while LOOP_COUNT<3:
-		try:
-			req = urllib2.Request(urlall, data)
-			res_data = urllib2.urlopen(req)
-		except:
-			print "Error fupai urlopen"
-			LOOP_COUNT = LOOP_COUNT+1
-		else:
-			break
-	content = res_data.read()
-	return content
-
 def get_all_fupai_data(res_data, fl, detail, curdate, stockCode, stockName):
 	totalline = 0
 	flag = 0
@@ -136,7 +74,7 @@ def get_all_fupai_data(res_data, fl, detail, curdate, stockCode, stockName):
 	checkStr = '复牌日'
 	stockIdx = -1
 	while line:
-	#	print line
+		#print line
 		if flag==0:
 			index = line.find(checkStr)
 			if (index>=0):

@@ -11,7 +11,6 @@ import zlib
 #from global_var import g_shcd
 #from global_var import g_szcd
 
-
 '''
 #
 {u'obModtime0111': 1595424980000L, 
@@ -78,7 +77,7 @@ jc_headers = {
 UC-JSESSIONID=340076282D503D578A949A08D2C2E1E4; \
 _sp_id.2141=e928beb2-1d59-40f9-92d7-b8405ba01a70.1555939861.43.1596898781.1596870082.83e1d89f-5881-4648-a7f9-47e7150b6197',
 }
-def get_trade_tips(curdate, file=None):
+def get_trade_tips(curdate):
 	url = "http://www.cninfo.com.cn/new/information/memoQuery?queryDate="
 	urlall = url + curdate
 	dict = {}
@@ -106,10 +105,28 @@ def get_trade_tips(curdate, file=None):
 		#print "Content compressed"
 		content = zlib.decompress(content, 16+zlib.MAX_WBITS)
 	#print content
-	if file is not None:
-		dict = json.loads(content)
-		file.write(json.dumps(dict['clusterSRTbTrade0112']['srTbTrade0112s'], ensure_ascii=False).encode('utf8'))
-		#json.dump(dict['clusterSRTbTrade0112']['srTbTrade0112s'], file, ensure_ascii=False)
+	return content
+
+def get_tingfupai_res(curdate):
+	url = "http://www.cninfo.com.cn/new/information/getSuspensionResumptions?queryDate="
+	urlall = url + curdate
+	dict = {}
+	data = urllib.urlencode(dict)
+
+	LOOP_COUNT = 0
+	res_data=None
+	#print('tingfup', urlall)
+	#’‚ «POST«Î«Û
+	while LOOP_COUNT<3:
+		try:
+			req = urllib2.Request(urlall, data)
+			res_data = urllib2.urlopen(req)
+		except:
+			#print "Error fupai urlopen"
+			LOOP_COUNT = LOOP_COUNT+1
+		else:
+			break
+	content = res_data.read()
 	return content
 
 if __name__=="__main__":

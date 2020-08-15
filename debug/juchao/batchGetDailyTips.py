@@ -9,10 +9,12 @@ import datetime
 import platform
 import shutil
 import getopt
+import threading
 
 sys.path.append('.')
 from internal.format_parse import *
-from internal.url_juchao.trade_info import *
+from internal.url_juchao.tips_res import *
+from internal.inf_juchao.daily_trade_tips import *
 
 def handle_argument():
 	optlist, args = getopt.getopt(sys.argv[1:], 'hd:s:e:')
@@ -33,7 +35,6 @@ param_config = {
 	"End":'',
 	"DFCF":0,
 }
-REAL_PRE_FD = "../data/entry/juchao/"
 
 #Main Start:
 if __name__=='__main__':
@@ -42,6 +43,7 @@ if __name__=='__main__':
 		print("%s -s([.][YYYY]MMDD) -e([.][([YYYY]MMDD)])"%(os.path.basename(__file__)))
 		exit(0)
 
+	beginTm = datetime.datetime.now()
 	cur=datetime.datetime.now()
 	cdate = '%04d-%02d-%02d' %(cur.year, cur.month, cur.day)
 	#print cdate
@@ -60,20 +62,9 @@ if __name__=='__main__':
 	ret, edate = parseDate2(param_config["End"])
 	if ret==-1:
 		exit(0)
-	
-	startDt = datetime.datetime.strptime(sdate, '%Y-%m-%d').date()
-	endDt = datetime.datetime.strptime(edate, '%Y-%m-%d').date()
-	while startDt<=endDt:
-		date_str = startDt.strftime('%Y-%m-%d')
-		#print(date_str)
-		startDt += datetime.timedelta(days=1)
-		year = date_str[:4]
-		fn = REAL_PRE_FD + year + "/jc" + date_str + ".txt"
-		
-		if os.path.exists(fn):
-			continue
 
-		file = open(fn, "w")
-		get_trade_tips(date_str, file)
-		file.close()
-	print("END")
+	handle_tips_action(sdate, edate)
+	
+	print "Data save in ../data/entry/juchao/"
+	endTm = datetime.datetime.now()
+	print "END ", (endTm-beginTm)

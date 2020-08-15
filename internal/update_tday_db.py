@@ -3,56 +3,26 @@
 import os
 import urllib2,time
 
+from internal.url_163.service_163 import *
+
 DB_PATH = './internal/db'
-
-def get_page(url):  #获取页面数据
-	req=urllib2.Request(url,headers={
-		'Connection': 'Keep-Alive',
-		'Accept': 'text/html, application/xhtml+xml, */*',
-		'Accept-Language':'zh-CN,zh;q=0.8',
-		'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko'
-	})
-	opener=urllib2.urlopen(req)
-	page=opener.read()
-	return page
-
-def get_index_history_byNetease(index_temp):
-	"""
-	:param index_temp: for example, 'sh000001' 上证指数
-	:return:
-	"""
-	index_type=index_temp[0:2]
-	index_id=index_temp[2:]
-	if index_type=='sh':
-		index_id='0'+index_id
-	if index_type=="sz":
-		index_id='1'+index_id
-	#url='http://quotes.money.163.com/service/chddata.html?code=%s&start=19900101&
-	#end=%s&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;VOTURNOVER;VATURNOVER'%(index_id,time.strftime("%Y%m%d"))
-	url='http://quotes.money.163.com/service/chddata.html?code=%s'%(index_id)
-	#print(url)
-
-	page=get_page(url)#.decode('gb2312')
-	with open("./internal/db/"+index_temp+".csv", "wb") as code:     
-		code.write(page)
-	#page.to_csv('_a.csv')
 
 def update_latest_trade(latest_day):
 	if latest_day=='':
 		print "Invalid day", latest_day
-		return
+		return -1
 	#print(latest_day)
 	
 	filenm = 'sh000001'
 	if not os.path.exists(DB_PATH):
 		os.mikedirs(DB_PATH)
-		get_index_history_byNetease(filenm)
-		return
+		return get_index_history_byNetease(filenm)
+		
 
 	location = DB_PATH + '/' + filenm + '.csv'
 	if not os.path.isfile(location):
-		get_index_history_byNetease(filenm)
-		return		
+		return get_index_history_byNetease(filenm)
+				
 
 	fl = open(location, 'r')
 	line = fl.readline()
@@ -61,10 +31,10 @@ def update_latest_trade(latest_day):
 	#print("_____ upd_trd", file_day,latest_day)
 
 	if latest_day != file_day:
-		get_index_history_byNetease(filenm)
+		return get_index_history_byNetease(filenm)
 	#else:
 	#	print("Already the latest")
-	return
+	return 0
 		
 '''
 if __name__=='__main__':

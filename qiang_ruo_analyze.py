@@ -52,7 +52,7 @@ def show_zt_info(zt_list, desc, fmt, outstr, pconfig):
 	for index,itm_lst in df.iterrows():
 		#str = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d" % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7])
 		cxFlag = ''
-		if itm_lst[8]<300:
+		if itm_lst[8]<CX_DAYS:
 			cxFlag='CX'
 		if desc=="YZZT":
 			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag)
@@ -99,7 +99,7 @@ def show_dt_info(dt_list, desc, fmt, pconfig):
 	print str
 	for index,itm_lst in df.iterrows():
 		cxFlag = ''
-		if itm_lst[8]<300:
+		if itm_lst[8]<CX_DAYS:
 			cxFlag='CX'
 		if desc=="YZDT":
 			str = fmt % (i,itm_lst[0],itm_lst[1],itm_lst[2],itm_lst[3],itm_lst[4],itm_lst[5],itm_lst[6],itm_lst[7],cxFlag)
