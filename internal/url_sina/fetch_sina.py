@@ -20,9 +20,9 @@ def get_sina_lastday():
 		return
 	'''
 	LOOP_COUNT  = 0
+	#print "sina lastDay", url
 	while LOOP_COUNT<3:
 		try:
-			#print "create url"
 			urlObj = urllib2.urlopen(url,timeout=3)
 			#print "urlObj", urlObj
 			stockData = urlObj.read()

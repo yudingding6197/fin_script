@@ -332,7 +332,7 @@ def getKZZDataFrame(kzzlist):
 	#return df
 	return
 
-def showKZZBuyCount(kzzlist, tradeDt):
+def showKZZBuyCount(kzzlist, trade_date):
 	title = ''
 	length = 8
 	
@@ -340,6 +340,7 @@ def showKZZBuyCount(kzzlist, tradeDt):
 	loc = 'M'
 	s_date = 'Apply'
 	
+	tradeDt = datetime.datetime.strptime(trade_date, '%Y-%m-%d').date()
 	keylist = ['BONDCODE','SNAME',loc,s_date,new_col,'ZGJ_HQ','ZGJZGJJZ','ZGJZGJ','AISSUEVOL']
 	for item in keylist:
 		nlen = len(item)
@@ -383,11 +384,14 @@ def showKZZBuyCount(kzzlist, tradeDt):
 		if linefeed1==0:
 			delta = tradeDt-applyDt
 			if delta.days==0:
-				print ('')
+				print ("\n------- %s"%(trade_date))
 				linefeed1 = 1
 		if linefeed2==0:
 			delta = tradeDt-applyDt
 			if delta.days>0:
+				if linefeed1==0:
+					print ("\n------- %s"%(trade_date))
+				print ('-------')
 				print ('')
 				linefeed2 = 1
 		print(result)
@@ -469,8 +473,7 @@ if __name__=="__main__":
 	#df = kzzdf[kzzdf['LISTDATE']=='-']
 	#df[new_col] = df.apply(lambda x: 10000/x['ZGJ'] * x['FSTPLACVALPERSTK'], axis=1)
 
-	tradeDt = datetime.datetime.strptime(trade_date, '%Y-%m-%d').date()
-	showKZZBuyCount(kzzlist, tradeDt)
+	showKZZBuyCount(kzzlist, trade_date)
 	#df1 = df[keylist]
 	
 	#print(df1)

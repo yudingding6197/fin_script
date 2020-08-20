@@ -44,6 +44,7 @@ http://quotes.money.163.com/service/fenjia_table.html?symbol=300847&sort=PRICE&o
 
 获取为json格式数据
 http://img1.money.126.net/data/hs/kline/day/times/1399001.json
+http://img1.money.126.net/data/hs/kline/day/times/0000001.json
 
 获取为csv文件
 http://quotes.money.163.com/service/chddata.html?code=0000001
@@ -153,3 +154,13 @@ http://market.finance.sina.com.cn/downxls.php?date=2017-01-24&symbol=sh600103 �
 
 
 http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=sz300178&scale=5&ma=no&datalen=240
+
+
+===== 凤凰网：=====================
+http://api.finance.ifeng.com/akmin?scode=sh000300&type=30
+scode = 股票代码
+type =  k线类型
+
+
+
+

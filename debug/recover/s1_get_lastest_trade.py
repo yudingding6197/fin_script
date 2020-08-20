@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:gbk -*-
 
-#保存每日的交易信息
+#从DC获取最新一个交易日的信息，总共4000多Item
+#保存到../data/daily/下，知道当时哪些Item正在交易，TuiS的就消失了
 import sys
 import re
 import os
@@ -14,6 +15,7 @@ import getopt
 
 sys.path.append('.')
 from internal.trade_date import *
+from internal.handle_realtime import *
 from internal.update_tday_db import *
 
 def handle_argument():

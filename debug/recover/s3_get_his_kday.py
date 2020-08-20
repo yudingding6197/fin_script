@@ -32,7 +32,7 @@ def handle_argument():
 
 param_config = {
 	"Year":'',
-	"Format":'',
+	"Format":'json',
 }
 REAL_DAILY_PRE_FD = "../data/daily/"
 

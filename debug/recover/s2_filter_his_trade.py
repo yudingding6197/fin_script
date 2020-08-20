@@ -9,7 +9,7 @@ import os
 import time
 import string
 import datetime
-import platform
+#import platform
 import getopt
 
 sys.path.append('.')
@@ -53,12 +53,14 @@ if __name__=='__main__':
 		exit(0)
 	
 	flname = REAL_DAILY_PRE_FD + "dailydb_19base.txt"
-	tradefl = REAL_DAILY_PRE_FD + def_dt[:4] + '/' + "trade_" + def_dt + ".txt"
+	tradefl = REAL_DAILY_PRE_FD + def_dt[:4] + '/' + "_trade_" + def_dt + ".txt"
 	
 	defDt = datetime.datetime.strptime(def_dt, '%Y-%m-%d').date()
 	pre30_date = get_preday(PRE_DAYS, def_dt)
 	pre300_date = get_preday(CX_DAYS, def_dt)
-	print "dt, pre30, pre300", defDt, pre30_date, pre300_date
+	print "dt, pre30, pre200", def_dt, pre30_date, pre300_date
+	#print pre30_date, pre300_date
+	print "Warning:Read file", flname, "Is right???"
 
 	fmt = "%s,%s,%s\n"
 	tdFile = open(tradefl, "w")

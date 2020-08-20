@@ -191,7 +191,7 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 	rtntype = 1
 	jstr = 'fsData1515847425760'
 	content = get_zdting_by_dc(code, jstr, rtntype)
-	#print (content)
+	#print "get_zdf_d", content
 
 	jslen = len(jstr)
 	content = content[(jslen+1):]

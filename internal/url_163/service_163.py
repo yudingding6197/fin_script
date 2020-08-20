@@ -4,6 +4,7 @@ import sys
 import json
 import re
 import time
+import zlib
 import urllib2
 from bs4 import BeautifulSoup
 from bs4 import element
@@ -58,7 +59,7 @@ def get_price_list_163(code, price_dict, sort='PRICE', order=-1):
 	#print(price_dict)
 	return
 
-def read_kday_page(url):  #获取页面数据
+def fetch_kday_page(url):  #获取页面数据
 	req=urllib2.Request(url,headers={
 		'Connection': 'Keep-Alive',
 		'Accept': 'text/html, application/xhtml+xml, */*',
@@ -66,17 +67,24 @@ def read_kday_page(url):  #获取页面数据
 		'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko'
 	})
 	LOOP_COUNT = 0
-	page = ''
+	opener = None
 	while LOOP_COUNT<3:
 		try:
 			opener=urllib2.urlopen(req)
-			page=opener.read()
 		except:
 			LOOP_COUNT += 1
 			time.sleep(1)
 		else:
 			break
-	return page
+	if opener is None:
+		return ''
+	
+	content = opener.read()
+	respInfo = opener.info()
+	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
+		print "Content compressed"
+		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
+	return content
 
 def get_index_history_byNetease(index_temp):
 	"""
@@ -92,14 +100,47 @@ def get_index_history_byNetease(index_temp):
 	#url='http://quotes.money.163.com/service/chddata.html?code=%s&start=19900101&
 	#end=%s&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;VOTURNOVER;VATURNOVER'%(index_id,time.strftime("%Y%m%d"))
 	url='http://quotes.money.163.com/service/chddata.html?code=%s'%(index_id)
-	#print(url)
+	#print('netease', url)
 
-	page=read_kday_page(url)#.decode('gb2312')
-	
+	page=fetch_kday_page(url)#.decode('gb2312')
+
 	if page=='':
 		return -1
 	with open("./internal/db/"+index_temp+".csv", "wb") as code:     
 		code.write(page)
+	#page.to_csv('_a.csv')
+	return 0
+
+def get_index_history_byNetease_js(location, index_temp):
+	"""
+	:param index_temp: for example, 'sh000001' 上证指数
+	:return:
+	"""
+	index_type=index_temp[0:2]
+	index_id=index_temp[2:]
+	if index_type=='sh':
+		index_id='0'+index_id
+	if index_type=="sz":
+		index_id='1'+index_id
+	#url='http://quotes.money.163.com/service/chddata.html?code=%s&start=19900101&
+	#end=%s&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;VOTURNOVER;VATURNOVER'%(index_id,time.strftime("%Y%m%d"))
+	url='http://img1.money.126.net/data/hs/kline/day/times/%s.json'%(index_id)
+	print('netease js', url)
+
+	page=fetch_kday_page(url)#.decode('gb2312')
+	#print "pp", type(page)
+	if page=='':
+		return -1
+
+	#print page
+	#json.dumps(page.encode('gbk'))
+	
+	file = open(location, "w")
+	json.dump(page.encode('gbk'), file)
+	file.close()
+	
+	#with open("./internal/db/"+index_temp+"_json.txt", "wb") as code:     
+	#	code.write(page)
 	#page.to_csv('_a.csv')
 	return 0
 

@@ -8,6 +8,7 @@ import string
 import datetime
 import getopt
 import tushare as ts
+sys.path.append('.')
 from internal.common_inf import *
 from internal.dfcf_inf import *
 from internal.ts_common import *

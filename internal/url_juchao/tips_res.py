@@ -130,11 +130,12 @@ def get_tingfupai_res(curdate):
 	return content
 
 if __name__=="__main__":
-	cnt = get_trade_tips('2020-08-05')
+	cnt = get_trade_tips('2020-08-16')
+	print cnt
 	dict = json.loads(cnt)
 	#print dict['clusterSRTbTrade0112']['queryDate']
 	#print dict['clusterSRTbTrade0112']['srTbTrade0112s']
 	
-	file = open("_test.log", 'w')
-	json.dump(dict['clusterSRTbTrade0112']['srTbTrade0112s'], file)
-	file.close()
+	#file = open("_test.log", 'w')
+	#json.dump(dict['clusterSRTbTrade0112']['srTbTrade0112s'], file)
+	#file.close()

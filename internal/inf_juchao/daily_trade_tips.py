@@ -30,6 +30,7 @@ def fetch_jc_trade_tips(sdate, edate, lock=None):
 			continue
 
 		content = get_trade_tips(date_str)
+		#print 'daily_td', date_str, content
 		if content is None:
 			continue
 		file = open(fn, "w")

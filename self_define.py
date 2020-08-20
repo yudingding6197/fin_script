@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-# -*- coding:gbk -*-
+# -*- coding:utf8 -*-
+
+#新增更新juchao交易tips
 import sys
 import re
 import os
@@ -8,10 +10,11 @@ import string
 import datetime
 import getopt
 import pandas as pd
-#import tushare as ts
+
 from internal.common_inf import *
 from internal.dfcf_inf import *
-#from internal.ts_common import *
+from internal.trade_date import *
+from internal.inf_juchao.daily_trade_tips import *
 
 def show_real_index(show_idx, src='sn'):
 	idx_list = []
@@ -145,6 +148,21 @@ def read_def(data_path, stockCode, stockCode_sn):
 			line = file.readline()
 	file.close()
 
+def update_juchao_tips():
+	curr = datetime.datetime.now()
+	trade_date = get_lastday()
+	if curr.hour<9:
+		return
+	t_fmt = '%d-%02d-%02d'
+	cur_date = t_fmt%(curr.year, curr.month, curr.day)
+	
+	today = datetime.date.today()
+	pre20Dt = today - datetime.timedelta(days=20)
+	pre20_date = t_fmt%(pre20Dt.year, pre20Dt.month, pre20Dt.day)
+
+	#print cur_date,pre20_date
+	fetch_jc_trade_tips(pre20_date, cur_date)
+
 #Main
 curdate = ''
 data_path = "debug/_self_define.txt"
@@ -175,6 +193,7 @@ if __name__=="__main__":
 
 	today = datetime.date.today()
 	curdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
+	update_juchao_tips()
 
 	read_def(data_path, stockCode, stockCode_sn)
 	if show_flag==1:

@@ -18,7 +18,8 @@ from internal.analyze_realtime import *
 from internal.compare_realtime import *
 from internal.format_parse import *
 from internal.inf_juchao.daily_trade_tips import *
-from internal.inf_juchao.parse_juchao import *
+from internal.inf_juchao.parse_jc_tips import *
+from internal.price_limit import *
 
 #针对复牌的个股，检查是否满足强弱势条件，满足则加入
 def check_fupai_item(stoday, fp_list, cur_date, qs_dict, rs_dict):
@@ -75,8 +76,6 @@ param_config = {
 	"Date":'',
 }
 
-JICHAO_PRE_FD = "../data/entry/juchao/"
-
 #Main Start:
 if __name__=='__main__':
 	beginTm = datetime.datetime.now()
@@ -126,9 +125,7 @@ if __name__=='__main__':
 		
 		jc_dict = {}
 		handle_tips_action(cur_day, cur_day)
-		year = cur_day[:4]
-		jcLoc = JICHAO_PRE_FD + year + '/jc' + cur_day + ".txt"
-		read_tips_info(jcLoc, jc_dict)
+		read_tfp_fh_in_tips(cur_day, jc_dict)
 		if 'fupai' in jc_dict.iterkeys():
 			#print jc_dict['fupai']
 			check_fupai_item(stoday, jc_dict['fupai'], cur_day, q_dict, r_dict)

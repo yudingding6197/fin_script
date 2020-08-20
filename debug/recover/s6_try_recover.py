@@ -12,29 +12,14 @@ import pandas as pd
 
 sys.path.append('.')
 from internal.handle_realtm import *
-#from internal.dfcf_inf import *
-#from internal.ts_common import show_index_info
-from internal.trade_date import *
-from internal.update_tday_db import *
-from internal.analyze_realtime import *
-from internal.compare_realtime import *
-from internal.tingfupai import * 
 from internal.common_inf import *
-from internal.parse_juchao import *
-
-
-class Logger_IO(object): 
-	def __init__(self, filename="Default.log"):
-		self.terminal = sys.stdout
-		self.log = open(filename, "w")
-
-	def write(self, message):
-		self.terminal.write(message)
-		self.log.write(message)
-
-	def flush(self):
-		self.log.flush()
-		pass
+from internal.realtime_obj import *
+from internal.analyze_realtime import *
+from internal.inf_juchao.parse_jc_tips import *
+#from internal.update_tday_db import *
+#from internal.compare_realtime import *
+#from internal.tingfupai import * 
+#from internal.common_inf import *
 
 #可以和show_dt_info 合并, 通过 desc in ['DT','ZT']进行判断
 def show_zt_info(zt_list, desc, fmt, outstr, pconfig):
@@ -136,6 +121,48 @@ def show_dt_info(dt_list, desc, fmt, pconfig):
 			break
 	print endstr
 
+#fmt1 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %3s"
+def show_tuishi_info(tuis_list, fmt):
+	number=len(tuis_list)
+	
+	desc = "TUISHI [%d]"%(number)
+	print desc
+
+	for i in range(len(tuis_list)):
+		props = tuis_list[i]
+		#print props
+		
+		high = round(float(props[11]),2)
+		low = round(float(props[12]),2)
+		open = round(float(props[10]),2)
+		price = round(float(props[3]),2)
+		pre_close = round(float(props[9]),2)
+		volume = int(props[8])
+		
+		o_percent = (open-pre_close)*100/pre_close
+		c_percent = (price-pre_close)*100/pre_close
+		h_percent = (high-pre_close)*100/pre_close
+		l_percent = (low-pre_close)*100/pre_close
+		open_percent = spc_round2(o_percent,2)
+		change_percent = spc_round2(c_percent,2)
+		high_zf_percent = spc_round2(h_percent,2)
+		low_df_percent = spc_round2(l_percent,2)
+		
+		stk_list = [0, 0]
+		count = 0
+		stat = ''
+		if high==low:
+			if price>pre_close:
+				count = get_zf_days(props[1], 1, trade_date, 1, stk_list)
+				stat = 'YZZT'
+			else:
+				count = get_zf_days(props[1], 2, trade_date, 1, stk_list)
+				stat = 'YZDT'
+
+		desc = fmt % (i+1,props[1],props[2],change_percent,price,o_percent,high_zf_percent,low_df_percent,count,stat)
+		print desc.encode('gbk')
+	print ""
+	
 def filter_dtft(dtft_list, perc):
 	if len(dtft_list)==0:
 		return 0
@@ -146,20 +173,6 @@ def filter_dtft(dtft_list, perc):
 			count += 1
 	return count
 
-def handle_argument():
-	optlist, args = getopt.getopt(sys.argv[1:], 'd:')
-	for option, value in optlist:
-		if option in ["-l","--nolog"]:
-			param_config["NoLog"] = 1
-		elif option in ["-d","--date"]:
-			param_config["Date"] = value
-		elif option in ["-t","--sbtime"]:
-			param_config["SortByTime"] = 1
-		elif option in ["-a","--all"]:
-			param_config["NotAllInfo"] = 1
-		elif option in ["-c","--dfcf"]:
-			param_config["DFCF"] = 1
-	#print param_config
 
 def show_real_index(show_idx, src='sn'):
 	idx_list = []
@@ -173,16 +186,24 @@ def show_real_index(show_idx, src='sn'):
 		f_price = float(idxObj[3])
 		ratio = round((f_price-f_pre_cls)*100/f_pre_cls, 2)
 		print "%8.2f(%6s)"%(f_price, ratio)
-	#codeArray = ['399678']
-	#show_extra_index(codeArray)
 
+def handle_argument():
+	optlist, args = getopt.getopt(sys.argv[1:], 'hd:')
+	for option, value in optlist:
+		if option in ["-h","--help"]:
+			param_config["Help"] = 1
+		elif option in ["-d","--date"]:
+			param_config["Date"] = value
+	#print param_config
 
 param_config = {
-	"NoLog":0,
-	"NoDetail":0,
-	"SortByTime":0,
-	"NotAllInfo":0,
+	"Help":0,
 	"Date":'',
+	"NoLog":1,
+	"NoDetail":0,
+	"NotAllInfo":0,
+	"SortByTime":0,
+	"TuiShi":0,
 }
 REAL_DAILY_PRE_FD = "../data/"
 
@@ -190,89 +211,47 @@ REAL_DAILY_PRE_FD = "../data/"
 if __name__=='__main__':
 	beginTm = datetime.datetime.now()
 	sysstr = platform.system()
-	
-	flname = REAL_DAILY_PRE_FD + "realtime.txt"
-	#TODO: open the comment
-	if os.path.isfile(flname):
-		os.remove(flname)
-	sys.stdout = Logger_IO(flname)
-
 	handle_argument()
-	if param_config["Date"]=='':
-		print("Error,must need arg -dYYYYMMDD")
+	if param_config["Help"]==1 or param_config["Date"]=='':
+		print("%s -d([.][YYYY]MMDD))"%(os.path.basename(__file__)))
 		exit(0)
-	ret,trade_date=parseDate2(param_config["Date"])
-	
-	t_fmt = '%d-%02d-%02d %02d:%02d'
-	fmt_time = t_fmt %(beginTm.year, beginTm.month, beginTm.day, beginTm.hour, beginTm.minute)
+	ret, his_date = parseDate2(param_config["Date"])
+	if ret==-1:
+		exit(0)
 
-	cur1 = datetime.datetime.now()
-	print "TIME:",fmt_time
+	updPath = '../data/daily/' + his_date +"/"+ his_date + "up_nm.txt"
+	updFile = open(updPath, "r")
+	hisLists = json.load(updFile, encoding='gbk')
+	updFile.close()
 	
+	jc_dict = {}
+	read_tfp_fh_in_tips(his_date, jc_dict)
+
 	show_idx = ['000001', '399001', '399005', '399006','399678']
 	show_real_index(show_idx)
+	print his_date
 	
-	#get_all_stk_info() 进行日期处理，获取最新交易日期
-	pre_date = get_preday(1, trade_date)
-	init_trade_list()
-	
-	year = trade_date[:4]
-	jcLoc = "../data/entry/juchao/" + year + '/jc' + trade_date + ".txt"
-	if os.path.exists(jcLoc) is False:
-		print(jcLoc,"not exist.")
-		exit(0)
-	jc_dict = {}
-	read_tips_info(jcLoc, jc_dict)
-	
-	
-	print ("Current trade day:", trade_date, pre_date)
-	
-	#获取上一日的Info
-	preFlag = 1
+	stcsItem=statisticsItem()
+	pre_date = get_preday(1, his_date)
 	preStatItem = statisticsItem()
 	ret = parse_realtime_his_file(pre_date, preStatItem)
 	if ret == -1:
-		preFlag = 0
 		print("Error:No find matched item", pre_date)
 		exit(0)
-	#print(json.dumps(preStatItem.lst_non_yzcx_yzzt, ensure_ascii=False, encoding='gbk').encode('gbk'))
+	#print(preStatItem.lst_non_yzcx_yzzt)
 	
-	debug = 0
-	today_open = []
-
-	'''
-	#TODO: 如何调试呢？
-	st_list=['603225','300116','600081','002113', '002676', '000862', '600119', '002309', '600262', '603663']
-	debug = 1
-	#print st_list
-	'''
-	#通过条件查询所有STK, start from 000001
-	
-	st_list = []
-	flname = '../data/daily/' + trade_date +"/"+ trade_date + "xd.txt"
-	hisFile = open(flname, "r")
-	st_list = json.load(hisFile, encoding='gbk')
-	hisFile.close()
-
 	st_dict = {}
 	st_dict['fup_stk'] = jc_dict['fupai']
-	st_dict['new_stk'] = jc_dict['newmk']
-	st_dict['all_stk'] = st_list
+	st_dict['new_stk'] = jc_dict['newmrk']
+	st_dict['all_stk'] = hisLists
 	st_dict['nkb_stk'] = []
+	st_dict['tui_stk'] = []
+	print st_dict['new_stk']
+	print st_dict['fup_stk']
 
-	#print "=====>", len(stcsItem.lst_non_yzcx_zthl)
-	stcsItem=statisticsItem()
-	print trade_date
-	status = collect_all_stock_data2(st_dict, today_open, stcsItem, preStatItem, trade_date, debug)
-	if status==-1:
-		exit(0)
+	today_open = []
+	collect_all_stock_data_pre(st_dict, today_open, stcsItem, preStatItem, his_date)
 
-	exit(0)
-	
-	'''
-	cur2 = datetime.datetime.now()
-	#print ("collect all Fin",(cur2-cur1))
-	#exit(0)
 
 	non_cx_yz = len(stcsItem.lst_non_yzcx_yzzt)
 	cx_yz = stcsItem.s_yzzt-non_cx_yz
@@ -374,7 +353,8 @@ if __name__=='__main__':
 		show_dt_info(stcsItem.lst_dt, "DT", fmt2, param_config)
 		show_dt_info(stcsItem.lst_dtft, "DTFT", fmt3, param_config)
 
-	cur2 = datetime.datetime.now()
+		if param_config["TuiShi"]==1:
+			show_tuishi_info(st_dict['tui_stk'], fmt1)
 	if param_config["NoLog"]==0:
 		sys.stdout.flush()
 		log = open(flname, 'r')
@@ -392,8 +372,7 @@ if __name__=='__main__':
 
 		tmp_file = path + "b_rt.txt"
 		shutil.copy(flname, tmp_file)
+	'''
+	'''
 	endTm = datetime.datetime.now()
 	print "END ", (endTm-beginTm)
-	cur2 = datetime.datetime.now()
-	print ("delta=",(cur2-cur1))
-	'''

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:gbk -*-
 
-#保存每日的交易信息
+#解析个股添加或者取消ST处理消息
 import sys
 import re
 import os
@@ -12,7 +12,7 @@ import getopt
 
 sys.path.append('.')
 from internal.format_parse import *
-from internal.parse_juchao import *
+from internal.parse_jc_tips import *
 
 def handle_argument():
 	optlist, args = getopt.getopt(sys.argv[1:], 'hd:s:e:')
@@ -31,7 +31,6 @@ param_config = {
 	"End":'',
 	"DFCF":0,
 }
-JUCHAO_PRE_FD = "../data/entry/juchao/"
 
 #Main Start:
 if __name__=='__main__':
@@ -53,7 +52,7 @@ if __name__=='__main__':
 	stepDt = datetime.datetime.strptime(dt, '%Y-%m-%d').date()
 	while (endDt-stepDt).days>=0:
 		base_date = fmt %(stepDt.year, stepDt.month, stepDt.day)
-		parse_daily_tips(JUCHAO_PRE_FD, base_date, stk_list, stk_dict)
+		read_st_in_daily_tips(base_date, stk_list, stk_dict)
 		stepDt += datetime.timedelta(days=1)
 
 	#print stk_list

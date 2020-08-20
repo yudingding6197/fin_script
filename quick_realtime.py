@@ -254,14 +254,14 @@ if __name__=='__main__':
 	#get_all_stk_info() 进行日期处理，获取最新交易日期
 	trade_date = get_lastday()
 	pre_date = get_preday(1, trade_date)
-	init_trade_list()
+	init_trade_list(trade_date)
 	#print ("Current trade day:", trade_date, pre_date)
 	new_st_list = []
 	new_st_code_list = []
 	non_kb_list = []
 	get_new_market_stock(trade_date, new_st_list, non_kb_list, new_st_code_list)
 	#for item in non_kb_list:
-	#	print item['securitycode'], item['securityshortname']
+	#	print item['securitycode'], item['securityshortname'].encode('gbk')
 	#print(non_kb_list)
 
 	#重出江湖STK
@@ -277,6 +277,10 @@ if __name__=='__main__':
 	preFlag = 1
 	preStatItem = statisticsItem()
 	ret = parse_realtime_his_file(pre_date, preStatItem)
+	#print "YZDT", pre_date, preStatItem.lst_yzdt
+	#print ""
+	#for item in preStatItem.lst_dt:
+	#	print item
 	if ret == -1:
 		preFlag = 0
 		print("Error:No find matched item", pre_date)
@@ -313,6 +317,8 @@ if __name__=='__main__':
 	st_dict['nkb_stk'] = non_kb_list
 	st_dict['tui_stk'] = []
 
+	#print "fu_pai",fp_code_list
+	#print "new_stk",new_st_code_list
 	#print "=====>", len(stcsItem.lst_non_yzcx_zthl)
 	stcsItem=statisticsItem()
 	print trade_date

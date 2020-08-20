@@ -15,6 +15,17 @@ load 和 loads 都实现反序列化, 将dict类型转换为json字符串格式
 import os
 import json
 
+#1. json.loads( dict or list 格式的字符串)
+
+#2. file = open('1.json','r',encoding='utf-8')
+#   info = json.load(file)
+
+#3. json_info = json.dumps(dict or list 对象) 
+
+#4. json_info = {'age': '12'}
+#   file = open('1.json','w',encoding='utf-8')
+#   json.dump(json_info,file)
+
 #json 通过load能够加载为 dict or list
 str = '{"aa":"c1","bb":"c2"}'
 dic = json.loads(str);
@@ -29,3 +40,8 @@ print (dic[0]['open'])
 print("\n============== dumps =================")
 str1 = json.dumps(dic)
 print (str1)
+
+
+json_info = {'age': '12', 'name':'sn'}
+file = open('_tjson.txt','w')
+json.dump(json_info,file)

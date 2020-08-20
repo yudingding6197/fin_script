@@ -17,18 +17,16 @@ def update_latest_trade(latest_day):
 	if not os.path.exists(DB_PATH):
 		os.mikedirs(DB_PATH)
 		return get_index_history_byNetease(filenm)
-		
 
 	location = DB_PATH + '/' + filenm + '.csv'
 	if not os.path.isfile(location):
 		return get_index_history_byNetease(filenm)
-				
 
 	fl = open(location, 'r')
 	line = fl.readline()
 	line = fl.readline()
 	file_day = line.split(',')[0]
-	#print("_____ upd_trd", file_day,latest_day)
+	print("_____ upd_trd", file_day,latest_day)
 
 	if latest_day != file_day:
 		return get_index_history_byNetease(filenm)

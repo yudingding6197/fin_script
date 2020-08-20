@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:gbk -*-
 
-#提供日期，获取匹配日期的日K
+#根据指定的日期，读取每一个ItemStk对应的kday_... 文件，提取指定日期的记录
 #如果没有则意味着TP
-#保存到 data/daily/日期/日期.txt,需要再处理XD和第一天上的item
+#保存到 data/daily/日期/日期.txt,
+#目前没有更新处理XD和当日NewStk的昨收盘价格(需要手动处理,重新保存为'日期xd.txt'文件)
 #[code,name,上市日,preClose,open,close,high,low,vol,percent]
 import sys
 import re
@@ -13,7 +14,7 @@ import getopt
 
 sys.path.append('.')
 from internal.handle_realtime import *
-from internal.parse_juchao import *
+from internal.parse_jc_tips import *
 
 def handle_argument():
 	optlist, args = getopt.getopt(sys.argv[1:], 'd:f:')
@@ -24,7 +25,17 @@ def handle_argument():
 			param_config["Format"] = value
 	#print param_config
 
-def handle_data(lobj, his_date, code, name, mark_date, jc_dict, allist):
+#将在指定日期当天交易的ItemStk数据，记录到List中
+#TODO:判断新股的方法不正确，如果是复牌的，就有风险
+#lobj: 通过kday_文件读取的list, 类似:
+#      ["20190102", 2.69, 2.67, 2.7, 2.66, 2909600, -0.37]...
+#his_date:  指定恢复数据的日期
+#mark_date: 个股上市的日期
+#输出文件：
+#      ["000002", "万科A", "1991-01-29", 27.73, 27.7, 28.45, 28.45, 27.63, 57748439, 2.6]...
+#      [3]:preClose
+#      [4]:Open,  [5]:Close,   [6]:High,    [7]:Low
+def select_all_trade_stk(lobj, his_date, code, name, mark_date, jc_dict, allist):
 	bFind = 0
 	for i in range(len(lobj)):
 		if lobj[i][0]==his_date:
@@ -33,15 +44,17 @@ def handle_data(lobj, his_date, code, name, mark_date, jc_dict, allist):
 			list.append(code)
 			list.append(name)
 			list.append(mark_date)
-			if i==0:
-				#The is N flag
+			if code in jc_dict['newmrk']:
+				if his_date != mark_date:
+					print "Error: Check why not the same day",his_date, mark_date
 				#print code, i, lobj[i]
-				list.append(-11)
+				print "This is new s", code, name
+				list.append(-111)
 			else:
 				preClose = lobj[i-1][2]
 				#print code, name, preClose, type(preClose)
 				if code in jc_dict['fenhong']:
-					list.append(-12)
+					list.append(-112)
 				else:
 					list.append(preClose)
 			list.extend(lobj[i][1:])
@@ -77,7 +90,7 @@ if __name__=='__main__':
 		print(jcLoc,"not exist.")
 		exit(0)
 	jc_dict = {}
-	read_tips_info(jcLoc, jc_dict)
+	read_tfp_fh_in_tips(jcLoc, jc_dict)
 	
 	file = open(tradeFl, "r")
 	line = file.readline()
@@ -131,7 +144,7 @@ if __name__=='__main__':
 			if len(mDate)<10:
 				print(obj[0], "Invalid date", mDate)
 			markDt = mDate[:10]
-			handle_data(lobj, hisDt, obj[0], obj[1], markDt, jc_dict, allist)
+			select_all_trade_stk(lobj, hisDt, obj[0], obj[1], markDt, jc_dict, allist)
 			#json.dump(obj['data'], kFile)
 		kFile.close()
 		#if obj[0] == '000100':
@@ -144,24 +157,27 @@ if __name__=='__main__':
 		if os.path.exists(flname):
 			print "Data file exist"
 			exit(0)
-		hisFile = open(flname, "w")
+		updFile = open(flname, "w")
 		
-		#所有数据全一行
-		#hisFile.write(json.dumps(allist, ensure_ascii=False, indent=4))
-		#每一条数据写一行
-		hisFile.write ("[")
-		for i in range(len(allist)):
-			if i==len(allist)-1:
-				hisFile.write(json.dumps(allist[i], ensure_ascii=False)+"\n")
-			else:
-				hisFile.write(json.dumps(allist[i], ensure_ascii=False)+",\n")
-		hisFile.write ("]")
-		hisFile.close()
+		fmt = 0
+		if fmt==0:
+			#所有数据全一行
+			updFile.write(json.dumps(allist, ensure_ascii=False, indent=4))
+		else:
+			#每一条数据写一行
+			updFile.write ("[")
+			for i in range(len(allist)):
+				if i==len(allist)-1:
+					updFile.write(json.dumps(allist[i], ensure_ascii=False)+"\n")
+				else:
+					updFile.write(json.dumps(allist[i], ensure_ascii=False)+",\n")
+			updFile.write ("]")
+			updFile.close()
 		'''
 		'''
 		
-		hisFile = open(flname, "r")
-		jsn = json.load(hisFile, encoding='gbk')
-		hisFile.close()
+		updFile = open(flname, "r")
+		jsn = json.load(updFile, encoding='gbk')
+		updFile.close()
 	
 	file.close()
