@@ -114,9 +114,6 @@ http://web.ifzq.gtimg.cn/appstock/app/minute/query?code=sh600103
 http://web.ifzq.gtimg.cn/appstock/app/minute/query?_var=min_data_sh600103&code=sh600103&r=0.12174363108800135
 
 
-
-
-
 分价表 当天
 http://stockhtm.finance.qq.com/sstock/quotpage/q/600103.htm#price
 http://stock.gtimg.cn/data/index.php?appn=price&c=sh600103
@@ -149,8 +146,6 @@ https://gupiao.baidu.com/api/stocks/stockdaybar?from=pc&os_ver=1&cuid=xxx&vv=100
 分时成交Excel：
 http://stock.gtimg.cn/data/index.php?appn=detail&action=download&c=sh600103&d=20170124 旧新都有
 http://market.finance.sina.com.cn/downxls.php?date=2017-01-24&symbol=sh600103 新的全
-
-
 
 
 http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=sz300178&scale=5&ma=no&datalen=240

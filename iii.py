@@ -14,5 +14,6 @@ from internal.trade_date import *
 #Main
 if __name__=="__main__":
 	trade_date = get_lastday()
-	pre_date = get_preday(2, trade_date)
-	print "iii", trade_date, pre_date
+	#pre_date = get_preday(2, trade_date)
+	#print "iii", trade_date, pre_date
+	

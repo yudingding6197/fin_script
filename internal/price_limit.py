@@ -60,6 +60,35 @@ def covert_time_fmt(tmobj, minute, flag):
 	#	tmstr = "%02d:%02d--??" %(hour, minute)
 	return tmstr
 
+def covert_only_time_fmt(tmobj, minute, flag):
+	#将当前时间减去5分钟
+	dt = datetime.datetime.strptime(tmobj, "%H:%M")
+	newdt = dt - datetime.timedelta(minutes=minute)
+	tmNewObj = newdt.strftime("%H:%M")
+
+	timeObj = re.match(r'(\d{2}):(\d{2})', tmNewObj)
+	if (timeObj is None):
+		print code, "非法时间格式3：" +str(row['date'])+ ", 期望格式: HH:MM"
+		return ''
+	hour = int(timeObj.group(1))
+	minute = int(timeObj.group(2))
+	if hour<=11:
+		if flag==1:
+			tmstr = "%02d:%02d??" %(hour, minute)
+		else:
+			tmstr = "%02d:%02d" %(hour, minute)
+	else:
+		if flag==1:
+			tmstr = "%02d:%02d--??" %(hour, minute)
+		else:
+			tmstr = "%02d:%02d--" %(hour, minute)
+	#if hour<=11:
+	#	tmstr = "%02d:%02d??" %(hour, minute)
+	#else:
+	#	tmstr = "%02d:%02d--??" %(hour, minute)
+	#print tmobj, tmstr
+	return tmstr
+
 def handle_k5_data(klist, code, trade_date, chk_price, type, tm_array):
 	tmstr = '??:??'
 	tmobj = ''
@@ -336,7 +365,7 @@ if __name__=="__main__":
 	stk_list=[0, 0]
 	#get_zf_days('000796', 1, '2020-07-12', 1, stk_list)
 	tm_array=['','']
-	#get_zdt_time('000822', '2020-07-31', 4.37, 1, tm_array)
-	check_pre_day_state('600158', '2019-06-27')
+	get_zdt_time('600095', '2020-08-20', 20.13, 0, tm_array)
+	#check_pre_day_state('600158', '2019-06-27')
 	print "TM Array", tm_array[0],tm_array[1]
 	

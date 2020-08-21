@@ -15,6 +15,7 @@ import threading
 
 from internal.trade_date import *
 from internal.math_common import *
+from internal.realtime_common import *
 from internal.url_dfcf.dc_hangqing import *
 from internal.url_sina.fetch_sina import *
 from internal.url_sina.sina_inf import *
@@ -35,125 +36,6 @@ STK_ST_YZDT = 1<<9
 
 PRE_DAYS = 33
 CX_DAYS = 200
-desc_notkb=u"未开板"
-desc_willon=u"待上市"
-TS_FLAG = 1
-	
-
-def get_std_realtime_data(cur_list, src='sn'):
-	if src=='sn' or src=='':
-		get_realtime_data(cur_list)
-	else:
-		print("WIP...\n")
-
-#分析时间得到ZT时间，上午or下午
-# TODO:
-def zt_time_analyze(chuban, stcsItem):
-	timeObj = re.match(r'(\d{2}):(\d{2})', chuban)
-	hour = int(timeObj.group(1))
-	minute = int(timeObj.group(2))
-	if hour<=11:
-		stcsItem.s_sw_zt += 1
-	else:
-		stcsItem.s_xw_zt += 1
-
-def get_price_list(code, price_dict, src='163'):
-	if src=='' or src=='163':
-		get_price_list_163(code, price_dict)
-	elif src=='sina':
-		sn_code = sina_code(code)
-		#get_price_list(sn_code, price_dict)
-	else:
-		print("WIP", src)
-	return
-
-#如果是YZZT，确定是不是还没有开板的CX
-def check_YZ_not_kb(non_kaiban_list, code):
-	for item in non_kaiban_list:
-		if code==item['securitycode']:
-			print "TODO:Need check"
-			#print item['securitycode'],item['securityshortname']
-			return 1
-	return 0
-
-# 判断新股第一天是否YZZT
-def check_YZ_new_market(code, stcsItem):
-	price_dict = {}
-	get_price_list(code, price_dict)
-	p_len = len(price_dict)
-	if p_len==0:
-		print ("Error: no price")
-		return 0
-	elif p_len>3:
-		return -1
-	#print(price_dict)
-	stcsItem.s_cx_yzzt += 1
-	return 1
-
-def searchInList(code, src_list, desc):
-	bPreZt = 0
-	count = 0
-	for item in src_list:
-		if item[0]==code:
-			#print "Find ", desc, code, item[7], item[8]
-			bPreZt = 1
-			count = int(item[7])
-			break
-	return bPreZt, count
-	
-#type:
-# 0: ZT
-# 1: DT
-def getPreZDtDays(code, type, preStat):
-	bPreZt = 0
-	if type==0:
-		bPreZt, count = searchInList(code, preStat.lst_non_yzcx_yzzt, "yzzt1")
-		if bPreZt==0:
-			bPreZt, count = searchInList(code, preStat.lst_non_yzcx_zt, "zt1")
-	elif type==1:
-		bPreZt, count = searchInList(code, preStat.lst_yzdt, "yzdt1")
-		if bPreZt==0:
-			bPreZt, count = searchInList(code, preStat.lst_dt, "dt1")
-	else:
-		print ("Invalid type", type, code)
-		return -1
-
-	if bPreZt==0:
-		count = 0
-	return count
-
-#上市日期和交易日大约1年前的时间对比
-def verify_one_year_cx(market_date, pre300_date, type, stk_list):
-	#propLen = len(props)
-	#market_date = props[propLen-1]
-	mkDt = datetime.datetime.strptime(market_date, '%Y-%m-%d').date()
-	pre300Dt = datetime.datetime.strptime(pre300_date, '%Y-%m-%d').date()
-	if (pre300Dt-mkDt).days<=0:
-		stk_list[0] = CX_DAYS-50
-	else:
-		stk_list[0] = CX_DAYS+50
-	return
-
-#type:
-# 0: ZT
-# 1: DT
-def checkZDTInfo(code, name, fpFlag, type, preStat):
-	if fpFlag==1:
-		#print "FuPai YZZT", code, name.encode('gbk')
-		bGetDays = 1
-		return bGetDays, -1
-	elif TS_FLAG==1:
-		if name[:2]==u'退市':
-			#print code, name.encode('gbk'), "ZT"
-			count = -1
-		elif name[-1:]==u'退':
-			#print code, name.encode('gbk'), "ZT"
-			count = -1
-		else:
-			count = getPreZDtDays(code, type, preStat)
-	else:
-		count = getPreZDtDays(code, type, preStat)
-	return 0,count
 
 def analyze_status2(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, trade_date, pre300_date):
 	if len(code)!=6 or code.isdigit() is False:
@@ -324,9 +206,11 @@ def analyze_status2(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tr
 				stcsItem.lst_yzdt.append(list)
 		#print code,name,open,low,high,price,pre_close
 	else:
+		#chubn and kaibn先占位，随后线程更新
 		if high==zt_price:
 			if b_ST==0:
 				tmArr = ['','']
+				#不在此处调用了
 				#get_zdt_time(code, trade_date, zt_price, 0, tmArr)
 				chuban = tmArr[0]
 				openban = tmArr[1]
@@ -618,9 +502,62 @@ def check_new_market(new_stock_list, code, name, props, stcsItem, trade_day, tod
 			print( "Check the item: %s %s"%(code, name) )
 	return 1
 
-def qry_loop(index, qryArgs, trade_date, qLock):
+def get_tdx_zdt_time(code, trade_date, chk_price, type, tm_array, klist):
+	tmstr = '??:??'
+	tmobj = ''
+	tmend = ''
+	mx_prc = 0
+	#print klist
+	for row in klist:
+		#ZT
+		if type==0:
+			price = row[3]
+			if mx_prc<price:
+				mx_prc = price
+				tmobj = row[0]
+				tmend = row[0]
+			elif mx_prc==price:
+				tmend = row[0]
+		#DT
+		elif type==1:
+			price = row[4]
+			if mx_prc==0:
+				mx_prc = price
+				tmobj = row[0]
+				tmend = row[0]
+			if mx_prc>price:
+				mx_prc = price
+				tmobj = row[0]
+				tmend = row[0]
+			elif mx_prc==price:
+				tmend = row[0]
+		else:
+			print ("Error:Unknown type", type)
+			break
+	binst = 0
+	#print mx_prc, chk_price
+	if mx_prc!=chk_price:
+		binst = 1
+
+	#print tmobj, tmend
+	if tmobj!='':
+		tmstr = covert_only_time_fmt(tmobj, 5, binst)
+		tm_array[0]=tmstr
+	if tmend!='':
+		tmstr = covert_only_time_fmt(tmend, 0, binst)
+		tm_array[1]=tmstr
+	#print(tmstr)
+	return tmstr
+
+def qry_loop(index, qryArgs, trade_date, qLock=None):
 	#print desc
 	#print stcsList
+	REAL_DAILY_PRE_FD = "../data/daily/"
+	k5path =  REAL_DAILY_PRE_FD + trade_date +"/"+ trade_date + "_k5min.txt"
+	file = open(k5path, "r")
+	j_tdx = json.load(file)
+	file.close()
+
 	for item in qryArgs:
 		tmArr = ['','']
 		code = item[1][0]
@@ -639,25 +576,24 @@ def qry_loop(index, qryArgs, trade_date, qLock):
 		else:
 			print "Invalid type", desc
 			break
-		get_zdt_time(code, trade_date, zdt_price, type, tmArr)
+		if code not in j_tdx.keys():
+			print ("Warning: %s not in dict, perhaps TuiShi" % (code))
+			continue
+		get_tdx_zdt_time(code, trade_date, zdt_price, type, tmArr, j_tdx[code])
 
 		chuban = tmArr[0]
 		openban = tmArr[1]
+		#cd print code, chuban, openban
 		item[1][9] = chuban
 		if desc=='zthl' or desc=='dtft':
 			item[1][10] = openban
 
-		#qLock.acquire()
-		#print index, item[0], item[1][0], item[1][1], chuban, openban
-		#print item
-		#qLock.release()
-		#break
 	#print("query_loop quit", index);
 	return
 
 def update_zdt_time(stcsItem, trade_date):
 	thrdNum = 1
-	print "Use single thread"
+	#print "Use single thread"
 	threadIdx = 0
 	threads = []
 	qryThread = [[] for i in range(thrdNum)]
@@ -686,14 +622,13 @@ def update_zdt_time(stcsItem, trade_date):
 		threadIdx += 1
 
 	#print "lll=", len(qryThread[0]),len(qryThread[1])
+	'''
 	threadIdx = 0
 	for threadIdx in range(len(qryThread)):
 		qryArgs = qryThread[threadIdx]
 		t = threading.Thread(target=qry_loop, args=(threadIdx, qryArgs, trade_date, lock))
 		threads.append(t)
 
-	'''
-	'''
 	for item in threads:
 		item.start()
 	for item in threads:
@@ -703,7 +638,8 @@ def update_zdt_time(stcsItem, trade_date):
 		print item[0], item[1], item[9]
 		chuban = item[9]
 		zt_time_analyze(chuban, stcsItem)
-	
+	'''
+	qry_loop(0, qryThread[0], trade_date)
 	return
 
 def collect_all_stock_data_pre(st_dict, today_open, stcsItem, preStat, trade_date, debug=0):
@@ -717,7 +653,7 @@ def collect_all_stock_data_pre(st_dict, today_open, stcsItem, preStat, trade_dat
 	
 	pre30_date = get_preday(PRE_DAYS, trade_date)
 	pre300_date = get_preday(CX_DAYS, trade_date)
-	print ("collect_all_stock1_data2:", pre30_date, pre300_date)
+	#print ("collect_all_stock1_data2:", pre30_date, pre300_date)
 
 	status = 0
 	for item in st_list:
@@ -762,76 +698,7 @@ def collect_all_stock_data_pre(st_dict, today_open, stcsItem, preStat, trade_dat
 		#cur_list.append(code)
 		#print(item[0], item[1], item[2])
 		#print cur_list
-		#get_std_realtime_data(cur_list, 'sn')
 
-	#update_zdt_time(stcsItem, trade_date)
+	update_zdt_time(stcsItem, trade_date)
 	return status
 
-def query_stk(index, qryArgs, pageNum, qLock, st, sr, ps):
-	pageStr = index*pageNum + 1
-	pageEnd = pageStr + pageNum - 1
-	
-	#qLock.acquire()
-	#print index, pageNum, pageStr, pageEnd
-	#qLock.release()
-
-	curpage = pageStr
-	for curpage in range(pageStr, pageEnd+1):
-		bnext = get_each_page_data1(qryArgs, curpage, st, sr, ps)
-		if bnext==0:
-			break
-	#print("query_stk quit", index);
-	return
-
-#sort mode：
-#'A' stock code
-#'B' 股价
-#'C' 涨幅
-def get_stk_code_by_dfcf(new_st_list, st='C', sr=-1, ps=80):
-	curpage = 1
-	#items_list = []
-	totalpage = get_stk_max_page(0, st, sr, ps)
-	if totalpage==-1:
-		return totalpage
-	#print("Max Page", totalpage)
-	
-	thrdNum = 4
-	pageNum = totalpage/4 + 1
-	threadIdx = 0
-	threads = []
-	qryThread = [[] for i in range(thrdNum)]
-	lock = threading.Lock()
-
-	#print "lll=", len(qryThread[0]),len(qryThread[1])
-	threadIdx = 0
-	for threadIdx in range(len(qryThread)):
-		qryArgs = qryThread[threadIdx]
-		t = threading.Thread(target=query_stk, args=(threadIdx, qryArgs, pageNum, lock, st, sr, ps))
-		threads.append(t)
-
-	for item in threads:
-		item.start()
-	for item in threads:
-		item.join()
-	
-	threadIdx = 0
-	for threadIdx in range(len(qryThread)):
-		if qryThread[threadIdx] == []:
-			print ("Warning: Empty data")
-			continue
-		new_st_list.extend(qryThread[threadIdx])
-	'''
-	while 1:
-		bnext = get_each_page_data1(new_st_list, curpage, st, sr, ps)
-		exit(0)
-		if bnext==0:
-			break
-		elif bnext==-1:
-			continue
-		curpage += 1
-	#for item in items_list:
-	#	new_st_list.append(item[0:6])
-	'''
-	return 0
-
-	

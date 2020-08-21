@@ -8,6 +8,9 @@ import urllib
 import urllib2
 import datetime
 
+from collections import OrderedDict
+
+
 #通过字典处理
 d1 = {'name':'Bob', 'age':40}
 print d1
@@ -66,3 +69,10 @@ print d5
 #如果键的值没提供的话，默认为None
 d5 = dict.fromkeys(['A','B'])
 print d5
+
+orderDt = OrderedDict()
+orderDt['001'] = '1a'
+orderDt['004'] = '4g'
+orderDt['003'] = '3b'
+orderDt['002'] = '2k'
+print orderDt

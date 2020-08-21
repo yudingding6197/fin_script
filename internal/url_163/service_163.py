@@ -82,7 +82,7 @@ def fetch_kday_page(url):  #获取页面数据
 	content = opener.read()
 	respInfo = opener.info()
 	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
-		print "Content compressed"
+		#print "Content compressed"
 		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
 	return content
 
@@ -125,7 +125,7 @@ def get_index_history_byNetease_js(location, index_temp):
 	#url='http://quotes.money.163.com/service/chddata.html?code=%s&start=19900101&
 	#end=%s&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;VOTURNOVER;VATURNOVER'%(index_id,time.strftime("%Y%m%d"))
 	url='http://img1.money.126.net/data/hs/kline/day/times/%s.json'%(index_id)
-	print('netease js', url)
+	#print('netease js', url)
 
 	page=fetch_kday_page(url)#.decode('gb2312')
 	#print "pp", type(page)

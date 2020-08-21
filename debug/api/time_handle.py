@@ -87,6 +87,10 @@ if __name__ == '__main__':
 	
 	#'某一天'加一小时
 	#'某一天'加一分钟
+	mDt = datetime.datetime.strptime("09:35", "%H:%M")
+	newMDt = mDt - datetime.timedelta(minutes=5)
+	tmNewObj = newMDt.strftime("%H:%M")
+	print "handle minite",type(newMDt), type(tmNewObj), tmNewObj
 
 
 	time.sleep(0.65)

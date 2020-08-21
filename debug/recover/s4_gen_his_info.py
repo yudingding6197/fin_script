@@ -14,7 +14,7 @@ import getopt
 
 sys.path.append('.')
 from internal.handle_realtime import *
-from internal.parse_jc_tips import *
+from internal.inf_juchao.parse_jc_tips import *
 
 def handle_argument():
 	optlist, args = getopt.getopt(sys.argv[1:], 'd:f:')
@@ -153,7 +153,7 @@ if __name__=='__main__':
 		line = file.readline()
 
 	if len(allist)>0:
-		flname = '../data/daily/' + hisDate +"/"+ hisDate + ".txt"
+		flname = REAL_DAILY_PRE_FD + hisDate +"/"+ hisDate + ".txt"
 		if os.path.exists(flname):
 			print "Data file exist"
 			exit(0)

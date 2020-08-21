@@ -21,6 +21,19 @@ from internal.inf_juchao.parse_jc_tips import *
 #from internal.tingfupai import * 
 #from internal.common_inf import *
 
+class Logger_IO(object): 
+	def __init__(self, filename="Default.log"):
+		self.terminal = sys.stdout
+		self.log = open(filename, "w")
+
+	def write(self, message):
+		self.terminal.write(message)
+		self.log.write(message)
+
+	def flush(self):
+		self.log.flush()
+		pass
+
 #可以和show_dt_info 合并, 通过 desc in ['DT','ZT']进行判断
 def show_zt_info(zt_list, desc, fmt, outstr, pconfig):
 	number = len(zt_list)
@@ -188,29 +201,38 @@ def show_real_index(show_idx, src='sn'):
 		print "%8.2f(%6s)"%(f_price, ratio)
 
 def handle_argument():
-	optlist, args = getopt.getopt(sys.argv[1:], 'hd:')
+	optlist, args = getopt.getopt(sys.argv[1:], 'htd:')
 	for option, value in optlist:
 		if option in ["-h","--help"]:
 			param_config["Help"] = 1
 		elif option in ["-d","--date"]:
 			param_config["Date"] = value
+		elif option in ["-t","--time"]:
+			param_config["SortByTime"] = 1
 	#print param_config
 
 param_config = {
 	"Help":0,
 	"Date":'',
-	"NoLog":1,
+	"NoLog":0,
 	"NoDetail":0,
 	"NotAllInfo":0,
 	"SortByTime":0,
 	"TuiShi":0,
 }
-REAL_DAILY_PRE_FD = "../data/"
+REAL_PRE_FD = "../data/"
 
 #Main Start:
 if __name__=='__main__':
 	beginTm = datetime.datetime.now()
 	sysstr = platform.system()
+	
+	flname = REAL_PRE_FD + "realtime.txt"
+	#TODO: open the comment
+	if os.path.isfile(flname):
+		os.remove(flname)
+	sys.stdout = Logger_IO(flname)
+	
 	handle_argument()
 	if param_config["Help"]==1 or param_config["Date"]=='':
 		print("%s -d([.][YYYY]MMDD))"%(os.path.basename(__file__)))
@@ -218,6 +240,10 @@ if __name__=='__main__':
 	ret, his_date = parseDate2(param_config["Date"])
 	if ret==-1:
 		exit(0)
+
+	t_fmt = '%s %02d:%02d'
+	fmt_time = t_fmt %(his_date, beginTm.hour, beginTm.minute)
+	print "TIME:",fmt_time
 
 	updPath = '../data/daily/' + his_date +"/"+ his_date + "up_nm.txt"
 	updFile = open(updPath, "r")
@@ -246,8 +272,6 @@ if __name__=='__main__':
 	st_dict['all_stk'] = hisLists
 	st_dict['nkb_stk'] = []
 	st_dict['tui_stk'] = []
-	print st_dict['new_stk']
-	print st_dict['fup_stk']
 
 	today_open = []
 	collect_all_stock_data_pre(st_dict, today_open, stcsItem, preStatItem, his_date)
@@ -361,11 +385,10 @@ if __name__=='__main__':
 		content = log.read()
 		log.close()
 
-		fmt_time = '%d-%02d-%02d' %(beginTm.year, beginTm.month, beginTm.day)
 		path = '../data/entry/realtime/'
-		flname = path + "rt_" + fmt_time + ".txt"
+		flname = path + "rt_" + his_date + ".txt"
 		baklog = open(flname, 'a')
-		baklog.write('#####quik_rt#########################################################\n')
+		baklog.write('#####################################################################\n')
 		baklog.write(content)
 		baklog.write('\n')
 		baklog.close()
