@@ -45,7 +45,7 @@ if __name__=='__main__':
 	beginTm = datetime.datetime.now()
 	year = param_config["Year"]
 	#get_all_stk_info() 进行日期处理，获取最新交易日期
-	tradeFl = REAL_DAILY_PRE_FD + year + '/' + "_trade_" + year + ".txt"
+	tradeFl = REAL_DAILY_PRE_FD + year + '/' + "_rt_trade_" + year + ".txt"
 
 	file = open(tradeFl, "r")
 	line = file.readline()

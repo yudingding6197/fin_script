@@ -46,18 +46,14 @@ REAL_DAILY_PRE_FD = "../data/daily/"
 if __name__=='__main__':
 	beginTm = datetime.datetime.now()
 	sysstr = platform.system()
-	
-	#flname = REAL_DAILY_PRE_FD + "realtime.txt"
-
 	handle_argument()
+
 	t_fmt = '%d-%02d-%02d %02d:%02d'
 	t_fmt1 = '%d-%02d-%02d_%02d-%02d'
 	cur_dt_fmt = '%d-%02d-%02d'
 	fmt_time = t_fmt %(beginTm.year, beginTm.month, beginTm.day, beginTm.hour, beginTm.minute)
 	fmt_time1 = t_fmt1 %(beginTm.year, beginTm.month, beginTm.day, beginTm.hour, beginTm.minute)
 	today_date = cur_dt_fmt %(beginTm.year, beginTm.month, beginTm.day)
-	
-	cur1 = datetime.datetime.now()
 	
 	#get_all_stk_info() 进行日期处理，获取最新交易日期
 	trade_date = get_lastday()
@@ -78,5 +74,3 @@ if __name__=='__main__':
 	
 	endTm = datetime.datetime.now()
 	print "END ", (endTm-beginTm)
-	cur2 = datetime.datetime.now()
-	print ("delta=",(cur2-cur1))

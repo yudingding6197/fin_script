@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 #检查history realtm文件中所有的个股，哪些是CX，哪些不是
+#这是一个调试用的小方法
 import sys
 import re
 import os

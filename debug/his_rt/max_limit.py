@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-#涨停分析
+#历史上涨停天数分析
 import sys
 import getopt
 
@@ -77,43 +77,50 @@ def showContinueZT(curStat, cur_date):
 param_config = {
 	"Greate":8,
 	"Less":0,
-	"Equal":0,
-	"Flag":0,
-	"Days":0,
-	"Date":'',
-	"Number":300,
+	"Equal":0,		
+	"Flag":0,		#内部使用，没有提供参数输入接口
+	"Days":0,		#内部使用，没有提供参数输入接口
+	"Date":'',		#指定起始日期
+	"Number":300,	#从指定的起始日期向前检查300天
 }
 
 #Main Start:
 if __name__=='__main__':
+	beginTm = datetime.datetime.now()
 	ret = handle_argument()
 	if ret==-1:
 		exit(0)
+
+	trade_date = get_lastday()
 	if param_config['Date']=='':
-		cur_day = get_lastday()
+		cur_day = trade_date
 	else:
 		#必须转为 YYYY-MM-DD格式
-		cur_day = param_config['Date']
-		if len(cur_day)==8:
-			cur_day = cur_day[:4] + '-' + cur_day[4:6] + '-' + cur_day[6:8]
-		
-		#print cur_day
+		ret, cur_day = parseDate2(param_config['Date'])
+	#print cur_day
+	init_trade_list(trade_date)
 
 	number = param_config["Number"]
 	count = 0
 	for i in range(number):
-		#print i, cur_day
+		#print "max_lmt", i, cur_day
 		if cur_day=='':
 			break
 		curStat = statisticsItem()
 		ret = parse_realtime_his_file(cur_day, curStat)
 		if ret == -1:
-			cur_day = get_preday(1, cur_day)
+			#cur_day = get_preday(1, cur_day)
+			cur_day = calcu_pre_date(1, cur_day)
 			count += 1
 			if count>3:
 				break
 			continue
 		count = 0
 		showContinueZT(curStat, cur_day)
-		cur_day = get_preday(1, cur_day)
+		#cur_day = get_preday(1, cur_day)
+		cur_day = calcu_pre_date(1, cur_day)
+
+	release_trade_list()
+	endTm = datetime.datetime.now()
+	print "END ", (endTm-beginTm)
 		

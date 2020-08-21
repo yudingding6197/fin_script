@@ -207,7 +207,7 @@ def release_trade_list():
 	g_trade_flag=0
 	g_trade_list=[]
 
-def calcu_back_date(base_date, days):
+def calcu_back_date(days, base_date):
 	if len(g_trade_list)==0:
 		print "Not initial date DB"
 		return ""
@@ -229,12 +229,38 @@ def calcu_back_date(base_date, days):
 	#print "find_date",item
 	return item
 
+def calcu_pre_date(days, base_date):
+	trdLen = len(g_trade_list)
+	if trdLen==0:
+		print "Not initial date DB"
+		return ""
+
+	index = 0
+	flag = 0
+	for index,item in enumerate(g_trade_list):
+		if item==base_date:
+			flag = 1
+			break
+	#print 'pre idx', index, base_date
+	if flag==0:
+		print ("Not find base date", base_date)
+		return ""
+	if (trdLen-index)<days:
+		print ("days too long", days, index)
+		return ""
+
+	item = g_trade_list[index:][days]
+	#print "find_date",item
+	return item
+
 #Main
 #for i in range(0,1000):
 #	formatRand()
 if __name__ == "__main__":
 	init_trade_list()
 	dt = '2020-06-24'
-	calcu_back_date(dt, 2)
+	print calcu_back_date(2, dt)
+	dt = calcu_pre_date(3, dt)
+	print dt
 
 	pass

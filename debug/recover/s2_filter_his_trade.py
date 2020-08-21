@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:gbk -*-
 
-#从dailydb_YYbase.txt读取所有个股
+#将期望搜索的文件改名为 _dailydb_new.txt
+#From _dailydb_new.txt读取所有个股
+#生成 _rt_trade_year.txt文件
 #保存为[code, name, 上市日期]格式
 import sys
 import re
@@ -46,21 +48,21 @@ if __name__=='__main__':
 	
 	handle_argument()
 	if param_config["Date"]=='':
-		print "Error:Must add arg -dYYYY-MM-DD option"
+		print "Error:Must add option -d(YYYY-MM-DD)"
 		exit(0)
 	ret, def_dt = parseDate2(param_config["Date"])
 	if ret==-1:
 		exit(0)
 	
-	flname = REAL_DAILY_PRE_FD + "dailydb_19base.txt"
-	tradefl = REAL_DAILY_PRE_FD + def_dt[:4] + '/' + "_trade_" + def_dt + ".txt"
+	flname = REAL_DAILY_PRE_FD + "_dailydb_new.txt"
+	tradefl = REAL_DAILY_PRE_FD + def_dt[:4] + '/' + "_rt_trade_" + def_dt + ".txt"
 	
 	defDt = datetime.datetime.strptime(def_dt, '%Y-%m-%d').date()
 	pre30_date = get_preday(PRE_DAYS, def_dt)
 	pre300_date = get_preday(CX_DAYS, def_dt)
 	print "dt, pre30, pre200", def_dt, pre30_date, pre300_date
 	#print pre30_date, pre300_date
-	print "Warning:Read file", flname, "Is right???"
+	print "Info:Read file", flname, "Is right???"
 
 	fmt = "%s,%s,%s\n"
 	tdFile = open(tradefl, "w")

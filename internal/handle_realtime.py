@@ -512,7 +512,7 @@ def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre3
 		else:
 			listing_date = item['listingdate'][:10]
 			yzb_days = int(float(item['sl']))
-			kb_date = calcu_back_date(listing_date, yzb_days)
+			kb_date = calcu_back_date(yzb_days, listing_date)
 			if kb_date!="" and kb_date==trade_date:
 				#print "handle KB",code,name,item['kb'],item['sl'],yzb_days,kb_date
 				preClose = float(props[9])

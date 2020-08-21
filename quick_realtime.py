@@ -228,7 +228,7 @@ if __name__=='__main__':
 
 	cur1 = datetime.datetime.now()
 	print "TIME:",fmt_time
-	
+
 	show_idx = ['000001', '399001', '399005', '399006','399678']
 	show_real_index(show_idx)
 	

@@ -80,7 +80,7 @@ if __name__=='__main__':
 	hisDt = param_config["Date"]
 	ret, hisDate = parseDate2(hisDt)
 	year = hisDt[:4]
-	tradeFl = REAL_DAILY_PRE_FD + year + '/' + "_trade_" + year + ".txt"
+	tradeFl = REAL_DAILY_PRE_FD + year + '/' + "_rt_trade_" + year + ".txt"
 	jcLoc = "../data/entry/juchao/" + year + '/jc' + hisDate + ".txt"
 
 	if os.path.exists(tradeFl) is False:
