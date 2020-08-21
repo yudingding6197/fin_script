@@ -14,6 +14,7 @@ sys.path.append('.')
 from internal.handle_realtm import *
 from internal.common_inf import *
 from internal.realtime_obj import *
+from internal.output_general import *
 from internal.analyze_realtime import *
 from internal.inf_juchao.parse_jc_tips import *
 #from internal.update_tday_db import *
@@ -187,21 +188,8 @@ def filter_dtft(dtft_list, perc):
 	return count
 
 
-def show_real_index(show_idx, src='sn'):
-	idx_list = []
-	get_index_info(idx_list, show_idx, src)
-	for i in idx_list:
-		if len(i)<10:
-			continue
-		str1 = i[i.index('"')+1:-1]
-		idxObj = str1.split(',')
-		f_pre_cls = float(idxObj[2])
-		f_price = float(idxObj[3])
-		ratio = round((f_price-f_pre_cls)*100/f_pre_cls, 2)
-		print "%8.2f(%6s)"%(f_price, ratio)
-
 def handle_argument():
-	optlist, args = getopt.getopt(sys.argv[1:], 'htd:')
+	optlist, args = getopt.getopt(sys.argv[1:], 'htld:')
 	for option, value in optlist:
 		if option in ["-h","--help"]:
 			param_config["Help"] = 1
@@ -209,6 +197,8 @@ def handle_argument():
 			param_config["Date"] = value
 		elif option in ["-t","--time"]:
 			param_config["SortByTime"] = 1
+		elif option in ["-l","--nolog"]:
+			param_config["NoLog"] = 1
 	#print param_config
 
 param_config = {
@@ -388,7 +378,7 @@ if __name__=='__main__':
 		path = '../data/entry/realtime/'
 		flname = path + "rt_" + his_date + ".txt"
 		baklog = open(flname, 'a')
-		baklog.write('#####################################################################\n')
+		baklog.write('#####HIS_RCV#############################################################\n')
 		baklog.write(content)
 		baklog.write('\n')
 		baklog.close()

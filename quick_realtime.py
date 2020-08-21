@@ -11,17 +11,14 @@ import shutil
 import getopt
 import chardet
 import pandas as pd
-#import tushare as ts
-#import internal.common
+
 from internal.handle_realtime import *
-#from internal.dfcf_inf import *
-#from internal.ts_common import show_index_info
+from internal.output_general import *
 from internal.trade_date import *
 from internal.update_tday_db import *
 from internal.analyze_realtime import *
 from internal.compare_realtime import *
 from internal.tingfupai import * 
-from internal.common_inf import * 
 
 class Logger_IO(object): 
 	def __init__(self, filename="Default.log"):
@@ -202,22 +199,6 @@ def handle_argument():
 		elif option in ["-q","--tuishi"]:
 			param_config["TuiShi"] = 1
 	#print param_config
-
-def show_real_index(show_idx, src='sn'):
-	idx_list = []
-	get_index_info(idx_list, show_idx, src)
-	for i in idx_list:
-		if len(i)<10:
-			continue
-		str1 = i[i.index('"')+1:-1]
-		idxObj = str1.split(',')
-		f_pre_cls = float(idxObj[2])
-		f_price = float(idxObj[3])
-		ratio = round((f_price-f_pre_cls)*100/f_pre_cls, 2)
-		print "%8.2f(%6s)"%(f_price, ratio)
-	#codeArray = ['399678']
-	#show_extra_index(codeArray)
-
 
 param_config = {
 	"NoLog":0,
@@ -453,5 +434,3 @@ if __name__=='__main__':
 	'''
 	endTm = datetime.datetime.now()
 	print "END ", (endTm-beginTm)
-	cur2 = datetime.datetime.now()
-	print ("delta=",(cur2-cur1))

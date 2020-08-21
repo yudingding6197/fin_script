@@ -11,6 +11,7 @@ import shutil
 import getopt
 import tushare as ts
 import internal.common
+from internal.output_general import *
 from internal.ts_common import *
 from internal.dfcf_inf import *
 
@@ -149,15 +150,10 @@ sys.stdout = Logger_IO(flname)
 print "TIME:",fmt_time
 
 #show index information
-show_idx = ['000001', '399001', '399005', '399006']
-idx_df=ts.get_index()
-show_index_info(idx_df, show_idx)
-
-codeArray = ['399678']
-show_extra_index(codeArray)
+show_idx = ['000001', '399001', '399005', '399006','399678']
+show_real_index(show_idx)
 
 flag = 0
-
 param_config = {
 	"NoLog":0,
 	"NoDetail":0,
