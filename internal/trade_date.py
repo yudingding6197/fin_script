@@ -195,6 +195,7 @@ def init_trade_list(cur_day='', method=1):
 				print("Error: invalid date", cur_day)
 				g_trade_flag = 0
 				g_trade_list = []
+				fl.close()
 				return
 			g_trade_list.append(line[:10])
 			line = fl.readline()
@@ -222,7 +223,7 @@ def calcu_back_date(days, base_date):
 		print ("Not find base date", base_date)
 		return ""
 	if index<days:
-		print ("days too long", days, index)
+		print ("days exceed range", days, index)
 		return ""
 
 	item =  g_trade_list[:(index)][-days]
@@ -246,7 +247,7 @@ def calcu_pre_date(days, base_date):
 		print ("Not find base date", base_date)
 		return ""
 	if (trdLen-index)<days:
-		print ("days too long", days, index)
+		print ("days exceed range", days, index)
 		return ""
 
 	item = g_trade_list[index:][days]

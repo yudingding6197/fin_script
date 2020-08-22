@@ -327,7 +327,7 @@ if param_config["NoLog"]==0:
 	path = '../data/entry/realtime/'
 	flname = path + "rt_" + fmt_time + ".txt"
 	baklog = open(flname, 'a')
-	baklog.write('##############################################################\n')
+	baklog.write('#####V2#######################################################\n')
 	baklog.write(content)
 	baklog.write('\n')
 	baklog.close()

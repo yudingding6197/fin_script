@@ -21,7 +21,7 @@ from internal.url_sina.fetch_sina import *
 from internal.url_sina.sina_inf import *
 from internal.url_163.service_163 import *
 from internal.price_limit import *
-from global_var import g_new_mark
+from internal.global_var import *
 
 STK_ZT = 1<<0
 STK_DT = 1<<1
@@ -33,9 +33,6 @@ STK_OPEN_ZT = 1<<6
 STK_OPEN_DT = 1<<7
 STK_ST_YZZT = 1<<8
 STK_ST_YZDT = 1<<9
-
-PRE_DAYS = 33
-CX_DAYS = 200
 
 def analyze_status2(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, trade_date, pre300_date):
 	if len(code)!=6 or code.isdigit() is False:
@@ -472,35 +469,6 @@ def check_CX_open_ban2(code, name, props, stcsItem, trade_date, pre30_date, toda
 		i += 1
 	#print code, name, cx_kb, yzzt_day
 	return cx_kb
-
-#检查是否当日上市新股
-# -1: 有错误
-#  0: 不是new stk
-#  1: 是当天上的new stk
-def check_new_market(new_stock_list, code, name, props, stcsItem, trade_day, today_open):
-	itemLen = 26
-
-	market_date = props[2]
-	if market_date!=trade_day:
-		return 0
-
-	#print(props)
-	if code in new_stock_list:
-		#TODO: KeChuanBan KCB
-		if code[:3] in g_new_mark:
-			return 1
-		#检查第一天是否开板了
-		ret = check_YZ_new_market(code, stcsItem)
-		if ret==-1:
-			price = props[5]
-			chg_perc = round((price-pre_close)*100/pre_close,2)
-			open_list = [code, name, chg_perc, price, 0]
-			today_open.append(open_list)
-	else:
-		#如果上市日期是当前日期，但是并不是新股，这是重新复牌上市的票子
-		if market_date==trade_date:
-			print( "Check the item: %s %s"%(code, name) )
-	return 1
 
 def get_tdx_zdt_time(code, trade_date, chk_price, type, tm_array, klist):
 	tmstr = '??:??'

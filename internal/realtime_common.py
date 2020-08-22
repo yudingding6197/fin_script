@@ -15,8 +15,9 @@ import threading
 
 from internal.url_dfcf.dc_hangqing import *
 from internal.url_163.service_163 import *
+from internal.global_var import *
+from internal.trade_date import *
 
-CX_DAYS = 200
 TS_FLAG = 1
 
 #分析时间得到ZT时间，上午or下午

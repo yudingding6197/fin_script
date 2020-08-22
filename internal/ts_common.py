@@ -17,8 +17,8 @@ import platform
 import ctypes
 import tushare as ts
 import time
+from internal.global_var import *
 
-CX_DAYS=200
 #reload(sys)
 #sys.setdefaultencoding('gbk')
 

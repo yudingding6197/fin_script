@@ -423,7 +423,7 @@ if __name__=='__main__':
 		path = '../data/entry/realtime/'
 		flname = path + "rt_" + fmt_time + ".txt"
 		baklog = open(flname, 'a')
-		baklog.write('#####quik_rt#########################################################\n')
+		baklog.write('#####V2#######################################################\n')
 		baklog.write(content)
 		baklog.write('\n')
 		baklog.close()

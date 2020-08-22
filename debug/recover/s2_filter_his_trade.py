@@ -16,9 +16,7 @@ import getopt
 
 sys.path.append('.')
 from internal.handle_realtime import *
-
-PRE_DAYS = 33
-CX_DAYS = 200
+from internal.global_var import *
 
 def handle_argument():
 	optlist, args = getopt.getopt(sys.argv[1:], 'd:')
