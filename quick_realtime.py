@@ -84,10 +84,10 @@ def show_zt_info(zt_list, desc, fmt, outstr, pconfig):
 			break
 	print endstr
 
-def show_dt_info(dt_list, desc, fmt, pconfig):
+def show_dt_info(dt_list, desc, fmt, outstr, pconfig):
 	number = len(dt_list)
 	endstr = ''
-	str = "%s  [%d]:" % (desc, number)
+	str = "%s  [%d]:" % (outstr, number)
 	if number<=0:
 		return
 	elif pconfig['NotAllInfo']==0:
@@ -225,8 +225,6 @@ if __name__=='__main__':
 	handle_argument()
 	t_fmt = '%d-%02d-%02d %02d:%02d'
 	fmt_time = t_fmt %(beginTm.year, beginTm.month, beginTm.day, beginTm.hour, beginTm.minute)
-
-	cur1 = datetime.datetime.now()
 	print "TIME:",fmt_time
 
 	show_idx = ['000001', '399001', '399005', '399006','399678']
@@ -236,40 +234,30 @@ if __name__=='__main__':
 	trade_date = get_lastday()
 	pre_date = get_preday(1, trade_date)
 	init_trade_list(trade_date)
+	
+	trdDt = datetime.datetime.strptime(trade_date, '%Y-%m-%d').date()
+	cybDt = datetime.datetime.strptime(CYB_REFORM_DT, '%Y-%m-%d').date()
+	if (trdDt-cybDt).days>=0:
+		G_LARGE_FLUC[1] = '300'
 	#print ("Current trade day:", trade_date, pre_date)
 	new_st_list = []
 	new_st_code_list = []
 	non_kb_list = []
 	get_new_market_stock(trade_date, new_st_list, non_kb_list, new_st_code_list)
-	#for item in non_kb_list:
-	#	print item['securitycode'], item['securityshortname'].encode('gbk')
-	#print(non_kb_list)
 
 	#重出江湖STK
 	fp_list = []
 	fp_code_list = []
 	pickup_fupai_item(trade_date, fp_list, fp_code_list)
-	cur2 = datetime.datetime.now()
-	#print("eee.py: get fupai", (cur2-cur1))
-	#for it in fp_list:
-	#	print it['obSeccode0111'],it['obSecname0111']
 	
 	#获取上一日的Info
 	preFlag = 1
 	preStatItem = statisticsItem()
 	ret = parse_realtime_his_file(pre_date, preStatItem)
-	#print "YZDT", pre_date, preStatItem.lst_yzdt
-	#print ""
-	#for item in preStatItem.lst_dt:
-	#	print item
 	if ret == -1:
 		preFlag = 0
 		print("Error:No find matched item", pre_date)
 		exit(0)
-	#print(preStatItem.lst_non_yzcx_yzzt)
-	
-	cur2 = datetime.datetime.now()
-	#print("eee.py: parse pre rt file Fin", (cur2-cur1))
 	
 	debug = 0
 	today_open = []
@@ -315,9 +303,12 @@ if __name__=='__main__':
 	cx_yz = stcsItem.s_yzzt-non_cx_yz
 
 	#获取数据进行打印
-	str_opn = "[%d %d %d %d] %3d 上,%3d 下" % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
+	up_dw_fmt = "[%d %d %d %d] %3d 上,%3d 下"
+	str_opn = up_dw_fmt % (stcsItem.s_open_zt,stcsItem.s_close_zt,stcsItem.s_open_T_zt,stcsItem.s_dk_zt, stcsItem.s_sw_zt, stcsItem.s_xw_zt)
 	if sysstr == "Linux":
 		str_opn = str_opn.decode('gbk').encode('utf-8')
+	# Handle FLUC
+	str_opn_lrg = up_dw_fmt % (stcsItem.s_large_open_zt,stcsItem.s_large_close_zt,stcsItem.s_large_open_T_zt,stcsItem.s_large_dk_zt, stcsItem.s_large_sw_zt, stcsItem.s_large_xw_zt)
 
 	str_dt = "%d DTKP" % (stcsItem.s_open_dt)
 	if stcsItem.s_yzdt>0:
@@ -327,15 +318,33 @@ if __name__=='__main__':
 	DaoT = stcsItem.s_open_dt-stcsItem.s_yzdt-stcsItem.s_open_dt_dk
 	if DaoT>0:
 		str_dt = "%s, %d DaoT " % (str_dt, DaoT)
-	print "			ST(%d ZT %d DT)		%s" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, str_dt)
+
+	# Handle FLUC
+	str_dt_lrg = "%d DTKP" % (stcsItem.s_large_open_dt)
+	if stcsItem.s_large_yzdt>0:
+		str_dt_lrg = "%s, %d YZDT" % (str_dt, stcsItem.s_large_yzdt)
+	if stcsItem.s_large_open_dt_dk>0:
+		str_dt_lrg = "%s, %d DTDK" % (str_dt, stcsItem.s_large_open_dt_dk)
+	DaoT_lrg = stcsItem.s_large_open_dt-stcsItem.s_large_yzdt-stcsItem.s_large_open_dt_dk
+	if DaoT_lrg>0:
+		str_dt_lrg = "%s, %d DaoT " % (str_dt_lrg, DaoT_lrg)
+	print "			ST(%d ZT %d DT)		%s === %s" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, str_dt, str_dt_lrg)
 
 	#print "			ST(%d ZT %d DT)		DTKP:%d YZDT:%d DTDK:%d" % (stcsItem.s_st_yzzt, stcsItem.s_st_yzdt, stcsItem.s_open_dt, stcsItem.s_yzdt,stcsItem.s_open_dt_dk)
 
-	dtft_qiang = filter_dtft(stcsItem.lst_dtft, -3)
 	print "%4d-ZT		%4d-DT		%d-X %d--(%d+%d) %s" % (stcsItem.s_zt,stcsItem.s_dt,stcsItem.s_new,stcsItem.s_yzzt, cx_yz, non_cx_yz, str_opn)
+	# Handle FLUC
+	print "%4d-ZT		%4d-DT		0-X %d-- %s" % (stcsItem.s_large_zt,stcsItem.s_large_dt,stcsItem.s_large_yzzt, str_opn_lrg)
+	
+	dtft_qiang = filter_dtft(stcsItem.lst_dtft, -3)
 	kd_str = ','.join(stcsItem.lst_kd)
 	if isinstance(kd_str, unicode): kd_str = kd_str.encode('gbk')
 	print "%4d-CG(%d)	%4d-FT(%d)	%2d-YIN  KD:[%s]" %(stcsItem.s_zthl,len(stcsItem.lst_kd),stcsItem.s_dtft,dtft_qiang,stcsItem.s_zt_o_gt_c,kd_str)
+	# Handle FLUC
+	dtft_qiang_lrg = filter_dtft(stcsItem.lst_large_dtft, -6)
+	kd_str_lrg = ','.join(stcsItem.lst_large_kd)
+	print "%4d-CG(%d)	%4d-FT(%d)	%2d-YIN  KD:[%s]" %(stcsItem.s_large_zthl,len(stcsItem.lst_large_kd),stcsItem.s_large_dtft,dtft_qiang_lrg,stcsItem.s_large_zt_o_gt_c,kd_str_lrg)
+
 	print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_open_sz, stcsItem.s_open_dz, stcsItem.s_open_pp, stcsItem.s_open_xd, stcsItem.s_open_dd)
 	print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_close_sz, stcsItem.s_close_dz, stcsItem.s_close_pp, stcsItem.s_close_xd, stcsItem.s_close_dd)
 	print "4%%:%4d	%4d" %(stcsItem.s_high_zf,stcsItem.s_low_df)
@@ -400,16 +409,25 @@ if __name__=='__main__':
 
 		outstr = "YZZT  [%d]:" % (len(stcsItem.lst_non_yzcx_yzzt))
 		show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT", fmt1, outstr, param_config)
+		outstr = "CZL_YZZT  [%d]:" % (len(stcsItem.lst_large_non_yzcx_yzzt))
+		show_zt_info(stcsItem.lst_large_non_yzcx_yzzt, "YZZT", fmt1, outstr, param_config)
 		outstr = "ZT  [%d+%d]:" % (stcsItem.s_sw_zt, stcsItem.s_xw_zt)
 		show_zt_info(stcsItem.lst_non_yzcx_zt, "ZT", fmt2, outstr, param_config)
+		outstr = "CZL_ZT  [%d+%d]:" % (stcsItem.s_large_sw_zt, stcsItem.s_large_xw_zt)
+		show_zt_info(stcsItem.lst_large_non_yzcx_zt, "ZT", fmt2, outstr, param_config)
 		outstr = "ZTHL [%d]:" % (stcsItem.s_zthl)
 		show_zt_info(stcsItem.lst_non_yzcx_zthl, "ZTHL", fmt3, outstr, param_config)
+		outstr = "CZL_ZTHL [%d]:" % (stcsItem.s_large_zthl)
+		show_zt_info(stcsItem.lst_large_non_yzcx_zthl, "ZTHL", fmt3, outstr, param_config)
 
 		fmt0 = "Total DT (%d)		DTFT (%d)==(%d)================================="
 		print fmt0 %(len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt), len(stcsItem.lst_dtft), len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt)+len(stcsItem.lst_dtft))
-		show_dt_info(stcsItem.lst_yzdt, "YZDT", fmt1, param_config)
-		show_dt_info(stcsItem.lst_dt, "DT", fmt2, param_config)
-		show_dt_info(stcsItem.lst_dtft, "DTFT", fmt3, param_config)
+		show_dt_info(stcsItem.lst_yzdt, "YZDT", fmt1, "YZDT", param_config)
+		show_dt_info(stcsItem.lst_yzdt, "YZDT", fmt1, "CZL_YZDT", param_config)
+		show_dt_info(stcsItem.lst_dt, "DT", fmt2, "DT", param_config)
+		show_dt_info(stcsItem.lst_dt, "DT", fmt2, "CZL_DT", param_config)
+		show_dt_info(stcsItem.lst_dtft, "DTFT", fmt3, "DTFT", param_config)
+		show_dt_info(stcsItem.lst_dtft, "DTFT", fmt3, "CZL_DTFT", param_config)
 
 		if param_config["TuiShi"]==1:
 			show_tuishi_info(st_dict['tui_stk'], fmt1)

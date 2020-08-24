@@ -22,7 +22,7 @@ from internal.url_sina.fetch_sina import *
 from internal.url_sina.sina_inf import *
 from internal.url_163.service_163 import *
 from internal.price_limit import *
-from global_var import g_new_mark
+#from internal.global_var import *
 
 STK_ZT = 1<<0
 STK_DT = 1<<1
@@ -91,7 +91,7 @@ def get_today_new_stock(new_st_list):
 			new_st_list.append(code)
 	return
 
-def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, trade_date, pre300_date):
+def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, trade_date, pre300_date, pre5_date):
 	if len(code)!=6 or code.isdigit() is False:
 		print("Invalid code", code)
 		return -1
@@ -120,19 +120,20 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 	'''
 	#print(("%s %s,'%s','%s'"%(code, name, props[11], props[12])).encode('gbk'))
 	#TODO: 有时候获取数据不全，需要数据校验，重新获取数据
+	if props[11]=='-' or props[12]=='-':
+		return 0
+
 	try:
 		high1 = round(float(props[11]),2)
 		low1 = round(float(props[12]),2)
 	except:
-		print(("%s %s,'%s','%s'"%(code, name, props[11], props[12])).encode('gbk'))
+		#print(("%s %s,'%s','%s'"%(code, name, props[11], props[12])).encode('gbk'))
 		for prop in props:
 			if isinstance(prop, unicode):
 				prop = prop.encode("gbk")
 			print prop
 		#debug,force error and quit APP
 		aa = float("---")
-	else:
-		pass
 	'''
 	if props[11]=='-' or props[12]=='-':
 		return -1
@@ -173,6 +174,16 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 	if b_ST==1:
 		zt_price1 = pre_close * 1.05
 		dt_price1 = pre_close * 0.95
+	elif code[:3] in G_LARGE_FLUC:
+		mkDt = datetime.datetime.strptime(market_date, '%Y-%m-%d').date()
+		pre5Dt = datetime.datetime.strptime(pre5_date, '%Y-%m-%d').date()
+		#前5天没有涨跌停限制
+		if (mkDt-pre5Dt).days>0:
+			zt_price1 = pre_close * 100
+			dt_price1 = 0.01
+		else:
+			zt_price1 = pre_close * 1.2
+			dt_price1 = pre_close * 0.8
 	else:
 		zt_price1 = pre_close * 1.1
 		dt_price1 = pre_close * 0.9
@@ -188,41 +199,39 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 			#刚开盘，只有1笔成交，会大量的输出，不合适检查
 			#if high!=zt_price:
 			#	print "Warning: YZ, not ZT??? ", code, high, zt_price
+			#刚开盘，通过比较 high and zt_price，过滤非ZT
 			if b_ST==1 and high==zt_price:
 				stcsItem.s_st_yzzt += 1
 				status |= STK_ST_YZZT
 			elif b_ST==0 and high==zt_price:
-				if high_zf_percent>15:
-					pass
+				if code[:3] in G_LARGE_FLUC:
+					stcsItem.s_large_yzzt += 1
+					stcsItem.s_large_zt += 1
+					stcsItem.s_large_open_zt += 1
+					stcsItem.s_large_close_zt += 1
+					#print "YZZT1", code, name
+
+					bGetDays, count=checkZDTInfo(code, name, fpFlag, 0, preStat)
+					if bGetDays==1 or count==-1:
+						count = get_zf_days(code, 1, trade_date, 1, stk_list)
+					else:
+						count += 1
+						verify_one_year_cx(market_date, pre300_date, 1, stk_list)
+					if stk_list[0]<CX_DAYS:
+						stcsItem.s_large_cxzt += 1
+
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0]]
+					stcsItem.lst_large_non_yzcx_yzzt.append(list)
 				else:
 					stcsItem.s_yzzt += 1
-					status |= STK_YZZT
 					stcsItem.s_zt += 1
-					status |= STK_ZT
 					stcsItem.s_open_zt += 1
-					status |= STK_OPEN_ZT
 					stcsItem.s_close_zt += 1
 					#list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent]
 					#pd_list.append(list)
 					#ret = check_YZ_not_kb(non_kb_list, code)
 					if yzcx_flag==0:
 						bGetDays, count=checkZDTInfo(code, name, fpFlag, 0, preStat)
-						'''
-						if fpFlag==1:
-							#print "FuPai YZZT", code, name.encode('gbk')
-							bGetDays = 1
-						elif TS_FLAG==1:
-							if name[:2]==u'退市':
-								#print code, name.encode('gbk'), "ZT"
-								count = -1
-							elif name[-1:]==u'退':
-								#print code, name.encode('gbk'), "ZT"
-								count = -1
-							else:
-								count = getPreZDtDays(code, 1, preStat)
-						else:
-							count = getPreZDtDays(code, 1, preStat)
-						'''
 						if bGetDays==1 or count==-1:
 							count = get_zf_days(code, 1, trade_date, 1, stk_list)
 						else:
@@ -242,40 +251,58 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 				stcsItem.s_st_yzdt += 1
 				status |= STK_ST_YZDT
 			elif b_ST==0 and low==dt_price:
-				stcsItem.s_yzdt += 1
-				status |= STK_YZDT
-				stcsItem.s_dt += 1
-				status |= STK_DT
-				stcsItem.s_open_dt += 1
-				status |= STK_OPEN_DT
-				'''
-				if fpFlag==1:
-					#print "FuPai YZDT", code, name.encode('gbk')
-					bGetDays = 1
-				elif TS_FLAG==1:
-					if name[:2]==u'退市':
-						#print code, name.encode('gbk'), "DT"
-						count = -1
-					elif name[-1:]==u'退':
-						#print code, name.encode('gbk'), "DT"
-						count = -1
+				if code[:3] in G_LARGE_FLUC:
+					stcsItem.s_large_yzdt += 1
+					stcsItem.s_large_dt += 1
+					stcsItem.s_large_open_dt += 1
+					bGetDays, count=checkZDTInfo(code, name, fpFlag, 1, preStat)
+					#print "YZDT1", code, name
+
+					if bGetDays==1 or count==-1:
+						count = get_zf_days(code, 2, trade_date, 1, stk_list)
 					else:
-						count = getPreZDtDays(code, 1, preStat)
-				else:
-					count = getPreZDtDays(code, 2, preStat)
-				'''
-				bGetDays, count=checkZDTInfo(code, name, fpFlag, 1, preStat)
+						count += 1
+						verify_one_year_cx(market_date, pre300_date, 2, stk_list)
+					if stk_list[0]<CX_DAYS:
+						stcsItem.s_large_cxdt += 1
 
-				if bGetDays==1 or count==-1:
-					count = get_zf_days(code, 2, trade_date, 1, stk_list)
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0]]
+					stcsItem.lst_large_yzdt.append(list)
 				else:
-					count += 1
-					verify_one_year_cx(market_date, pre300_date, 2, stk_list)
-				if stk_list[0]<CX_DAYS:
-					stcsItem.s_cxdt += 1
+					stcsItem.s_yzdt += 1
+					status |= STK_YZDT
+					stcsItem.s_dt += 1
+					status |= STK_DT
+					stcsItem.s_open_dt += 1
+					status |= STK_OPEN_DT
+					'''
+					if fpFlag==1:
+						#print "FuPai YZDT", code, name.encode('gbk')
+						bGetDays = 1
+					elif TS_FLAG==1:
+						if name[:2]==u'退市':
+							#print code, name.encode('gbk'), "DT"
+							count = -1
+						elif name[-1:]==u'退':
+							#print code, name.encode('gbk'), "DT"
+							count = -1
+						else:
+							count = getPreZDtDays(code, 1, preStat)
+					else:
+						count = getPreZDtDays(code, 2, preStat)
+					'''
+					bGetDays, count=checkZDTInfo(code, name, fpFlag, 1, preStat)
 
-				list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0]]
-				stcsItem.lst_yzdt.append(list)
+					if bGetDays==1 or count==-1:
+						count = get_zf_days(code, 2, trade_date, 1, stk_list)
+					else:
+						count += 1
+						verify_one_year_cx(market_date, pre300_date, 2, stk_list)
+					if stk_list[0]<CX_DAYS:
+						stcsItem.s_cxdt += 1
+
+					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0]]
+					stcsItem.lst_yzdt.append(list)
 		#print code,name,open,low,high,price,pre_close
 	else:
 		#chubn and kaibn先占位，随后线程更新
@@ -307,58 +334,89 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 				'''
 				#最新报价处于ZT
 				if price==zt_price:
-					#仅仅计算最后还是ZT的item
-					#zt_time_analyze(chuban, stcsItem)
-					stcsItem.s_zt += 1
-					status |= STK_ZT
-					if open==zt_price:
-						stcsItem.s_open_zt += 1
-						status |= STK_OPEN_ZT
-						if price==open:
-							stcsItem.s_close_zt += 1
-							stcsItem.s_open_T_zt += 1
-							zt_st = 'T'
 					if bGetDays==1 or count==-1:
 						count = get_zf_days(code, 1, trade_date, 1, stk_list)
 					else:
 						count += 1
 						verify_one_year_cx(market_date, pre300_date, 1, stk_list)
-					if stk_list[0]<CX_DAYS:
-						stcsItem.s_cxzt += 1
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, zt_st, zt_price]
-					stcsItem.lst_non_yzcx_zt.append(list)
-
-					'''	
-					count = get_zf_days(code, 1, trade_date, 1, stk_list)
-					if yzcx_flag==0:
+					if code[:3] in G_LARGE_FLUC:
+						#仅仅计算最后还是ZT的item
+						#zt_time_analyze(chuban, stcsItem)
+						#print "ZT ", code, name.encode('gbk'), change_percent, zt_price, price
+						stcsItem.s_large_zt += 1
+						if open==zt_price:
+							stcsItem.s_large_open_zt += 1
+							if price==open:
+								stcsItem.s_large_close_zt += 1
+								stcsItem.s_large_open_T_zt += 1
+								zt_st = 'T'
+						if stk_list[0]<CX_DAYS:
+							stcsItem.s_large_cxzt += 1
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, zt_st, zt_price]
+						stcsItem.lst_large_non_yzcx_zt.append(list)
+					else:
+						#仅仅计算最后还是ZT的item
+						#zt_time_analyze(chuban, stcsItem)
+						stcsItem.s_zt += 1
+						status |= STK_ZT
+						if open==zt_price:
+							stcsItem.s_open_zt += 1
+							status |= STK_OPEN_ZT
+							if price==open:
+								stcsItem.s_close_zt += 1
+								stcsItem.s_open_T_zt += 1
+								zt_st = 'T'
 						if stk_list[0]<CX_DAYS:
 							stcsItem.s_cxzt += 1
-						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, zt_st]
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, zt_st, zt_price]
 						stcsItem.lst_non_yzcx_zt.append(list)
-					'''
+
+						'''	
+						count = get_zf_days(code, 1, trade_date, 1, stk_list)
+						if yzcx_flag==0:
+							if stk_list[0]<CX_DAYS:
+								stcsItem.s_cxzt += 1
+							list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, zt_st]
+							stcsItem.lst_non_yzcx_zt.append(list)
+						'''						
 				#曾经最高报价处于ZT，现在不是了
 				else:
 					if bGetDays==1 or count==-1:
 						count = get_zf_days(code, 1, trade_date, 0, stk_list)
 					else:
 						verify_one_year_cx(market_date, pre300_date, 1, stk_list)
-					stcsItem.s_zthl += 1
-					status |= STK_ZTHL
-					if open==zt_price:
-						stcsItem.s_open_zt += 1
-						status |= STK_OPEN_ZT
-						stcsItem.s_dk_zt += 1
-						zt_st = 'K'
-						#print stcsItem.s_zthl,code,name,price,high,zt_price
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, openban, zt_st, zt_price]
-					#print len(stcsItem.lst_non_yzcx_zthl)
-					#print list
-					stcsItem.lst_non_yzcx_zthl.append(list)
-				if change_percent<=3:
-					stcsItem.lst_kd.append(name)
-				if price<open:
-					stcsItem.s_zt_o_gt_c += 1
-
+					if code[:3] in G_LARGE_FLUC:
+						#print "ZTHL ", code, name.encode('gbk'), change_percent, zt_price, price
+						stcsItem.s_large_zthl += 1
+						if open==zt_price:
+							stcsItem.s_large_open_zt += 1
+							stcsItem.s_large_dk_zt += 1
+							zt_st = 'K'
+							#print stcsItem.s_zthl,code,name,price,high,zt_price
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, openban, zt_st, zt_price]
+						#print list
+						stcsItem.lst_large_non_yzcx_zthl.append(list)
+						if change_percent<=7:
+							stcsItem.lst_large_kd.append(name)
+						if price<open:
+							stcsItem.s_large_zt_o_gt_c += 1
+					else:
+						stcsItem.s_zthl += 1
+						status |= STK_ZTHL
+						if open==zt_price:
+							stcsItem.s_open_zt += 1
+							status |= STK_OPEN_ZT
+							stcsItem.s_dk_zt += 1
+							zt_st = 'K'
+							#print stcsItem.s_zthl,code,name,price,high,zt_price
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, openban, zt_st, zt_price]
+						#print len(stcsItem.lst_non_yzcx_zthl)
+						#print list
+						stcsItem.lst_non_yzcx_zthl.append(list)
+						if change_percent<=3:
+							stcsItem.lst_kd.append(name)
+						if price<open:
+							stcsItem.s_zt_o_gt_c += 1
 		if low==dt_price:
 			if b_ST==0:
 				tmArr = ['','']
@@ -367,10 +425,16 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 				openban = tmArr[1]
 				dt_st = ''
 				if open==dt_price:
-					stcsItem.s_open_dt += 1
-					status |= STK_OPEN_DT
-					if price!=dt_price:
-						stcsItem.s_open_dt_dk += 1
+					if code[:3] in G_LARGE_FLUC:
+						stcsItem.s_large_open_dt += 1
+						status |= STK_OPEN_DT
+						if price!=dt_price:
+							stcsItem.s_large_open_dt_dk += 1
+					else:
+						stcsItem.s_open_dt += 1
+						status |= STK_OPEN_DT
+						if price!=dt_price:
+							stcsItem.s_open_dt_dk += 1
 
 				bGetDays, count=checkZDTInfo(code, name, fpFlag, 1, preStat)
 				'''
@@ -390,35 +454,58 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 					count = getPreZDtDays(code, 2, preStat)
 				'''
 				if price==dt_price:
-					stcsItem.s_dt += 1
-					status |= STK_DT
-					if open==dt_price:
-						dt_st = 'DT'
 					if bGetDays==1 or count==-1:
 						count = get_zf_days(code, 2, trade_date, 1, stk_list)
 					else:
 						count += 1
 						verify_one_year_cx(market_date, pre300_date, 2, stk_list)
-					if stk_list[0]<CX_DAYS:
-						stcsItem.s_cxdt += 1
+						
+					if code[:3] in G_LARGE_FLUC:
+						#print "DT ", code, name, change_percent, zt_price, price
+						stcsItem.s_large_dt += 1
+						status |= STK_DT
+						if open==dt_price:
+							dt_st = 'DT'
+						if stk_list[0]<CX_DAYS:
+							stcsItem.s_large_cxdt += 1
 
-					#DT Data
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, dt_st, dt_price]
-					stcsItem.lst_dt.append(list)
+						#DT Data
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, dt_st, dt_price]
+						stcsItem.lst_large_dt.append(list)
+					else:
+						stcsItem.s_dt += 1
+						status |= STK_DT
+						if open==dt_price:
+							dt_st = 'DT'
+						if stk_list[0]<CX_DAYS:
+							stcsItem.s_cxdt += 1
+
+						#DT Data
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, dt_st, dt_price]
+						stcsItem.lst_dt.append(list)
 				else:
-					stcsItem.s_dtft += 1
-					status |= STK_DTFT
-					if open==dt_price:
-						dt_st = 'K'
-
 					#DTFT Data
 					if bGetDays==1 or count==-1:
 						count = get_zf_days(code, 2, trade_date, 0, stk_list)
 					else:
 						verify_one_year_cx(market_date, pre300_date, 2, stk_list)
-					list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, openban, dt_st, dt_price]
-					stcsItem.lst_dtft.append(list)
+					if code[:3] in G_LARGE_FLUC:
+						#print "DTFT ", code, name, change_percent, zt_price, price
+						stcsItem.s_large_dtft += 1
+						status |= STK_DTFT
+						if open==dt_price:
+							dt_st = 'K'
 
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, openban, dt_st, dt_price]
+						stcsItem.lst_large_dtft.append(list)
+					else:
+						stcsItem.s_dtft += 1
+						status |= STK_DTFT
+						if open==dt_price:
+							dt_st = 'K'
+
+						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0], chuban, openban, dt_st, dt_price]
+						stcsItem.lst_dtft.append(list)
 	#统计开盘涨跌幅度
 	if open_percent>0:
 		stcsItem.s_open_sz += 1
@@ -453,19 +540,31 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 
 	#统计表现震撼个股 排除YZZT的新股
 	zf_range = high_zf_percent-low_df_percent
-	if zf_range>=15.0 and yzcx_flag==0:
-		if change_percent>=6.0:
-			list = [code, name, change_percent, price, zf_range]
-			stcsItem.lst_nb.append(list)
-		elif change_percent<=-6.0:
-			list = [code, name, change_percent, price, zf_range]
-			stcsItem.lst_jc.append(list)
+	if code[:3] in G_LARGE_FLUC:
+		if zf_range>=25.0:
+			if change_percent>=12.0:
+				list = [code, name, change_percent, price, zf_range]
+				stcsItem.lst_large_nb.append(list)
+			elif change_percent<=-12.0:
+				list = [code, name, change_percent, price, zf_range]
+				stcsItem.lst_large_jc.append(list)
+	else:
+		if zf_range>=15.0 and yzcx_flag==0:
+			if change_percent>=6.0:
+				list = [code, name, change_percent, price, zf_range]
+				stcsItem.lst_nb.append(list)
+			elif change_percent<=-6.0:
+				list = [code, name, change_percent, price, zf_range]
+				stcsItem.lst_jc.append(list)
 	'''
 	'''
 	return status
 
 def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre30_date, today_open):
 	itemLen = 26
+	#KCB CYB不限涨跌幅，所以是开板
+	if code[:3] in G_LARGE_FLUC:
+		return 1
 	if len(props)!=itemLen:
 		print("Stock item length not ", itemLen, code, name)
 		return -1
@@ -510,6 +609,7 @@ def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre3
 				bopen = 0
 		#KB的item，今天是否KB，上一交易日还是封板状态
 		else:
+			#print code, name.encode('gbk'), item['sl']
 			listing_date = item['listingdate'][:10]
 			yzb_days = int(float(item['sl']))
 			kb_date = calcu_back_date(yzb_days, listing_date)
@@ -544,9 +644,6 @@ def check_new_market(new_stock_list, code, name, props, stcsItem, trade_day, tod
 
 	#print(props)
 	if code in new_stock_list:
-		#TODO: KeChuanBan KCB
-		if code[:3] in g_new_mark:
-			return 1
 		#检查第一天是否开板了
 		ret = check_YZ_new_market(code, stcsItem)
 		if ret==-1:
@@ -556,8 +653,10 @@ def check_new_market(new_stock_list, code, name, props, stcsItem, trade_day, tod
 			today_open.append(open_list)
 	else:
 		#如果上市日期是当前日期，但是并不是新股，这是重新复牌上市的票子
+		#不进行分析首日重新上来
 		if market_date==trade_date:
 			print( "Check the item: %s %s"%(code, name) )
+			return 0
 	return 1
 
 	
@@ -666,6 +765,27 @@ def update_zdt_time(stcsItem, trade_date):
 		lst.append(['dtft', item])
 		threadIdx += 1
 
+	for item in stcsItem.lst_large_non_yzcx_zt:
+		#print item[0]
+		lst = qryThread[threadIdx%thrdNum]
+		lst.append(['zt  ', item])
+		threadIdx += 1
+	for item in stcsItem.lst_large_non_yzcx_zthl:
+		#print item[0]
+		lst = qryThread[threadIdx%thrdNum]
+		lst.append(['zthl', item])
+		threadIdx += 1
+	for item in stcsItem.lst_large_dt:
+		#print item[0]
+		lst = qryThread[threadIdx%thrdNum]
+		lst.append(['dt  ', item])
+		threadIdx += 1
+	for item in stcsItem.lst_large_dtft:
+		#print item[0]
+		lst = qryThread[threadIdx%thrdNum]
+		lst.append(['dtft', item])
+		threadIdx += 1
+
 	#print "lll=", len(qryThread[0]),len(qryThread[1])
 	threadIdx = 0
 	for threadIdx in range(len(qryThread)):
@@ -683,7 +803,11 @@ def update_zdt_time(stcsItem, trade_date):
 	for item in stcsItem.lst_non_yzcx_zt:
 		#print("upZdt %s %s '%s'"%(item[0], item[1], item[9])).encode('gbk')
 		chuban = item[9]
-		zt_time_analyze(chuban, stcsItem)
+		zt_time_analyze(item[0], chuban, stcsItem)
+	for item in stcsItem.lst_large_non_yzcx_zt:
+		#print("CZL_upZdt %s %s '%s'"%(item[0], item[1], item[9])).encode('gbk')
+		chuban = item[9]
+		zt_time_analyze(item[0], chuban, stcsItem)
 	
 	return
 
@@ -706,8 +830,9 @@ def collect_all_stock_data(st_dict, today_open, stcsItem, preStat, trade_date, d
 	
 	pre30_date = get_preday(PRE_DAYS, trade_date)
 	pre300_date = get_preday(CX_DAYS, trade_date)
-	#print ("collect_all_stock1_data:", pre30_date)
-
+	pre5_date = get_preday(PRE_FIVE_DAYS, trade_date)
+	#print ("collect_all_stock1_data:", pre30_date, pre5_date)
+	
 	status = 0
 	for item in st_list:
 		if debug==0:
@@ -722,17 +847,18 @@ def collect_all_stock_data(st_dict, today_open, stcsItem, preStat, trade_date, d
 		#		print "DBG_SK,",i,item[i]
 
 		#TODO: KeChuanBan KCB
-		if code[:3] in g_new_mark:
-			continue
+		#if code[:3] in G_LARGE_FLUC:
+		#	continue
 		#排除退市的个股
 		if name[:2]==u'退市' or name[-1:]==u'退':
 			st_dict['tui_stk'].append(item)
 			continue
 
-		#如果是当天上的就忽略了
-		ret=check_new_market(new_st_list, code, name, item, stcsItem, trade_date, today_open)
-		if ret!=0:
-			continue
+		if code[:3] not in G_LARGE_FLUC:
+			#如果是当天上市，不在继续检查
+			ret=check_new_market(new_st_list, code, name, item, stcsItem, trade_date, today_open)
+			if ret!=0:
+				continue
 
 		#检查是否今日KB
 		ret = check_CX_open_ban(non_kb_list, code, name, item, stcsItem, trade_date, pre30_date, today_open)
@@ -744,7 +870,7 @@ def collect_all_stock_data(st_dict, today_open, stcsItem, preStat, trade_date, d
 		elif ret==1:
 			yzcx_flag=0
 
-		analyze_status(st_dict, code, name, item, stcsItem, preStat, yzcx_flag, trade_date, pre300_date)
+		analyze_status(st_dict, code, name, item, stcsItem, preStat, yzcx_flag, trade_date, pre300_date, pre5_date)
 		#ret, code = parseCode1(item[:6])
 		#if ret==-1:
 		#	print ("Invalid code", item[:6])

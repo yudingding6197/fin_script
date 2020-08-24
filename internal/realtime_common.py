@@ -22,14 +22,21 @@ TS_FLAG = 1
 
 #分析时间得到ZT时间，上午or下午
 # TODO:
-def zt_time_analyze(chuban, stcsItem):
+def zt_time_analyze(code, chuban, stcsItem):
 	timeObj = re.match(r'(\d{2}):(\d{2})', chuban)
 	hour = int(timeObj.group(1))
 	minute = int(timeObj.group(2))
-	if hour<=11:
-		stcsItem.s_sw_zt += 1
+	#print code, chuban
+	if code[:3] in G_LARGE_FLUC:
+		if hour<=11:
+			stcsItem.s_large_sw_zt += 1
+		else:
+			stcsItem.s_large_xw_zt += 1
 	else:
-		stcsItem.s_xw_zt += 1
+		if hour<=11:
+			stcsItem.s_sw_zt += 1
+		else:
+			stcsItem.s_xw_zt += 1
 
 def get_price_list(code, price_dict, src='163'):
 	if src=='' or src=='163':
@@ -111,6 +118,7 @@ def verify_one_year_cx(market_date, pre300_date, type, stk_list):
 #type:
 # 0: ZT
 # 1: DT
+#判断是不是复牌STK，或者退市STK
 def checkZDTInfo(code, name, fpFlag, type, preStat):
 	if fpFlag==1:
 		#print "FuPai YZZT", code, name.encode('gbk')

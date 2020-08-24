@@ -10,26 +10,43 @@ from internal.trade_date import *
 
 REALTM_PRE_FD = "../data/"
 
-def get_rt_time(f, dtObj, bTrade=False):
+def get_rt_props(f, dtObj, verObj, bTrade=False):
 	finalTm = ''
 	pos = 0
+	preLine = ''
+	headLine = ''
 	line = f.readline()
+	#print "GetRtProp", verObj, bTrade
 	while line:
 		objs = re.match("TIME: (.*)", line)
 		if objs is not None:
 			pos = f.tell()
 			finalTm = objs.group(1)[-5:]
-			#print finalTm
 			dt = datetime.datetime.strptime(objs.group(1), "%Y-%m-%d %H:%M")
+			#print "Matched", finalTm, dt
+			headLine = preLine
 			if dt.hour>=15:
 				#print "Find matched line", line
 				dtObj.append(dt)
+				if verObj is not None:
+					val = headLine[5:7]
+					if val=="##":
+						verObj.append('V1')
+					else:
+						verObj.append(val)
 				return 0
+		preLine = line
 		line = f.readline()
-		continue
 
 	if bTrade:
-		print "current day", finalTm, pos
+		#print "current day ", finalTm, pos
+		val = headLine[5:7]
+		if verObj is not None:
+			val = headLine[5:7]
+			if val=="##":
+				verObj.append('V1')
+			else:
+				verObj.append(val)
 		f.seek(pos)
 		dtObj.append(dt)
 		return 0
@@ -46,8 +63,7 @@ def match_rt_date(f):
 		line = f.readline()
 	return -1
 	
-def parse_summary_info(f, stcsItem):
-	#print(f.filename)
+def parse_summary_info(f, stcsItem, rt_ver='V1'):
 	line = f.readline()
 	#这是强制找到匹配的第一行
 	'''
@@ -59,7 +75,7 @@ def parse_summary_info(f, stcsItem):
 		line = f.readline()
 	'''
 	
-	#print("parse_summary_info", line)
+	#print("parse_summary_info", line, rt_ver)
 	while line:
 		objs = re.match(".*ST\((\d+) ZT (\d+) DT\)(.*)", line)
 		#print(line, objs)
@@ -81,20 +97,26 @@ def parse_summary_info(f, stcsItem):
 	stcsItem.s_st_yzdt = int(objs.group(2))
 	
 	com_str = objs.group(3)
-	objs = com_str.split(',')
-	#print(len(objs), objs[0])
+	#print "l_sum", com_str
+	if rt_ver=='V1':
+		objs = com_str.split(',')
+		#print(len(objs), objs[0])
+	elif rt_ver=='V2':
+		part2Obj = com_str.split('===')
+		objs = part2Obj[0].split(',')
 	for i in range(0, len(objs)):
 		items = re.match('[\t ]+(\d+)[\t ]+(.*)', objs[i])
 		#print(i, objs[i], items.groups())
 		value = int(items.group(1))
 		tname = items.group(2)
+		#print tname
 		if tname=='DTKP':
 			stcsItem.s_open_dt = value
 		elif tname=='YZDT':
 			stcsItem.s_yzdt = value
 		elif tname=='DTDK':
 			stcsItem.s_open_dt_dk = value
-		elif tname=='DaoT ':
+		elif tname[:4]=='DaoT':
 			stcsItem.s_dt_daoT = value
 		else:
 			print("Warning: ======== unknown", items.groups());
@@ -130,16 +152,25 @@ def parse_summary_info(f, stcsItem):
 		stcsItem.s_sw_zt = int(objs.group(7))
 		stcsItem.s_xw_zt = int(objs.group(8))
 		#print stcsItem.s_cx_yz,stcsItem.s_non_cx_yz,stcsItem.s_open_zt,stcsItem.s_close_zt
-
 		break
-		
+
+	if rt_ver=="V2":
+		line = f.readline()
+		while line:
+			objs = re.match(".*(\d+)\-ZT[\t ]+(\d+)\-DT[\t ]+(\d+)\-X[\t ]+(\d+)--(.*)", line)
+			#print(line, objs)
+			if objs is None:
+				print("Error: parse fail1", line)
+				return -1
+			break
+	
 	line = f.readline()
 	while line:
 		cond = ".*(\d+)\-CG\((\d+)\)[\t ]+(\d+)\-FT\((\d+)\)[\t ]+(\d+)\-YIN  KD:\[(.*)\]"
 		objs = re.match(cond, line)
 		#print(line, objs)
 		if objs is None:
-			print("Error: parse fail1", line)
+			print("Error: parse fail3", line)
 			return -1
 		stcsItem.s_zthl = int(objs.group(1))
 		#stcsItem.s_kd  not defined, only lst_kd
@@ -154,6 +185,17 @@ def parse_summary_info(f, stcsItem):
 			stcsItem.lst_kd.append(item)
 		break
 
+	if rt_ver=="V2":
+		line = f.readline()
+		while line:
+			cond = ".*(\d+)\-CG\((\d+)\)[\t ]+(\d+)\-FT\((\d+)\)[\t ]+(\d+)\-YIN  KD:\[(.*)\]"
+			objs = re.match(cond, line)
+			#print(line, objs)
+			if objs is None:
+				print("Error: parse fail3", line)
+				return -1
+			break
+
 	line = f.readline()
 	while line:
 		#cond = "[ ]+(\d+)\([ ]+(\d+)\)[\t ]+ZERO:[\t ]+(\d+)[\t ]+(\d+)[\t ]+\([\t ]+(\d+)\)"
@@ -161,7 +203,7 @@ def parse_summary_info(f, stcsItem):
 		objs = re.match(cond, line)
 		#print(line, objs)
 		if objs is None:
-			print("Error: parse fail1", line)
+			print("Error: parse fail4", line)
 			return -1
 		stcsItem.s_open_sz = int(objs.group(1))
 		stcsItem.s_open_dz = int(objs.group(2))
@@ -176,7 +218,7 @@ def parse_summary_info(f, stcsItem):
 		objs = re.match(cond, line)
 		#print(line, objs)
 		if objs is None:
-			print("Error: parse fail1", line)
+			print("Error: parse fail5", line)
 			return -1
 		stcsItem.s_close_sz = int(objs.group(1))
 		stcsItem.s_close_dz = int(objs.group(2))
@@ -191,7 +233,7 @@ def parse_summary_info(f, stcsItem):
 		objs = re.match(cond, line)
 		#print(line, objs)
 		if objs is None:
-			print("Error: parse fail1", line)
+			print("Error: parse fail6", line)
 			return -1
 		stcsItem.s_high_zf = int(objs.group(1))
 		stcsItem.s_low_df = int(objs.group(2))
@@ -215,7 +257,7 @@ def parse_kb_cx(line, stcsItem):
 		
 	
 #获得开班CX的信息
-def parse_cixin_item(f, stcsItem):
+def parse_cixin_item(f, stcsItem, rt_ver='V1'):
 	line = f.readline()
 	while line:
 		if line=="CXKB:\n":
@@ -264,7 +306,7 @@ def parse_total_line(line, stcsItem):
 	stcsItem.s_cxdt = int(objs.group(9))
 	return 0
 
-def parse_nb_jc_item(f, stcsItem):
+def parse_nb_jc_item(f, stcsItem, rt_ver='V1'):
 	ret = 0
 	line = f.readline()
 	while line:
@@ -346,7 +388,7 @@ def parse_zdt_item(f, stcsItem, zdt_type):
 	return 0
 
 #解析ZT(YZZT ZT ZTHL), DT(YZDT DT DTFT) 6种ZDT数据
-def parse_zt_dt_stcs(f, stcsItem):
+def parse_zt_dt_stcs(f, stcsItem, rt_ver='V1'):
 	line = f.readline()
 	objs = re.match("id[ ]+code(.*)", line)
 	if objs is None:
@@ -405,7 +447,8 @@ def parse_realtime_his_file(trade_day, stcsItem, bTrade=False):
 	f = open(filename, 'r')
 
 	dtObj = []
-	ret = get_rt_time(f, dtObj, bTrade)
+	verObj = []
+	ret = get_rt_props(f, dtObj, verObj, bTrade)
 	if ret==-1:
 		print ("Not find matched rt time, Re-get latest realtime")
 		return -1
@@ -414,25 +457,26 @@ def parse_realtime_his_file(trade_day, stcsItem, bTrade=False):
 	ret = match_rt_date(f)
 	stcsItem.s_date = trade_day
 
-	ret = parse_summary_info(f, stcsItem)
+	ret = parse_summary_info(f, stcsItem, verObj[0])
 	if ret==-1:
 		return ret
 
-	ret = parse_cixin_item(f, stcsItem)
+	ret = parse_cixin_item(f, stcsItem, verObj[0])
 	if ret==-1:
 		return ret
 
-	ret = parse_nb_jc_item(f, stcsItem)
+	ret = parse_nb_jc_item(f, stcsItem, verObj[0])
 	if ret==-1:
 		return ret
 
-	ret = parse_zt_dt_stcs(f, stcsItem)
+	ret = parse_zt_dt_stcs(f, stcsItem, verObj[0])
 	if ret==-1:
 		return ret
 
 	#再继续读取，理论上还有最后一次按照时间排序的数据
 	#两者后面时间将进行对比
-	ret = get_rt_time(f, dtObj, bTrade)
+	#此时，最后参数强行设置为False
+	ret = get_rt_props(f, dtObj, None, False)
 	#print(len(dtObj), dtObj)
 
 	f.close()

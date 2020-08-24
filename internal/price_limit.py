@@ -17,6 +17,7 @@ from url_dfcf.dc_hangqing import *
 from url_dfcf.limit_ban import *
 from url_sina.sina_inf import *
 from internal.math_common import *
+from internal.global_var import *
 
 def handle_today_ticks(df, code, trade_date, chk_price, type):
 	tmstr = '??:??'
@@ -214,8 +215,10 @@ def get_zdt_time(code, trade_date, chk_price, type, tm_array):
 	'''
 	return tmstr
 
-#返回值是ZDT的天数，stk_list[0]表示上市交易的天数，判断是否是次新
+#返回值是ZDT的天数，
+#stk_list[0]返回上市交易天数，用于判断是否是次新
 #cur_zdt:表示当天是否是ZDT状态
+#TODO：方法不精确，需要改进
 def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 	rtntype = 1
 	jstr = 'fsData1515847425760'
@@ -263,14 +266,27 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 			dayLen -= 1
 			continue
 		#print index, trade_date, type, val
+		bZDT = 0
 		if type==1:
-			if (val>9.8 and high==close) or (high==low and val>2):
+			if code[:3] in G_LARGE_FLUC:
+				if (val>19.8 and high==close) or (high==low and val>2):
+					bZDT = 1
+			else:
+				if (val>9.8 and high==close) or (high==low and val>2):
+					bZDT = 1
+			if bZDT==1:
 				count += 1
 				if high==low:
 					yzcount += 1
 				bflag = 1
 		elif type==2:
-			if (val<-9.88 and low==close) or (high==low and val<-2):
+			if code[:3] in G_LARGE_FLUC:
+				if (val<-19.88 and low==close) or (high==low and val<-2):
+					bZDT = 1
+			else:
+				if (val<-9.88 and low==close) or (high==low and val<-2):
+					bZDT = 1
+			if bZDT==1:
 				count += 1
 				if high==low:
 					yzcount += 1

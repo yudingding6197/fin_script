@@ -14,6 +14,7 @@ import internal.common
 from internal.output_general import *
 from internal.ts_common import *
 from internal.dfcf_inf import *
+from internal.trade_date import *
 
 class Logger_IO(object): 
 	def __init__(self, filename="Default.log"):
@@ -217,6 +218,12 @@ st_list = []
 st_list=['603225','300116','600081','002113', '002676', '000862', '600119', '002309', '600262', '603663']
 #print st_list
 '''
+
+trade_date = get_lastday()
+trdDt = datetime.datetime.strptime(trade_date, '%Y-%m-%d').date()
+cybDt = datetime.datetime.strptime(CYB_REFORM_DT, '%Y-%m-%d').date()
+if (trdDt-cybDt).days>=0:
+	G_LARGE_FLUC[1] = '300'
 
 today_open = []
 stcsItem=statisticsItem()

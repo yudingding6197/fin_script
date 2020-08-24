@@ -233,7 +233,7 @@ def analyze_status2(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tr
 				#最新报价处于ZT
 				if price==zt_price:
 					#仅仅计算最后还是ZT的item
-					#zt_time_analyze(chuban, stcsItem)
+					#zt_time_analyze(code, chuban, stcsItem)
 					stcsItem.s_zt += 1
 					status |= STK_ZT
 					if open==zt_price:
@@ -605,7 +605,7 @@ def update_zdt_time(stcsItem, trade_date):
 	for item in stcsItem.lst_non_yzcx_zt:
 		print item[0], item[1], item[9]
 		chuban = item[9]
-		zt_time_analyze(chuban, stcsItem)
+		zt_time_analyze(item[0], chuban, stcsItem)
 	'''
 	qry_loop(0, qryThread[0], trade_date)
 	return
@@ -637,7 +637,7 @@ def collect_all_stock_data_pre(st_dict, today_open, stcsItem, preStat, trade_dat
 		#		print "DBG_SK,",i,item[i]
 
 		#TODO: KeChuanBan KCB
-		if code[:3] in g_new_mark:
+		if code[:3] in G_LARGE_FLUC:
 			continue
 		#排除退市的个股
 		if name[:2]==u'退市' or name[-1:]==u'退':
