@@ -39,58 +39,32 @@ PRE_DAYS = 33
 CX_DAYS = 200
 desc_notkb=u"未开板"
 desc_willon=u"待上市"
-	
-#不通过get_today_all()接口，使用东财接口
-def get_today_new_stock(new_st_list):
-	'''
-	LOOP_COUNT=0
-	st_today_base = None
-	while LOOP_COUNT<3:
-		try:
-			st_today_base = ts.get_today_all()
-		except:
-			LOOP_COUNT += 1
-			time.sleep(0.5)
-		else:
-			break
-	if st_today_base is None:
-		print "Timeout to get stock basic info, check new stk info manually!!!"
-	else:
-		st_today_df = st_today_base.sort_values(['changepercent'], 0, False)
-		for index,row in st_today_df.iterrows():
-			code = row[0].encode('gbk')
-			if row['changepercent']>11:
-				new_st_list.append(code)
-	print ''
-	'''
 
-	url = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._A&sty=FCOIATA&sortType=C&sortRule=-1&page=1&pageSize=20&js={rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c"
-	LOOP_COUNT = 0
-	response = None
-	while LOOP_COUNT<3:
-		try:
-			req = urllib2.Request(url)
-			response = urllib2.urlopen(req, timeout=5)
-		except:
-			LOOP_COUNT += 1
-			print "URL request timeout"
+def handle_large_fluctuate(code, name, stcsItem, fluc_rate, pre5_date, market_date, price, zt_price, dt_price):
+	#print code, pre5_date, round(fluc_rate,2)
+	if code[:3] in G_LARGE_FLUC:
+		mkDt = datetime.datetime.strptime(market_date, '%Y-%m-%d').date()
+		pre5Dt = datetime.datetime.strptime(pre5_date, '%Y-%m-%d').date()
+		if (mkDt-pre5Dt).days>0:
+			#print code, name.encode('gbk'), round(fluc_rate,2)
+			if fluc_rate>=23.0:
+				stcsItem.s_large_5day_cx += 1
 		else:
-			break
-	if response is None:
-		print "Please check no data from DongCai"
+			if fluc_rate>=20.0:
+				if price==zt_price:
+					stcsItem.s_large_zhenfu_zt += 1
+				elif price==dt_price:
+					stcsItem.s_large_zhenfu_dt += 1
+				stcsItem.s_large_zhenfu += 1
 		return
 
-	line = response.read()
-	obj = re.match(r'{rank:\["(.*)"\].*', line)
-	rank = obj.group(1)
-	array = rank.split('","')
-	for i in range(0, len(array)):
-		props = array[i].split(',')
-		if props[2][0]=='N':
-			code = props[1]
-			new_st_list.append(code)
+	if price==zt_price:
+		stcsItem.s_zhenfu_zt += 1
+	elif price==dt_price:
+		stcsItem.s_zhenfu_dt += 1
+	stcsItem.s_zhenfu += 1
 	return
-
+	
 def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, trade_date, pre300_date, pre5_date):
 	if len(code)!=6 or code.isdigit() is False:
 		print("Invalid code", code)
@@ -190,6 +164,8 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 	zt_price = spc_round2(zt_price1,2)
 	dt_price = spc_round2(dt_price1,2)
 	#print name, pre_close, zt_price, dt_price
+	if (h_percent-l_percent)>15.0:
+		handle_large_fluctuate(code, name, stcsItem, h_percent-l_percent, pre5_date, market_date, price, zt_price, dt_price)
 
 	bGetDays = 0
 	#YZ状态处理
@@ -641,13 +617,17 @@ def check_new_market(new_stock_list, code, name, props, stcsItem, trade_day, tod
 	market_date = props[itemLen-1]
 	if market_date!=trade_day:
 		return 0
+	if code[:3] in G_LARGE_FLUC:
+		return 1
 
 	#print(props)
 	if code in new_stock_list:
 		#检查第一天是否开板了
 		ret = check_YZ_new_market(code, stcsItem)
 		if ret==-1:
-			price = props[1]
+			#如果第一天就开板，加入当日开板的List中
+			price = round(float(props[3]),2)
+			pre_close = round(float(props[9]),2)
 			chg_perc = round((price-pre_close)*100/pre_close,2)
 			open_list = [code, name, chg_perc, price, 0]
 			today_open.append(open_list)
@@ -811,6 +791,7 @@ def update_zdt_time(stcsItem, trade_date):
 	
 	return
 
+#分析所有STK的信息
 def collect_all_stock_data(st_dict, today_open, stcsItem, preStat, trade_date, debug=0):
 	sysstr = platform.system()
 	
@@ -854,11 +835,11 @@ def collect_all_stock_data(st_dict, today_open, stcsItem, preStat, trade_date, d
 			st_dict['tui_stk'].append(item)
 			continue
 
-		if code[:3] not in G_LARGE_FLUC:
-			#如果是当天上市，不在继续检查
-			ret=check_new_market(new_st_list, code, name, item, stcsItem, trade_date, today_open)
-			if ret!=0:
-				continue
+		#if code[:3] not in G_LARGE_FLUC:
+		#如果是当天上市，不再继续检查
+		ret=check_new_market(new_st_list, code, name, item, stcsItem, trade_date, today_open)
+		if ret!=0:
+			continue
 
 		#检查是否今日KB
 		ret = check_CX_open_ban(non_kb_list, code, name, item, stcsItem, trade_date, pre30_date, today_open)

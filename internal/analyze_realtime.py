@@ -74,7 +74,7 @@ def parse_summary_info(f, stcsItem, rt_ver='V1'):
 			break
 		line = f.readline()
 	'''
-	
+
 	#print("parse_summary_info", line, rt_ver)
 	while line:
 		objs = re.match(".*ST\((\d+) ZT (\d+) DT\)(.*)", line)
@@ -109,17 +109,34 @@ def parse_summary_info(f, stcsItem, rt_ver='V1'):
 		#print(i, objs[i], items.groups())
 		value = int(items.group(1))
 		tname = items.group(2)
-		#print tname
-		if tname=='DTKP':
+		#print "ggget", value, tname
+		if tname[:4]=='DTKP':
 			stcsItem.s_open_dt = value
-		elif tname=='YZDT':
+		elif tname[:4]=='YZDT':
 			stcsItem.s_yzdt = value
-		elif tname=='DTDK':
+		elif tname[:4]=='DTDK':
 			stcsItem.s_open_dt_dk = value
 		elif tname[:4]=='DaoT':
 			stcsItem.s_dt_daoT = value
 		else:
 			print("Warning: ======== unknown", items.groups());
+	if rt_ver=='V2':
+		for i in range(0, len(objs)):
+			items = re.match('[\t ]+(\d+)[\t ]+(.*)', objs[i])
+			#print(i, objs[i], items.groups())
+			value = int(items.group(1))
+			tname = items.group(2)
+			#print "ggget", value, tname
+			if tname[:4]=='DTKP':
+				stcsItem.s_large_open_dt = value
+			elif tname[:4]=='YZDT':
+				stcsItem.s_large_yzdt = value
+			elif tname[:4]=='DTDK':
+				stcsItem.s_large_open_dt_dk = value
+			elif tname[:4]=='DaoT':
+				stcsItem.s_large_dt_daoT = value
+			else:
+				print("Warning: ======== unknown", items.groups());
 	
 	line = f.readline()
 	while line:
@@ -157,11 +174,31 @@ def parse_summary_info(f, stcsItem, rt_ver='V1'):
 	if rt_ver=="V2":
 		line = f.readline()
 		while line:
-			objs = re.match(".*(\d+)\-ZT[\t ]+(\d+)\-DT[\t ]+(\d+)\-X[\t ]+(\d+)--(.*)", line)
+			objs = re.match(".*(\d+)\-ZT[\t ]+(\d+)\-DT[\t ]+(\d+)--(.*)", line)
 			#print(line, objs)
 			if objs is None:
 				print("Error: parse fail1", line)
 				return -1
+			stcsItem.s_large_zt = int(objs.group(1))
+			stcsItem.s_large_dt = int(objs.group(2))
+			stcsItem.s_large_yzzt = int(objs.group(3))
+			
+			line = objs.group(4).strip()
+			cond = "\[(\d+) (\d+) (\d+) (\d+)\][\t ]+(\d+) 上,[\t ]*(\d+) 下"
+			objs = re.match(cond.decode('utf8').encode('gbk'), line)
+			#if objs is None:
+			#	cond = "\((\d+)\+(\d+)\)[\t ]+\[(\d+) (\d+) (\d+) (\d+)\][\t ]+(\d+) 上,[\t ]*(\d+) 下"
+			#	objs = re.match(cond, line)
+			#	#print('BB', line, objs)
+			if objs is None:
+				print "Error: parse fail2", line.decode('utf8').encode('gbk')
+				return -1
+			stcsItem.s_large_open_zt = int(objs.group(1))
+			stcsItem.s_large_close_zt = int(objs.group(2))
+			stcsItem.s_large_open_T_zt = int(objs.group(3))
+			stcsItem.s_large_dk_zt = int(objs.group(4))
+			stcsItem.s_large_sw_zt = int(objs.group(5))
+			stcsItem.s_large_xw_zt = int(objs.group(6))
 			break
 	
 	line = f.readline()
@@ -306,9 +343,37 @@ def parse_total_line(line, stcsItem):
 	stcsItem.s_cxdt = int(objs.group(9))
 	return 0
 
-def parse_nb_jc_item(f, stcsItem, rt_ver='V1'):
+def parse_zhenfu_item(f, stcsItem, rt_ver='V1'):
 	ret = 0
+	#cond = "ZFD: \((\d+)\+[\d]+\+[\d]),([\d]+\+[\d]+),([\d]+\+[\d]+)"
+	cond = "ZFD: \((\d+)\=(\d+)\+(\d+)\+(\d+)\),\((\d+)\+(\d+)\),\((\d+)\+(\d+)\)"
 	line = f.readline()
+	while line:
+		if len(line)<3:
+			line = f.readline()
+			continue
+		if line[:3]!="ZFD":
+			return (1,line)
+		#包含ZFD的项目
+		line = line.strip()
+		objs = re.match(cond, line)
+		stcsItem.s_zhenfu = objs.group(2)
+		stcsItem.s_large_zhenfu = objs.group(2)
+		stcsItem.s_large_5day_cx = objs.group(3)
+		stcsItem.s_zhenfu_zt = objs.group(5)
+		stcsItem.s_zhenfu_dt = objs.group(6)
+		stcsItem.s_large_zhenfu_zt = objs.group(7)
+		stcsItem.s_large_zhenfu_dt = objs.group(8)
+		line = f.readline()
+		break
+	return (0,'')
+
+def parse_nb_jc_item(f, stcsItem, rt_ver='V1', firstLn=''):
+	ret = 0
+	if firstLn=='':
+		line = f.readline()
+	else:
+		line = firstLn
 	while line:
 		if line=="NB:\n":
 			line = f.readline()
@@ -362,15 +427,33 @@ def parse_zdt_item(f, stcsItem, zdt_type):
 		elif zdt_type==6:
 			cond = head + lprice + "(\d+) (.*)"
 			stkList = stcsItem.lst_dtft
+		elif zdt_type==11:
+			cond = head + lprice + "(\d+) (.*)"
+			stkList = stcsItem.lst_large_non_yzcx_yzzt
+		elif zdt_type==12:
+			cond = head + lprice + "(\d+) (.*)"
+			stkList = stcsItem.lst_large_non_yzcx_zt
+		elif zdt_type==13:
+			cond = head + lprice + "(\d+) (.*)"
+			stkList = stcsItem.lst_large_non_yzcx_zthl
+		elif zdt_type==14:
+			cond = head + lprice + "(\d+) (.*)"
+			stkList = stcsItem.lst_large_yzdt
+		elif zdt_type==15:
+			cond = head + lprice + "(\d+) (.*)"
+			stkList = stcsItem.lst_large_dt
+		elif zdt_type==16:
+			cond = head + lprice + "(\d+) (.*)"
+			stkList = stcsItem.lst_large_dtft
 		else:
 			line = f.readline()
 			continue
+		#line = line.strip()
 		objs = re.match(cond, line)
 		#print "rtlne:",line
 		if objs is None:
-			print(objs, line)
+			print(objs, line, cond)
 			return -1
-		#print(zdt_type, objs.group(2))
 		code = objs.group(2)[:6]
 		name = objs.group(2)[7:].replace(" ", "").replace("\t","").strip()
 		change_percent = float(objs.group(3))
@@ -383,7 +466,8 @@ def parse_zdt_item(f, stcsItem, zdt_type):
 		#print ("here-'%s','%s'"%(count,desc))
 		item = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, desc]
 		stkList.append(item)
-
+		#if zdt_type==12:
+		#	print "zdt anly", code,name,count
 		line = f.readline()
 	return 0
 
@@ -406,6 +490,15 @@ def parse_zt_dt_stcs(f, stcsItem, rt_ver='V1'):
 		elif line[:6]=="ZTHL [":
 			parse_zdt_item(f, stcsItem, 3)
 			pass
+		elif line[:8]=="CZL_YZZT":
+			parse_zdt_item(f, stcsItem, 11)
+			pass
+		elif line[:6]=="CZL_ZT":
+			parse_zdt_item(f, stcsItem, 12)
+			pass
+		elif line[:8]=="CZL_ZTHL":
+			parse_zdt_item(f, stcsItem, 13)
+			pass
 		elif line[:5]=="Total":
 			break
 		else:
@@ -422,6 +515,15 @@ def parse_zt_dt_stcs(f, stcsItem, rt_ver='V1'):
 			parse_zdt_item(f, stcsItem, 5)
 			pass
 		elif line[:7]=="DTFT  [":
+			parse_zdt_item(f, stcsItem, 6)
+			pass
+		elif line[:7]=="CZL_YZDT  [":
+			parse_zdt_item(f, stcsItem, 4)
+			pass
+		elif line[:5]=="CZL_DT  [":
+			parse_zdt_item(f, stcsItem, 5)
+			pass
+		elif line[:7]=="CZL_DTFT  [":
 			parse_zdt_item(f, stcsItem, 6)
 			pass
 		elif line=="\n":
@@ -465,7 +567,12 @@ def parse_realtime_his_file(trade_day, stcsItem, bTrade=False):
 	if ret==-1:
 		return ret
 
-	ret = parse_nb_jc_item(f, stcsItem, verObj[0])
+	#以前版本没有ZFD，告诉以前版本刚开始是否读取第一行
+	ret,firstLn = parse_zhenfu_item(f, stcsItem, verObj[0])
+	if ret==-1:
+		return ret
+
+	ret = parse_nb_jc_item(f, stcsItem, verObj[0], firstLn)
 	if ret==-1:
 		return ret
 
@@ -496,7 +603,7 @@ def parse_realtime_his_file(trade_day, stcsItem, bTrade=False):
 	if len(dtObj)>1:
 		if dtObj[1].hour<15:
 			print("Warning: time1 < 15", filename, dtObj[1].hour, dtObj[1].minute)
-		if (dtObj[1]-dtObj[0]).seconds<=0:
+		if (dtObj[1]-dtObj[0]).seconds<0:
 			print("Warning: time issue", filename)
 	return 0
 
@@ -516,7 +623,10 @@ if __name__=='__main__':
 	trade_date = get_lastday()
 	pre_date = get_preday(1, trade_date)	
 	preStatItem = statisticsItem()
-	ret = parse_realtime_his_file(pre_date, preStatItem)
+	ret = parse_realtime_his_file(trade_date, preStatItem)
+	for item in preStatItem.lst_large_non_yzcx_zt:
+		print item[0],item[1]
+	print "-----\n"
 	for item in preStatItem.lst_non_yzcx_yzzt:
 		print item[0],item[1]
 	print "-----\n"

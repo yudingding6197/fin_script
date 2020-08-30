@@ -178,6 +178,7 @@ if __name__=="__main__":
 
 	today = datetime.date.today()
 	curdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
+	#更新巨潮的tips信息
 	update_juchao_tips()
 
 	read_def(data_path, stockCode, stockCode_sn)

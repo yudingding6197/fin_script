@@ -18,6 +18,12 @@ def get_zt_data(stcsItem, zt_dict):
 	for i in stcsItem.lst_non_yzcx_zt:
 		zt_dict[i[0]] = [i[1], i[7], ' ZT ', '']
 		#print "lst_non_yzcx_zt", i[0], i[1], i
+	for i in stcsItem.lst_large_non_yzcx_yzzt:
+		zt_dict[i[0]] = [i[1], i[7], 'CZL_YZZT', '']
+		#print "lst_non_yzcx_yzzt", i[0], i[1], i
+	for i in stcsItem.lst_large_non_yzcx_zt:
+		zt_dict[i[0]] = [i[1], i[7], 'CZL_ZT', '']
+		#print "lst_non_yzcx_zt", i[0], i[1], i
 
 def get_dt_data(stcsItem, dt_dict):
 	for i in stcsItem.lst_yzdt:
@@ -25,6 +31,12 @@ def get_dt_data(stcsItem, dt_dict):
 		#print "lst_non_yzdt", i[0], i[1]
 	for i in stcsItem.lst_dt:
 		dt_dict[i[0]] = [i[1], i[7], ' DT ', '']
+		#print "lst_non_dt", i[0], i[1]
+	for i in stcsItem.lst_large_yzdt:
+		dt_dict[i[0]] = [i[1], i[7], 'CZL_YZDT', '']
+		#print "lst_non_yzdt", i[0], i[1]
+	for i in stcsItem.lst_large_dt:
+		dt_dict[i[0]] = [i[1], i[7], 'CZL_DT', '']
 		#print "lst_non_dt", i[0], i[1]
 
 def compare_qiangruo(todayItem, ysdayItem, q_dict, r_dict, flag=''):
@@ -59,7 +71,7 @@ def compare_qiangruo(todayItem, ysdayItem, q_dict, r_dict, flag=''):
 	#还有开板的CX
 	#r_dict[i] = 
 	
-	#print(r_dict)
+	#print("R_Dic",r_dict)
 	for i in t_zt_dict.keys():
 		#print("code:", i)
 		if i in y_dt_dict.iterkeys():
@@ -67,7 +79,7 @@ def compare_qiangruo(todayItem, ysdayItem, q_dict, r_dict, flag=''):
 				q_dict[i] = y_dt_dict[i]
 				q_dict[i][2] = y_dt_dict[i][2] + '-' + t_zt_dict[i][2]
 				#print("ZRDT, JRZT QQQQQ", i)
-	#print(q_dict)
+	#print("Q_Dic",q_dict)
 	
 	
 #Main

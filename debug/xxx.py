@@ -5,16 +5,19 @@ import json
 import zlib
 import random
 import getopt
+import time
 
 sys.path.append('.')
-from internal.global_var import *
-from internal.math_common import *
-from internal.trade_date import *
+#from internal.global_var import *
+#from internal.math_common import *
+#from internal.trade_date import *
 #import pandas as pd
 #import numpy as np
 #from bs4 import BeautifulSoup
 
 if __name__=="__main__":
+	time.sleep(0.5)
+	exit(0)
 	#获取ZT
 	preArr = [ 
 	20.11,

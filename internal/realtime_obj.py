@@ -54,6 +54,9 @@ class statisticsItem:
 	s_total = 0			#总计所有交易票
 	s_sw_zt = 0			#上午ZT
 	s_xw_zt = 0			#下午ZT
+	s_zhenfu = 0		#振幅大
+	s_zhenfu_zt = 0		#振幅大 and ZT
+	s_zhenfu_dt = 0		#振幅大 and DT
 	lst_kd = []			#坑爹个股
 	lst_nb = []			#NB，低位强拉高位
 	lst_jc = []			#韭菜了，严重坑人
@@ -98,6 +101,10 @@ class statisticsItem:
 	s_large_open_dt_dk	 = 0
 	s_large_sw_zt = 0
 	s_large_xw_zt = 0
+	s_large_5day_cx = 0		#振幅大，前5天CX
+	s_large_zhenfu = 0		#振幅大
+	s_large_zhenfu_zt = 0		#振幅大 and ZT
+	s_large_zhenfu_dt = 0		#振幅大 and DT
 	lst_large_kd = []			
 	lst_large_nb = []			
 	lst_large_jc = []			
@@ -143,6 +150,9 @@ class statisticsItem:
 		self.s_total = 0
 		self.s_sw_zt = 0
 		self.s_xw_zt = 0
+		self.s_zhenfu = 0
+		self.s_zhenfu_zt = 0
+		self.s_zhenfu_dt = 0
 		self.lst_kd = []
 		self.lst_nb = []
 		self.lst_jc = []
@@ -187,6 +197,10 @@ class statisticsItem:
 		self.s_large_open_dt_dk = 0
 		self.s_large_sw_zt = 0
 		self.s_large_xw_zt = 0
+		self.s_large_5day_cx = 0
+		self.s_large_zhenfu = 0
+		self.s_large_zhenfu_zt = 0
+		self.s_large_zhenfu_dt = 0
 		self.lst_large_kd = []
 		self.lst_large_nb = []
 		self.lst_large_jc = []

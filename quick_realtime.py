@@ -186,7 +186,7 @@ def filter_dtft(dtft_list, perc):
 	return count
 
 def handle_argument():
-	optlist, args = getopt.getopt(sys.argv[1:], 'ldtaq')
+	optlist, args = getopt.getopt(sys.argv[1:], 'ldtaqe')
 	for option, value in optlist:
 		if option in ["-l","--nolog"]:
 			param_config["NoLog"] = 1
@@ -198,6 +198,8 @@ def handle_argument():
 			param_config["NotAllInfo"] = 1
 		elif option in ["-q","--tuishi"]:
 			param_config["TuiShi"] = 1
+		elif option in ["-e","--exchange"]:
+			param_config["Exchange"] = 1
 	#print param_config
 
 param_config = {
@@ -206,6 +208,7 @@ param_config = {
 	"SortByTime":0,
 	"NotAllInfo":0,
 	"TuiShi":0,
+	"Exchange":0,
 }
 REAL_PRE_FD = "../data/"
 
@@ -334,7 +337,7 @@ if __name__=='__main__':
 
 	print "%4d-ZT		%4d-DT		%d-X %d--(%d+%d) %s" % (stcsItem.s_zt,stcsItem.s_dt,stcsItem.s_new,stcsItem.s_yzzt, cx_yz, non_cx_yz, str_opn)
 	# Handle FLUC
-	print "%4d-ZT		%4d-DT		0-X %d-- %s" % (stcsItem.s_large_zt,stcsItem.s_large_dt,stcsItem.s_large_yzzt, str_opn_lrg)
+	print "%4d-ZT		%4d-DT		%d--%s" % (stcsItem.s_large_zt,stcsItem.s_large_dt,stcsItem.s_large_yzzt, str_opn_lrg)
 	
 	dtft_qiang = filter_dtft(stcsItem.lst_dtft, -3)
 	kd_str = ','.join(stcsItem.lst_kd)
@@ -343,6 +346,7 @@ if __name__=='__main__':
 	# Handle FLUC
 	dtft_qiang_lrg = filter_dtft(stcsItem.lst_large_dtft, -6)
 	kd_str_lrg = ','.join(stcsItem.lst_large_kd)
+	if isinstance(kd_str_lrg, unicode): kd_str_lrg = kd_str_lrg.encode('gbk')
 	print "%4d-CG(%d)	%4d-FT(%d)	%2d-YIN  KD:[%s]" %(stcsItem.s_large_zthl,len(stcsItem.lst_large_kd),stcsItem.s_large_dtft,dtft_qiang_lrg,stcsItem.s_large_zt_o_gt_c,kd_str_lrg)
 
 	print "%4d(%4d)	ZERO:%4d	%4d(%4d)" %(stcsItem.s_open_sz, stcsItem.s_open_dz, stcsItem.s_open_pp, stcsItem.s_open_xd, stcsItem.s_open_dd)
@@ -369,6 +373,13 @@ if __name__=='__main__':
 		print "CXKB:====="
 	print ''
 
+	zf_total = stcsItem.s_zhenfu + stcsItem.s_large_zhenfu + stcsItem.s_large_5day_cx
+	fmt_zf = "ZFD: (%d=%d+%d+%d),(%d+%d),(%d+%d)"
+	desc_zf = fmt_zf %(zf_total,stcsItem.s_zhenfu,stcsItem.s_large_zhenfu,stcsItem.s_large_5day_cx,
+			stcsItem.s_zhenfu_zt,stcsItem.s_zhenfu_dt,stcsItem.s_large_zhenfu_zt,stcsItem.s_large_zhenfu_dt)
+	print desc_zf
+	print ''
+	
 	str = ''
 	list = stcsItem.lst_nb
 	if len(list)>0:
@@ -406,28 +417,46 @@ if __name__=='__main__':
 		fmt1 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %3s"
 		fmt2 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %3s %9s"
 		fmt3 = "%2d %6s %-7s	%8.2f %8.2f %8.2f %8.2f %8.2f %4d %3s %9s %9s"
+		fmt_dw = "Total DT (%d)		DTFT (%d)==(%d)================================="
 
 		outstr = "YZZT  [%d]:" % (len(stcsItem.lst_non_yzcx_yzzt))
 		show_zt_info(stcsItem.lst_non_yzcx_yzzt, "YZZT", fmt1, outstr, param_config)
 		outstr = "CZL_YZZT  [%d]:" % (len(stcsItem.lst_large_non_yzcx_yzzt))
 		show_zt_info(stcsItem.lst_large_non_yzcx_yzzt, "YZZT", fmt1, outstr, param_config)
-		outstr = "ZT  [%d+%d]:" % (stcsItem.s_sw_zt, stcsItem.s_xw_zt)
-		show_zt_info(stcsItem.lst_non_yzcx_zt, "ZT", fmt2, outstr, param_config)
-		outstr = "CZL_ZT  [%d+%d]:" % (stcsItem.s_large_sw_zt, stcsItem.s_large_xw_zt)
-		show_zt_info(stcsItem.lst_large_non_yzcx_zt, "ZT", fmt2, outstr, param_config)
-		outstr = "ZTHL [%d]:" % (stcsItem.s_zthl)
-		show_zt_info(stcsItem.lst_non_yzcx_zthl, "ZTHL", fmt3, outstr, param_config)
-		outstr = "CZL_ZTHL [%d]:" % (stcsItem.s_large_zthl)
-		show_zt_info(stcsItem.lst_large_non_yzcx_zthl, "ZTHL", fmt3, outstr, param_config)
+		if param_config["Exchange"]==0:
+			outstr = "ZT  [%d+%d]:" % (stcsItem.s_sw_zt, stcsItem.s_xw_zt)
+			show_zt_info(stcsItem.lst_non_yzcx_zt, "ZT", fmt2, outstr, param_config)
+			outstr = "CZL_ZT  [%d+%d]:" % (stcsItem.s_large_sw_zt, stcsItem.s_large_xw_zt)
+			show_zt_info(stcsItem.lst_large_non_yzcx_zt, "ZT", fmt2, outstr, param_config)
+			outstr = "ZTHL [%d]:" % (stcsItem.s_zthl)
+			show_zt_info(stcsItem.lst_non_yzcx_zthl, "ZTHL", fmt3, outstr, param_config)
+			outstr = "CZL_ZTHL [%d]:" % (stcsItem.s_large_zthl)
+			show_zt_info(stcsItem.lst_large_non_yzcx_zthl, "ZTHL", fmt3, outstr, param_config)
 
-		fmt0 = "Total DT (%d)		DTFT (%d)==(%d)================================="
-		print fmt0 %(len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt), len(stcsItem.lst_dtft), len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt)+len(stcsItem.lst_dtft))
-		show_dt_info(stcsItem.lst_yzdt, "YZDT", fmt1, "YZDT", param_config)
-		show_dt_info(stcsItem.lst_yzdt, "YZDT", fmt1, "CZL_YZDT", param_config)
-		show_dt_info(stcsItem.lst_dt, "DT", fmt2, "DT", param_config)
-		show_dt_info(stcsItem.lst_dt, "DT", fmt2, "CZL_DT", param_config)
-		show_dt_info(stcsItem.lst_dtft, "DTFT", fmt3, "DTFT", param_config)
-		show_dt_info(stcsItem.lst_dtft, "DTFT", fmt3, "CZL_DTFT", param_config)
+			print fmt_dw %(len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt), len(stcsItem.lst_dtft), len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt)+len(stcsItem.lst_dtft))
+			show_dt_info(stcsItem.lst_yzdt, "YZDT", fmt1, "YZDT", param_config)
+			show_dt_info(stcsItem.lst_large_yzdt, "YZDT", fmt1, "CZL_YZDT", param_config)
+			show_dt_info(stcsItem.lst_dt, "DT", fmt2, "DT", param_config)
+			show_dt_info(stcsItem.lst_large_dt, "DT", fmt2, "CZL_DT", param_config)
+			show_dt_info(stcsItem.lst_dtft, "DTFT", fmt3, "DTFT", param_config)
+			show_dt_info(stcsItem.lst_large_dtft, "DTFT", fmt3, "CZL_DTFT", param_config)
+		else:
+			outstr = "ZT  [%d+%d]:" % (stcsItem.s_sw_zt, stcsItem.s_xw_zt)
+			show_zt_info(stcsItem.lst_non_yzcx_zt, "ZT", fmt2, outstr, param_config)
+			outstr = "ZTHL [%d]:" % (stcsItem.s_zthl)
+			show_zt_info(stcsItem.lst_non_yzcx_zthl, "ZTHL", fmt3, outstr, param_config)
+			outstr = "CZL_ZT  [%d+%d]:" % (stcsItem.s_large_sw_zt, stcsItem.s_large_xw_zt)
+			show_zt_info(stcsItem.lst_large_non_yzcx_zt, "ZT", fmt2, outstr, param_config)
+			outstr = "CZL_ZTHL [%d]:" % (stcsItem.s_large_zthl)
+			show_zt_info(stcsItem.lst_large_non_yzcx_zthl, "ZTHL", fmt3, outstr, param_config)
+
+			print fmt_dw %(len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt), len(stcsItem.lst_dtft), len(stcsItem.lst_yzdt)+len(stcsItem.lst_dt)+len(stcsItem.lst_dtft))
+			show_dt_info(stcsItem.lst_yzdt, "YZDT", fmt1, "YZDT", param_config)
+			show_dt_info(stcsItem.lst_large_yzdt, "YZDT", fmt1, "CZL_YZDT", param_config)
+			show_dt_info(stcsItem.lst_dt, "DT", fmt2, "DT", param_config)
+			show_dt_info(stcsItem.lst_dtft, "DTFT", fmt3, "DTFT", param_config)
+			show_dt_info(stcsItem.lst_large_dt, "DT", fmt2, "CZL_DT", param_config)
+			show_dt_info(stcsItem.lst_large_dtft, "DTFT", fmt3, "CZL_DTFT", param_config)
 
 		if param_config["TuiShi"]==1:
 			show_tuishi_info(st_dict['tui_stk'], fmt1)

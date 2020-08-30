@@ -88,13 +88,23 @@ def searchInList(code, src_list, desc):
 def getPreZDtDays(code, type, preStat):
 	bPreZt = 0
 	if type==0:
-		bPreZt, count = searchInList(code, preStat.lst_non_yzcx_yzzt, "yzzt1")
-		if bPreZt==0:
-			bPreZt, count = searchInList(code, preStat.lst_non_yzcx_zt, "zt1")
+		if code[:3] in G_LARGE_FLUC:
+			bPreZt, count = searchInList(code, preStat.lst_large_non_yzcx_yzzt, "yzzt1")
+			if bPreZt==0:
+				bPreZt, count = searchInList(code, preStat.lst_large_non_yzcx_zt, "zt1")
+		else:
+			bPreZt, count = searchInList(code, preStat.lst_non_yzcx_yzzt, "yzzt1")
+			if bPreZt==0:
+				bPreZt, count = searchInList(code, preStat.lst_non_yzcx_zt, "zt1")
 	elif type==1:
-		bPreZt, count = searchInList(code, preStat.lst_yzdt, "yzdt1")
-		if bPreZt==0:
-			bPreZt, count = searchInList(code, preStat.lst_dt, "dt1")
+		if code[:3] in G_LARGE_FLUC:
+			bPreZt, count = searchInList(code, preStat.lst_large_yzdt, "yzdt1")
+			if bPreZt==0:
+				bPreZt, count = searchInList(code, preStat.lst_large_dt, "dt1")
+		else:
+			bPreZt, count = searchInList(code, preStat.lst_yzdt, "yzdt1")
+			if bPreZt==0:
+				bPreZt, count = searchInList(code, preStat.lst_dt, "dt1")
 	else:
 		print ("Invalid type", type, code)
 		return -1
