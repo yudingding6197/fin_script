@@ -218,7 +218,7 @@ REAL_PRE_FD = "../data/"
 if __name__=='__main__':
 	beginTm = datetime.datetime.now()
 	sysstr = platform.system()
-	
+
 	flname = REAL_PRE_FD + "realtime.txt"
 	#TODO: open the comment
 	if os.path.isfile(flname):
@@ -237,12 +237,12 @@ if __name__=='__main__':
 	trade_date = get_lastday()
 	pre_date = get_preday(1, trade_date)
 	init_trade_list(trade_date)
+	#print ("Current trade day:", trade_date, pre_date)
 	
 	trdDt = datetime.datetime.strptime(trade_date, '%Y-%m-%d').date()
 	cybDt = datetime.datetime.strptime(CYB_REFORM_DT, '%Y-%m-%d').date()
 	if (trdDt-cybDt).days>=0:
 		G_LARGE_FLUC[1] = '300'
-	#print ("Current trade day:", trade_date, pre_date)
 	new_st_list = []
 	new_st_code_list = []
 	non_kb_list = []
@@ -267,14 +267,14 @@ if __name__=='__main__':
 	
 	#TODO: 如何调试呢？
 	'''
-	st_list=['603225','300116','600081','002113', '002676', '000862', '600119', '002309', '600262', '603663']
+	st_all_list=['603225','300116','600081','002113', '002676', '000862', '600119', '002309', '600262', '603663']
 	debug = 1
-	#print st_list
+	#print st_all_list
 	'''
 	#通过条件查询所有STK, start from 000001
-	st_list = []
-	ret = get_stk_code_by_dfcf(st_list, 'A', 0)
-	#ret = get_stk_code_by_cond1(st_list, 'A', 0)
+	st_all_list = []
+	ret = get_stk_code_by_dfcf(st_all_list, 'A', 0)
+	#ret = get_stk_code_by_cond1(st_all_list, 'A', 0)
 	if ret==-1:
 		exit(0)
 	
@@ -285,7 +285,7 @@ if __name__=='__main__':
 	st_dict = {}
 	st_dict['fup_stk'] = fp_code_list
 	st_dict['new_stk'] = new_st_code_list
-	st_dict['all_stk'] = st_list
+	st_dict['all_stk'] = st_all_list
 	st_dict['nkb_stk'] = non_kb_list
 	st_dict['tui_stk'] = []
 
@@ -325,9 +325,9 @@ if __name__=='__main__':
 	# Handle FLUC
 	str_dt_lrg = "%d DTKP" % (stcsItem.s_large_open_dt)
 	if stcsItem.s_large_yzdt>0:
-		str_dt_lrg = "%s, %d YZDT" % (str_dt, stcsItem.s_large_yzdt)
+		str_dt_lrg = "%s, %d YZDT" % (str_dt_lrg, stcsItem.s_large_yzdt)
 	if stcsItem.s_large_open_dt_dk>0:
-		str_dt_lrg = "%s, %d DTDK" % (str_dt, stcsItem.s_large_open_dt_dk)
+		str_dt_lrg = "%s, %d DTDK" % (str_dt_lrg, stcsItem.s_large_open_dt_dk)
 	DaoT_lrg = stcsItem.s_large_open_dt-stcsItem.s_large_yzdt-stcsItem.s_large_open_dt_dk
 	if DaoT_lrg>0:
 		str_dt_lrg = "%s, %d DaoT " % (str_dt_lrg, DaoT_lrg)

@@ -14,11 +14,15 @@ import datetime
 import threading
 
 from internal.url_dfcf.dc_hangqing import *
+from internal.url_dfcf.dc_hq_push import *
 from internal.url_163.service_163 import *
 from internal.global_var import *
 from internal.trade_date import *
 
 TS_FLAG = 1
+
+#通过不同的链接获取信息
+URL_TYPE = 2
 
 #分析时间得到ZT时间，上午or下午
 # TODO:
@@ -151,13 +155,20 @@ def query_stk(index, qryArgs, pageNum, qLock, st, sr, ps):
 	pageStr = index*pageNum + 1
 	pageEnd = pageStr + pageNum - 1
 	
-	#qLock.acquire()
-	#print index, pageNum, pageStr, pageEnd
-	#qLock.release()
+	debug = 0
+	if debug==1:
+		qLock.acquire()
+		print index, pageNum, pageStr, pageEnd
+		qLock.release()
 
 	curpage = pageStr
 	for curpage in range(pageStr, pageEnd+1):
-		bnext = get_each_page_data1(qryArgs, curpage, st, sr, ps)
+		if URL_TYPE==1:
+			bnext = get_each_page_data1(qryArgs, curpage, st, sr, ps)
+		elif URL_TYPE==2:
+			bnext = get_each_page_push_data1(qryArgs, curpage, st, sr, ps)
+		else:
+			break
 		if bnext==0:
 			break
 	#print("query_stk quit", index);
@@ -170,7 +181,12 @@ def query_stk(index, qryArgs, pageNum, qLock, st, sr, ps):
 def get_stk_code_by_dfcf(new_st_list, st='C', sr=-1, ps=80):
 	curpage = 1
 	#items_list = []
-	totalpage = get_stk_max_page(0, st, sr, ps)
+	totalpage = -1
+	if URL_TYPE==1:
+		totalpage = get_stk_max_page(0, st, sr, ps)
+	elif URL_TYPE==2:
+		totalpage = get_stk_push_max_page(0, st, sr, ps)
+
 	if totalpage==-1:
 		return totalpage
 	#print("Max Page", totalpage)

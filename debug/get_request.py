@@ -150,6 +150,7 @@ print len(repr(r3))
 print repr(r3)
 
 urlall = 'http://www.szse.cn/api/report/ShowReport/data?SHOWTYPE=JSON&CATALOGID=1803&TABKEY=tab1&txtQueryDate=2019-08-12&random=0.7978766476031434'
+urlall = 'http://www.szse.cn/api/report/ShowReport/data?SHOWTYPE=JSON&CATALOGID=1803_sczm&TABKEY=tab1&txtQueryDate=2020-09-15&random=0.4542097358059886'
 send_headers = {
 'Host': 'www.szse.cn',
 'Connection': 'keep-alive',
@@ -164,7 +165,7 @@ send_headers = {
 #print urlall
 
 #Main
-#http_req(urlall, send_headers)
+http_req(urlall, send_headers)
 
 #print random.uniform(0, 1)
 #exit(0)

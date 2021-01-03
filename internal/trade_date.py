@@ -76,22 +76,26 @@ def read_preday_json(days, cur_day):
 	location = DB_PATH + '/' + filenm + '_json.txt'
 	if os.path.exists(location) is False:
 		get_index_history_byNetease_js(location, filenm)
+	# internal/db/sh000001_json.txt
 	fl = open(location, 'r')
 	try:
 		data = json.load(fl)
 	except:
 		#处理异常：有文件，内容非json格式
 		fl.close()
+		print "Error: fail to load trade json object"
 		get_index_history_byNetease_js(location, filenm)
 		fl = open(location, 'r')
 		data = json.load(fl)
 	fl.close()
 
+	#数据没法通过json.load()直接转为dict对象。通过json.load()二次转化
 	info = json.loads(data)
 	ret, js_date = parseDate2(info['times'][-1])
 	curDt = datetime.datetime.strptime(cur_day, '%Y-%m-%d').date()
 	jsDt = datetime.datetime.strptime(js_date, '%Y-%m-%d').date()
-	
+	#print "trde_dt taildt=%s jsdt=%s c_d=%s"%(info['times'][-1], js_date, cur_day)
+
 	start_date = cur_day
 	#如果json文件的最后一天比需要查询的还早，说明需要更新json
 	if (curDt-jsDt).days>0:
@@ -99,9 +103,15 @@ def read_preday_json(days, cur_day):
 		fl = open(location, 'r')
 		data = json.load(fl)
 		fl.close()
+		
+		#数据没法通过json.load()直接转为dict对象。通过json.load()二次转化
+		info = json.loads(data)
 		ret, js_date = parseDate2(info['times'][-1])
 		jsDt2 = datetime.datetime.strptime(js_date, '%Y-%m-%d').date()
 		if (curDt-jsDt2).days>0:
+			#print "Warning:Force append dt",cur_day,js_date
+			info['times'].append(cur_day)
+		else:
 			start_date = js_date
 
 	#先找到指定日期的index
@@ -109,7 +119,7 @@ def read_preday_json(days, cur_day):
 	pos = dayCount-1
 	while pos>= 0:
 		ret, js_cur_date = parseDate2(info['times'][pos])
-		#print "11",pos, js_cur_date
+		#print "Find ",pos, js_cur_date
 		if start_date==js_cur_date:
 			break
 		else:
@@ -177,6 +187,7 @@ def init_trade_list(cur_day='', method=1):
 			ret, cur_date = parseDate2(dLists[pos])
 			g_trade_list.append(cur_date)
 			pos -= 1
+		g_trade_flag = 1
 
 	elif method==2:
 		location = DB_PATH + '/' + filenm + '.csv'
@@ -253,6 +264,15 @@ def calcu_pre_date(days, base_date):
 	item = g_trade_list[index:][days]
 	#print "find_date",item
 	return item
+
+def is_trade_date(verifyDate):
+	if g_trade_flag==0:
+		print("Error: initial global trade DB")
+		return False
+
+	if verifyDate in g_trade_list:
+		return True
+	return False
 
 #Main
 #for i in range(0,1000):

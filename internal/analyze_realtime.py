@@ -89,6 +89,8 @@ def parse_summary_info(f, stcsItem, rt_ver='V1'):
 			pass
 		elif line[:6]=="timed ":
 			pass
+		elif line[:6]=="Check ":
+			pass
 		else:
 			print("Error: Get ZT DT fail", line)
 			return -1
@@ -466,6 +468,7 @@ def parse_zdt_item(f, stcsItem, zdt_type):
 		#print ("here-'%s','%s'"%(count,desc))
 		item = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, desc]
 		stkList.append(item)
+		#print "zdt anly", zdt_type, code,name,count
 		#if zdt_type==12:
 		#	print "zdt anly", code,name,count
 		line = f.readline()
@@ -493,7 +496,7 @@ def parse_zt_dt_stcs(f, stcsItem, rt_ver='V1'):
 		elif line[:8]=="CZL_YZZT":
 			parse_zdt_item(f, stcsItem, 11)
 			pass
-		elif line[:6]=="CZL_ZT":
+		elif line[:8]=="CZL_ZT  ":
 			parse_zdt_item(f, stcsItem, 12)
 			pass
 		elif line[:8]=="CZL_ZTHL":
@@ -517,14 +520,14 @@ def parse_zt_dt_stcs(f, stcsItem, rt_ver='V1'):
 		elif line[:7]=="DTFT  [":
 			parse_zdt_item(f, stcsItem, 6)
 			pass
-		elif line[:7]=="CZL_YZDT  [":
-			parse_zdt_item(f, stcsItem, 4)
+		elif line[:7]=="CZL_YZD":
+			parse_zdt_item(f, stcsItem, 14)
 			pass
-		elif line[:5]=="CZL_DT  [":
-			parse_zdt_item(f, stcsItem, 5)
+		elif line[:7]=="CZL_DT ":
+			parse_zdt_item(f, stcsItem, 15)
 			pass
-		elif line[:7]=="CZL_DTFT  [":
-			parse_zdt_item(f, stcsItem, 6)
+		elif line[:7]=="CZL_DTF":
+			parse_zdt_item(f, stcsItem, 16)
 			pass
 		elif line=="\n":
 			break
@@ -624,12 +627,22 @@ if __name__=='__main__':
 	pre_date = get_preday(1, trade_date)	
 	preStatItem = statisticsItem()
 	ret = parse_realtime_his_file(trade_date, preStatItem)
-	for item in preStatItem.lst_large_non_yzcx_zt:
-		print item[0],item[1]
-	print "-----\n"
-	for item in preStatItem.lst_non_yzcx_yzzt:
-		print item[0],item[1]
-	print "-----\n"
-	for item in preStatItem.lst_non_yzcx_zt:
-		print item[0],item[1]
+
+	pList = preStatItem.lst_non_yzcx_yzzt
+	for obj in pList:
+		print obj[0],obj[1],obj[7]
+	print ''
+	pList = preStatItem.lst_non_yzcx_zt
+	for obj in pList:
+		print obj[0],obj[1],obj[7]
+	print ''
+	pList = preStatItem.lst_large_non_yzcx_yzzt
+	for obj in pList:
+		print obj[0],obj[1],obj[7]
+	print ''
+	pList = preStatItem.lst_large_non_yzcx_zt
+	for obj in pList:
+		print obj[0],obj[1],obj[7]
+	print ''
+	
 	pass

@@ -20,15 +20,13 @@ def get_sina_lastday():
 		return
 	'''
 	LOOP_COUNT  = 0
+	# http://hq.sinajs.cn/?_=0.7577027725009173&list=sh000001,sz300855
 	#print "sina lastDay", url
 	while LOOP_COUNT<3:
 		try:
 			urlObj = urllib2.urlopen(url,timeout=3)
 			#print "urlObj", urlObj
 			stockData = urlObj.read()
-			#print "Read Data Fin"
-
-			#stockData = urllib2.urlopen(url,timeout=3).read()
 		except:
 			LOOP_COUNT += 1
 			time.sleep(0.5)

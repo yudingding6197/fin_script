@@ -47,10 +47,10 @@ def handle_large_fluctuate(code, name, stcsItem, fluc_rate, pre5_date, market_da
 		pre5Dt = datetime.datetime.strptime(pre5_date, '%Y-%m-%d').date()
 		if (mkDt-pre5Dt).days>0:
 			#print code, name.encode('gbk'), round(fluc_rate,2)
-			if fluc_rate>=23.0:
+			if fluc_rate>=29.0:
 				stcsItem.s_large_5day_cx += 1
 		else:
-			if fluc_rate>=20.0:
+			if fluc_rate>=23.0:
 				if price==zt_price:
 					stcsItem.s_large_zhenfu_zt += 1
 				elif price==dt_price:
@@ -101,7 +101,7 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 		high1 = round(float(props[11]),2)
 		low1 = round(float(props[12]),2)
 	except:
-		#print(("%s %s,'%s','%s'"%(code, name, props[11], props[12])).encode('gbk'))
+		print(("%s %s,'%s','%s'"%(code, name, props[11], props[12])).encode('gbk'))
 		for prop in props:
 			if isinstance(prop, unicode):
 				prop = prop.encode("gbk")
@@ -131,8 +131,13 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 		return -1
 
 	b_ST = 0
+	b_C_ST = 0
 	if name.find("ST")>=0 or name[0:1]=="S":
-		b_ST = 1
+		#CYB ST保持 20% ZDF
+		if code[:3] in G_LARGE_FLUC:
+			b_C_ST = 1
+		else:
+			b_ST = 1
 		#print code,name
 
 	o_percent = (open-pre_close)*100/pre_close
@@ -546,6 +551,7 @@ def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre3
 		return -1
 
 	market_date = props[itemLen-1]
+	#print "xxxc",code, market_date
 	mkDt = datetime.datetime.strptime(market_date, '%Y-%m-%d').date()
 	pre30Dt = datetime.datetime.strptime(pre30_date, '%Y-%m-%d').date()
 
@@ -562,6 +568,8 @@ def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre3
 	for item in non_kb_list:
 		if item['securitycode']!=code:
 			continue
+		#if props[11]=='-':
+		#	continue
 		if item['kb']==desc_notkb:
 			#标识为未开，检查今日实际数据
 			#print "handle NOTKB",item['securitycode'], item['securityshortname']
@@ -576,11 +584,31 @@ def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre3
 				klist = get_kline_day_data(code, 60)
 				yzzt_day = len(klist)
 				tail_day = klist[yzzt_day-1]['day']
+				#print "kbbb", code, klist
+				cal_days = yzzt_day
 				if tail_day == trade_date:
 					yzzt_day -= 1
+					cal_days -= 1
+				#排除极端case，连续YZZT后，又连续YZDT，沪光股份
+				bAppend = 1
+				for i in range(cal_days):
+					day_item = klist[cal_days-i-1]
+					pre_day_item = klist[cal_days-i-2]
+					preClose1 = float(pre_day_item['close'])
+					price1 = float(day_item['close'])
+					high1 = float(day_item['high'])
+					low1 = float(day_item['low'])
+					if preClose1<price1:
+						if i!=0:
+							bAppend = 0
+						break
+					else:
+						yzzt_day -= 1
 				chg_perc = round((price-preClose)*100/preClose,2)
 				open_list = [code, name, chg_perc, price, yzzt_day]
-				today_open.append(open_list)
+				#print "kbbb", code, high, low,price,zt_price
+				if bAppend == 1:
+					today_open.append(open_list)
 			else:
 				bopen = 0
 		#KB的item，今天是否KB，上一交易日还是封板状态
@@ -634,8 +662,9 @@ def check_new_market(new_stock_list, code, name, props, stcsItem, trade_day, tod
 	else:
 		#如果上市日期是当前日期，但是并不是新股，这是重新复牌上市的票子
 		#不进行分析首日重新上来
-		if market_date==trade_date:
-			print( "Check the item: %s %s"%(code, name) )
+		if market_date==trade_day:
+			message = "Check the item: %s %s"%(code, name)
+			print( message.encode("gbk") )
 			return 0
 	return 1
 

@@ -97,7 +97,7 @@ if __name__=='__main__':
 	#pre_day = get_preday(6,trade_day)
 	#print(trade_day, pre_day)
 	
-	#print( (jc_dict['fupai']) )
+	#print( (juch_dict['fupai']) )
 
 	#sysstr = platform.system()
 	cur_day = trade_day
@@ -123,12 +123,12 @@ if __name__=='__main__':
 		r_flag = 0
 		compare_qiangruo(stoday, sysday, q_dict, r_dict)
 		
-		jc_dict = {}
+		juch_dict = {}
 		handle_tips_action(cur_day, cur_day)
-		read_tfp_fh_in_tips(cur_day, jc_dict)
-		if 'fupai' in jc_dict.iterkeys():
-			#print jc_dict['fupai']
-			check_fupai_item(stoday, jc_dict['fupai'], cur_day, q_dict, r_dict)
+		read_tfp_fh_in_tips(cur_day, juch_dict)
+		if 'fupai' in juch_dict.iterkeys():
+			#print juch_dict['fupai']
+			check_fupai_item(stoday, juch_dict['fupai'], cur_day, q_dict, r_dict)
 		
 		print(cur_day)
 		if len(q_dict)>0:

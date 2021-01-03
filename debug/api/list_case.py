@@ -53,3 +53,6 @@ if __name__=="__main__":
 	num_list = ['aa','cc',1,2,3,4,5,6,7,8,9]
 	num_list_new = map(lambda x:str(x), num_list)
 	print ",".join(num_list_new)	
+	
+	#确定序号,但是值必须存在
+	print yzzt_list.index("300613")

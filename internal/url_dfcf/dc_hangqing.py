@@ -315,7 +315,7 @@ def get_each_page_data1(new_st_list, curpage, st='A', sr=-1, ps=80):
 	#print line
 	obj = re.match(r'{rank:\["(.*)"\],pages:(\d+)', line)
 	if obj is None:
-		print "1Not find matched content at", curpage
+		print "12Not find matched content at", curpage
 		return -1
 	totalpage = int(obj.group(2))
 	
@@ -366,7 +366,7 @@ def get_stk_max_page(curpage, st='A', sr=-1, ps=80):
 	LOOP_COUNT = 0
 	response = None
 	url = urlfmt % (st, sr, curpage, ps)
-	#print(url)
+	print(url)
 	while LOOP_COUNT<3:
 		try:
 			req = urllib2.Request(url, headers=send_headers)
@@ -390,7 +390,7 @@ def get_stk_max_page(curpage, st='A', sr=-1, ps=80):
 	#print line
 	obj = re.match(r'{rank:\["(.*)"\],pages:(\d+)', line)
 	if obj is None:
-		print "1Not find matched content at", curpage
+		print "11Not find matched content at", curpage
 		return -1
 	totalpage = int(obj.group(2))
 	return totalpage

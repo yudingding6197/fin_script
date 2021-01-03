@@ -40,7 +40,9 @@ def parseCode(code, mode='sn'):
 			if head3 in g_shcd:
 				ncode = 'sh' + code
 			else:
-				print "非法代码:" +code+ "\n"
+				print code
+				str = "非法代码:" +code+ "\n"
+				print str.encode('utf8')
 				return (-1, '')
 	elif mode=='wy':
 		if head3 in g_szcd:
