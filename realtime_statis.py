@@ -148,6 +148,7 @@ if os.path.isfile(flname):
 #重定向同时输出到console和文件
 sys.stdout = Logger_IO(flname)
 
+print("Please first use quick search")
 print "TIME:",fmt_time
 
 #show index information

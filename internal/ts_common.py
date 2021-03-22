@@ -1492,8 +1492,8 @@ def parse_guben(gb_str, gb_list):
 
 #不通过get_today_all()接口，使用东财接口
 def get_today_new_stock(new_st_list):
-	'''
 	LOOP_COUNT=0
+	'''
 	st_today_base = None
 	while LOOP_COUNT<3:
 		try:
@@ -1522,8 +1522,8 @@ def get_today_new_stock(new_st_list):
 	'Accept-Encoding': 'gzip, deflate',
 	'Accept-Language': 'zh-CN,zh;q=0.8'
 	}
+	url = "http://dcfm.eastmoney.com/EM_MutiSvcExpandInterface/api/js/get?callback=jQuery1123019195110268527693_1616377243676&st=purchasedate%2Csecuritycode&sr=-1&ps=50&p=1&type=XGSG_LB&js=%7B%22data%22%3A(x)%2C%22pages%22%3A(tp)%7D&token=894050c76af8597a853f5b408b759f5d	LOOP_COUNT = 0"
 	url = "http://nufm.dfcfw.com/EM_Finance2014NumericApplication/JS.aspx?type=CT&cmd=C._A&sty=FCOIATA&sortType=C&sortRule=-1&page=1&pageSize=20&js={rank:[(x)],pages:(pc)}&token=7bc05d0d4c3c22ef9fca8c2a912d779c"
-	LOOP_COUNT = 0
 	response = None
 	#print url
 	while LOOP_COUNT<3:
@@ -1540,10 +1540,12 @@ def get_today_new_stock(new_st_list):
 
 	content = response.read()
 	respInfo = response.info()
+	line = content
 	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
 		#print "Content compressed"
 		line = zlib.decompress(content, 16+zlib.MAX_WBITS);
 
+	print("line", line)
 	obj = re.match(r'{rank:\["(.*)"\].*', line)
 	rank = obj.group(1)
 	array = rank.split('","')
