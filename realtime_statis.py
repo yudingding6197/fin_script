@@ -225,6 +225,7 @@ trdDt = datetime.datetime.strptime(trade_date, '%Y-%m-%d').date()
 cybDt = datetime.datetime.strptime(CYB_REFORM_DT, '%Y-%m-%d').date()
 if (trdDt-cybDt).days>=0:
 	G_LARGE_FLUC[1] = '300'
+	G_LARGE_FLUC[3] = '301'
 
 today_open = []
 stcsItem=statisticsItem()

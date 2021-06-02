@@ -313,6 +313,7 @@ def get_stk_code_by_cond(new_st_list, st='C', sr=-1, ps=80):
 
 def getSelfDefStock(stk_arr):
 	'''
+	#未来cookie需要根据东财的登录进行替换
 	h_cook=\
 'ct=0MQGTduqB7_LXzJefU6a84F3axofQVJHEBs6uOpXoMyFssYG4WXsYR9VRS2qe7xEjRbpI0x9NeBLzBXO2pSeXs-EUqnRH6u8\
 G0iKbyXg5WgHZa2DAPg8m5awyb1kz2T5cIf2Ai7eI9dxL2R5_xsHifIJ2Pq0zcUAR9LVVSlR7-I; ut=FobyicMgeV4UJna6Au6ASu7wtul_n26_zn\
@@ -320,7 +321,8 @@ G0iKbyXg5WgHZa2DAPg8m5awyb1kz2T5cIf2Ai7eI9dxL2R5_xsHifIJ2Pq0zcUAR9LVVSlR7-I; ut=
 mb8E_x9ZYWIhCyakraCd0Tl8EWqlDGefSBj6FjSec7PSwye3AgIhmlVY6VMeL3pRsVw6pNPcDG30oX38hevvlF8MMS-dCGgysgIVQtBZ_LfymTDGU\
 pxDm-U8wjNX4i6gUh6HGld3r1jNmdez; uidal=6100112247957528goutou; sid=4725419;'
 	'''
-	h_cook = 'ct=O9ZbuRz1amNRNaHuo6p_zDrKzlpcmMMVE-I1pORXze0hFFJmIfaVfCVT1ZcTmqfm5seYjyHFZQ4JlqFr3PmjCq7nI2KRllEPhWeJC2jpGGqbwT3kR2WmKskG52FVhoqtE5wXs_MWZOwKp5VXHNrLnoGJY7AtPtheKaIA_q-b4cc; ut=FobyicMgeV5ghfUPKWOH5-EbXa3GCsCh6Q30W7-VNW_UnLFG_MdgzYGBtd4GAeTiJtHTVQiNxpl2h0NwV6n1RXoRUuthaz6dCYLKYm2925w4OiK5JsUb8hIH4sIyertjQs-NQXBQYIvk24PwJZxYgZ3KvDkWrRVW-3mRLATfABleSx80pH9rhTMsDI_EMLOB7ok1zVXIDIOs80M32p9bw9HZ0MqKhGyo4E4gUJUohSblEPhcYlXMdzmqnz3qUIStTYsyjHhPTR8kZc7RIrzvLDAAx_nxgfOc; pi=6100112247957528%3byudingding6197%3bgoutou%3bvPGmLLZOT7HuuGpA2MxZSWwqFz3mUhG5n8op%2fwV4R%2bSfU9DXvhqnxHc0jlj%2b3Tk72lPHhT8k1IYVbrFHbTFpQhDTdF2S3lj2Fw862vuvLCrBHEAZg%2fsv7Abkj9ET7Bd7bilQ3uLyaSLDpzFLsOuyt%2b5q%2bAtFdVAxh%2bS50Jfl6bH9UgKzl4ZaSe06BhVIN64bR2u9JRJA%3b2vts%2fCaYY8wl9ETF%2b9x7cLixcC%2f0OdlTSRYCeFwb6vMJGELum8agNvRvvQcxsWRDMKpz5hsFrYXFXJ3k7nwczS2x%2bhcIcZkHCgwX4pEaf2lcy9DYJ8UJ56vIzVzJzxNqAPJjLmqUg%2fKx5FfhK7092iywo5lDpQ%3d%3d; uidal=6100112247957528goutou; '
+	#h_cook = 'ct=O9ZbuRz1amNRNaHuo6p_zDrKzlpcmMMVE-I1pORXze0hFFJmIfaVfCVT1ZcTmqfm5seYjyHFZQ4JlqFr3PmjCq7nI2KRllEPhWeJC2jpGGqbwT3kR2WmKskG52FVhoqtE5wXs_MWZOwKp5VXHNrLnoGJY7AtPtheKaIA_q-b4cc; ut=FobyicMgeV5ghfUPKWOH5-EbXa3GCsCh6Q30W7-VNW_UnLFG_MdgzYGBtd4GAeTiJtHTVQiNxpl2h0NwV6n1RXoRUuthaz6dCYLKYm2925w4OiK5JsUb8hIH4sIyertjQs-NQXBQYIvk24PwJZxYgZ3KvDkWrRVW-3mRLATfABleSx80pH9rhTMsDI_EMLOB7ok1zVXIDIOs80M32p9bw9HZ0MqKhGyo4E4gUJUohSblEPhcYlXMdzmqnz3qUIStTYsyjHhPTR8kZc7RIrzvLDAAx_nxgfOc; pi=6100112247957528%3byudingding6197%3bgoutou%3bvPGmLLZOT7HuuGpA2MxZSWwqFz3mUhG5n8op%2fwV4R%2bSfU9DXvhqnxHc0jlj%2b3Tk72lPHhT8k1IYVbrFHbTFpQhDTdF2S3lj2Fw862vuvLCrBHEAZg%2fsv7Abkj9ET7Bd7bilQ3uLyaSLDpzFLsOuyt%2b5q%2bAtFdVAxh%2bS50Jfl6bH9UgKzl4ZaSe06BhVIN64bR2u9JRJA%3b2vts%2fCaYY8wl9ETF%2b9x7cLixcC%2f0OdlTSRYCeFwb6vMJGELum8agNvRvvQcxsWRDMKpz5hsFrYXFXJ3k7nwczS2x%2bhcIcZkHCgwX4pEaf2lcy9DYJ8UJ56vIzVzJzxNqAPJjLmqUg%2fKx5FfhK7092iywo5lDpQ%3d%3d; uidal=6100112247957528goutou; '
+	h_cook = 'em-quote-version=topspeed; emhq_picfq=1; em_hq_fls=old; intellpositionL=1079.19px; cowminicookie=true;  ct=RQL3UCnquoQvdAs7ECXSBxUIXPSGHo7e7w5N-s20dXRw7NfIlRO58lgCLpYiiX3fgwpDek4roTZ8vVtoWN8WpHh8sILcERzRRfs3cOmCLxcjxsWkDlRtMr0oqNSNgZAodDzhzaQHK-J1jrPMmyJ2E8-AApzNeNWWBKEYkGjje9Y; ut=FobyicMgeV5FJnFT189SwPrzJsAatbOgGFo2icrxfucaxOsTXvvYY4MPRZcMbsLGnTem1xAsts4qM1AwecGyRsGvsEaeLGlEEJ9FehcjXdZ3OiL41v7Dldoneli2Sv_RsyVtpj8De3yQ30p9jYLeh7zIM2CLuDL_bGVyqls5Zg2y_N5ameWBUUdH_9IjRpYZWShsJVaa7PmGkFiIYbakcJHU3EctE3nFYAICvNfMnC7M5TtPdyI9B9y4gk-SFlHgo0dq4hux2kfF4k2h2CdQajzSAj3LAgyDuFrXVa7G6Xpo2uj-8iHm2actUlufBDWDpBHsjEdx0hrvNxP9ySuh_tj0UACrZy_5; uidal=6100112247957528goutou; sid=4725419; vtpst=|; intellpositionT=1955px; st_si=15625962210981; qgqp_b_id=fc02c3c5d5757e0ebe013b0d706fbdf8; st_sn=15; st_psi=20210406130407739-117001300541-7516991077'
 	prestr = 'getStockInfo'
 	urlall = 'http://myfavor1.eastmoney.com/mystock?f=gs&cb='+ prestr +'&g=41445869&0.617530589249439'
 	send_headers = {
@@ -416,7 +418,7 @@ def get4IndexInfoList(idxList):
 		return -1
 	qtObj = re.match(r'"(.*?)","(.*)"', rawData)
 	if qtObj is None:
-		print("Quatate None")
+		print("Quatate None1")
 		return -1
 
 	indexObj = qtObj.group(1).split(',')
@@ -445,7 +447,7 @@ def get4IndexInfo(idxDict):
 		return -1
 	qtObj = re.match(r'"(.*?)","(.*)"', rawData)
 	if qtObj is None:
-		print("Quatate None")
+		print("Quatate None2")
 		return -1
 
 	indexObj = qtObj.group(1).split(',')

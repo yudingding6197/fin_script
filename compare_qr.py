@@ -144,6 +144,15 @@ if __name__=='__main__':
 		for k in stoday.lst_kbcx:
 			if not (k[2]=='DT' or k[2]=='YZDT'):
 				continue
+			#DT过滤还不够，需要更进一步检查，例如21-5-7这一天实际CX没有真正DT
+			if (k[2]=='DT'):
+				bFlag = 0
+				for km in stoday.lst_dt:
+					if (k[0]==km[1]):
+						bFlag = 1
+						break
+				if bFlag==0:
+					continue
 
 			if r_flag==0:
 				print("RRR =========")

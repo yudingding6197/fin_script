@@ -243,6 +243,7 @@ if __name__=='__main__':
 	cybDt = datetime.datetime.strptime(CYB_REFORM_DT, '%Y-%m-%d').date()
 	if (trdDt-cybDt).days>=0:
 		G_LARGE_FLUC[1] = '300'
+		G_LARGE_FLUC[3] = '301'
 	new_st_list = []
 	new_st_code_list = []
 	non_kb_list = []

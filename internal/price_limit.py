@@ -203,7 +203,13 @@ def get_zdt_time(code, trade_date, chk_price, type, tm_array):
 	
 	flag = 1
 	klist = get_kline5_data(code, 120)
-	tmstr = handle_k5_data(klist, code, trade_date, chk_price, type, tm_array)
+	#tmstr = handle_k5_data(klist, code, trade_date, chk_price, type, tm_array)
+	try:
+		tmstr = handle_k5_data(klist, code, trade_date, chk_price, type, tm_array)
+	except:
+		print("Error data", code)
+		print(klist)
+		exit(0)
 
 	'''
 	TODO:

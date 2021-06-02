@@ -606,7 +606,7 @@ def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre3
 						yzzt_day -= 1
 				chg_perc = round((price-preClose)*100/preClose,2)
 				open_list = [code, name, chg_perc, price, yzzt_day]
-				#print "kbbb", code, high, low,price,zt_price
+				#print "kbbb", bAppend, code, high, low,price,zt_price
 				if bAppend == 1:
 					today_open.append(open_list)
 			else:
@@ -615,7 +615,10 @@ def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre3
 		else:
 			#print code, name.encode('gbk'), item['sl']
 			listing_date = item['listingdate'][:10]
-			yzb_days = int(float(item['sl']))
+			if (item['sl']=='-'):
+				yzb_days = 0
+			else:
+				yzb_days = int(float(item['sl']))
 			kb_date = calcu_back_date(yzb_days, listing_date)
 			if kb_date!="" and kb_date==trade_date:
 				#print "handle KB",code,name,item['kb'],item['sl'],yzb_days,kb_date
@@ -624,6 +627,7 @@ def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre3
 				chg_perc = round((price-preClose)*100/preClose,2)
 
 				open_list = [code, name, chg_perc, price, yzb_days]
+				#print "today open", code, name
 				today_open.append(open_list)
 		break
 	if bopen==0:
