@@ -11,14 +11,14 @@ from internal.format_parse import *
 import internal.update_tday_db as upday
 
 DB_PATH = 'internal/db'
-filenm = 'sh000001'
+g_filenm = 'sh000001'
 g_trade_list = []
 g_trade_flag = 0
 
 def read_preday_csv(days, cur_day):
 	pre_day = ''
 	bFlag = 0
-	location = DB_PATH + '/' + filenm + '.csv'
+	location = DB_PATH + '/' + g_filenm + '.csv'
 	fl = open(location, 'r')
 	#排除第一行
 	line = fl.readline()
@@ -73,9 +73,9 @@ def read_preday_csv(days, cur_day):
 def read_preday_json(days, cur_day):
 	pre_day = ''
 	bFlag = 0
-	location = DB_PATH + '/' + filenm + '_json.txt'
+	location = DB_PATH + '/' + g_filenm + '_json.txt'
 	if os.path.exists(location) is False:
-		get_index_history_byNetease_js(location, filenm)
+		get_index_history_byNetease_js(location, g_filenm)
 	# internal/db/sh000001_json.txt
 	fl = open(location, 'r')
 	try:
@@ -84,7 +84,7 @@ def read_preday_json(days, cur_day):
 		#处理异常：有文件，内容非json格式
 		fl.close()
 		print "Error: fail to load trade json object"
-		get_index_history_byNetease_js(location, filenm)
+		get_index_history_byNetease_js(location, g_filenm)
 		fl = open(location, 'r')
 		data = json.load(fl)
 	fl.close()
@@ -99,7 +99,7 @@ def read_preday_json(days, cur_day):
 	start_date = cur_day
 	#如果json文件的最后一天比需要查询的还早，说明需要更新json
 	if (curDt-jsDt).days>0:
-		get_index_history_byNetease_js(location, filenm)
+		get_index_history_byNetease_js(location, g_filenm)
 		fl = open(location, 'r')
 		data = json.load(fl)
 		fl.close()
@@ -164,8 +164,13 @@ def get_lastday(src='sina'):
 	#print(value)
 	return value
 
-#从文件读取所有的交易日，提供查询判断的基准
-#初始化之前，必须更新使用最新的数据
+'''
+#从当前json或者csv文件中读取所有当前交易日
+#初始化之前，必须确保更新使用最新的日期，否则最新日期可能不存在导致问题
+#初始化之后，通过release_trade_list()释放
+#method: 1.打开json格式的文件
+         2.打开csv格式
+'''
 def init_trade_list(cur_day='', method=1):
 	global g_trade_flag
 	global g_trade_list
@@ -176,7 +181,7 @@ def init_trade_list(cur_day='', method=1):
 		cur_day = get_lastday()
 
 	if method==1:
-		location = DB_PATH + '/' + filenm + '_json.txt'
+		location = DB_PATH + '/' + g_filenm + '_json.txt'
 		fl = open(location, 'r')
 		info = json.loads(json.load(fl))
 		fl.close()
@@ -190,7 +195,7 @@ def init_trade_list(cur_day='', method=1):
 		g_trade_flag = 1
 
 	elif method==2:
-		location = DB_PATH + '/' + filenm + '.csv'
+		location = DB_PATH + '/' + g_filenm + '.csv'
 		fl = open(location, 'r')
 		#排除第一行
 		line = fl.readline()

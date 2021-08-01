@@ -107,6 +107,19 @@ def get_trade_tips(curdate):
 	#print content
 	return content
 
+jc_tfp_headers = {
+'Host': 'www.cninfo.com.cn',
+'Content-Length': 0,
+'Accept': 'application/json, text/plain, */*',
+'Accept-Encoding': 'gzip, deflate',
+'Origin': 'http://www.cninfo.com.cn',
+'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36',
+'Referer': 'http://www.cninfo.com.cn/new/commonUrl?url=disclosure/tradingTips',
+'Accept-Language': 'zh-CN,zh;q=0.8',
+'Cookie': 'JSESSIONID=CD404DC90F006BFD36D176D9DCBF0816; _sp_ses.2141=*;\
+ _sp_id.2141=0f67e811-5fd8-439a-90ed-6ad30ab84d28.1623653028.9.1627615498.1627610987.e12823e3-b8e4-4d7a-aedf-023ff7368bd2',
+}
+
 def get_tingfupai_res(curdate):
 	url = "http://www.cninfo.com.cn/new/information/getSuspensionResumptions?queryDate="
 	urlall = url + curdate
@@ -119,7 +132,7 @@ def get_tingfupai_res(curdate):
 	#’‚ «POST«Î«Û
 	while LOOP_COUNT<3:
 		try:
-			req = urllib2.Request(urlall, data)
+			req = urllib2.Request(urlall, data, headers=jc_tfp_headers)
 			res_data = urllib2.urlopen(req)
 		except:
 			#print "Error fupai urlopen"
@@ -127,14 +140,26 @@ def get_tingfupai_res(curdate):
 		else:
 			break
 	content = res_data.read()
+	respInfo = res_data.info()
+	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
+		#print "Content compressed"
+		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
+	#print "CONTTTT", content
 	return content
 
 if __name__=="__main__":
-	cnt = get_trade_tips('2020-08-16')
+	plen=len(sys.argv)
+	if plen<=1:
+		td = '2020-08-16'
+	else:
+		td = sys.argv[1]
+	print "tradate", td
+	
+	cnt = get_trade_tips(td)
 	print cnt
 	dict = json.loads(cnt)
-	#print dict['clusterSRTbTrade0112']['queryDate']
-	#print dict['clusterSRTbTrade0112']['srTbTrade0112s']
+	print dict['clusterSRTbTrade0112']['queryDate']
+	print dict['clusterSRTbTrade0112']['srTbTrade0112s']
 	
 	#file = open("_test.log", 'w')
 	#json.dump(dict['clusterSRTbTrade0112']['srTbTrade0112s'], file)

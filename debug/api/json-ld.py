@@ -39,6 +39,12 @@ str = '{"aa":"c1","bb":"c2"}'
 dic = json.loads(str);
 print (type(dic), dic)
 print (dic['aa'])
+
+#str = '{"aa":1,"bb":2,"Data":["a1","a2","a3]}'
+str = '["aa","cc","dk"]'
+ll = json.loads(str)
+print(len(ll))
+
 #整个解析为list, 每一个list里面是 dict
 str = '[{"day":"2020-07-09 13:05:00","open":"22.870","high":"22.950","low":"22.870","close":"22.890","volume":"220000"},{"day":"2020-07-09 13:10:00","open":"22.890","high":"22.910","low":"22.850","close":"22.870","volume":"224878"}]'
 dic = json.loads(str);
@@ -60,3 +66,12 @@ print (json.dump(json_info,file))
 
 #保持顺序
 #json.loads(content,object_pairs_hook=OrderedDict)
+
+'''
+#如果将要写入的list, dict对象中包含中文，在python2中按照json.dump(listItem, file)
+#文件的中文是unicode模式。如果期望改为中文显示，通过codecs进行写入
+import codecs
+fp = codecs.open(filename, 'w+', 'utf-8')
+fp.write(json.dumps(listItem,ensure_ascii=False))
+fp.close()
+'''

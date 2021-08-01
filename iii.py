@@ -1,27 +1,26 @@
 #!/usr/bin/env python
-# -*- coding:gbk -*-
+# -*- coding: gbk -*-
 import sys
 import os
-import json
-import datetime
+from internal.tingfupai import * 
+from internal.url_juchao.tips_res import *
+
 
 #Main Start:
 if __name__=='__main__':
-	location='internal/db/sh000001_json.txt'
-	fl = open(location, 'r')
-	data = json.load(fl)
-	#print data
-	info = json.loads(data)
-	fl.close()
+	#ÖØ³ö½­ºþSTK
+	fp_list = []
+	fp_code_list = []
+	trade_date = '2021-07-28'
+	res_data = get_tingfupai_res(trade_date)
+	s = json.loads(res_data)
+	resumpObj = s["szshSRTbTrade0111"]["resumptionTbTrades"]
+	if resumpObj is None:
+		print "None"
+		exit(0)
+	for item in resumpObj:
+		#print "pickup_tfp", item
+		pass
 
-	print type(info)
-	print info['times'][0]
-	print info['times'][-2]
-	print info['times'][-1]
 	
-	print "====="
-	info['times'].append('22220101')
-	print info['times'][0]
-	print info['times'][-2]
-	print info['times'][-1]
 	

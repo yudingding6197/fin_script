@@ -73,8 +73,8 @@ def get_zdting_by_dc(code, jstr, rtntype):
 	respInfo = res_data.info()
 	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
 		content1 = zlib.decompress(content1, 16+zlib.MAX_WBITS);
-	else:
-		print "Content not zip"
+	#else:
+	#	print "Content not zip"
 	res_data.close()
 
 	content = content1.decode('utf8')

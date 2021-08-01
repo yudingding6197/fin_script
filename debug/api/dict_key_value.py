@@ -23,7 +23,24 @@ else:
 	print "NNN1"
 d['000520']=300
 d['603098']=400
-d['603987']=400
+d['603987']=500
+
+#速度更快
+if '000520' in d.iterkeys():
+	print "AAA1"
+else:
+	print "NNN1"
+
+if '000520' in d.keys():
+	print "AAA1"
+else:
+	print "NNN1"
+
+if 500 in d.values():
+	print "500 in value"
+else:
+	print "500 not in value"
+
 #长度
 print len(d), d 
 print "for .. in dict:"

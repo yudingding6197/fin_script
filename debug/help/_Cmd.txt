@@ -1,0 +1,20 @@
+在self_define.py中，调用了juchao的接口获取当天交易的停复牌等信息
+在quick_realtime.py，将更新 db中的 sh000001_json.txt，将最新的交易日期加入
+
+
+获取最新的交易日期,  get_lastday()
+	参见 debug\help\lastday.py
+	#from internal.trade_date import *
+	trade_date = get_lastday()
+	
+更新最新的日期：
+	参见 debug\help\update_trade_day.py
+	trade_date = get_lastday()
+	pre_date = get_preday(1, trade_date)
+	get_preday -> read_preday_json(该函数比较最新日期是否存在db中，不存在就更新)
+
+交易日期计算接口：
+	在文件 internal\trade_date.py 中
+日期解析：
+	parseDate2(qdate)
+	解析为 XXXX-XX-XX 格式

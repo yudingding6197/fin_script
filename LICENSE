@@ -370,3 +370,5 @@ debug\sync_cixin.py 生成 _no_open_cx.txt
 通过读取"../data/entry/cixin/..."下的数据，cixin_data.py将会更新
 
 cixin_data.py 调用前执行 debug\newstk_get.py 得到当天上的New
+
+max_limit.py 选择上榜天数满足条件的item

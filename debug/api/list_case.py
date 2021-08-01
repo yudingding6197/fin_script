@@ -56,3 +56,9 @@ if __name__=="__main__":
 	
 	#确定序号,但是值必须存在
 	print yzzt_list.index("300613")
+	
+	#判断元素是否存在：
+	if '300222' not in yzzt_list:
+		print "NOT in"
+	if '603238' in yzzt_list:
+		print "IN..."

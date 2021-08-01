@@ -24,8 +24,10 @@ if(os.path.isdir(path + '/' + f)):
 	pass
 if(os.path.isfile(path + '/' + f)):
 	pass
-if(os.path.exists(path + '/' + f)):
+if(not os.path.exists(path + '/' + f)):
+	#os.makedirs(y_folder)
 	pass
+	
 
 #得到文件内容以后，可以通过sort or reverse 进行顺序/倒序
 objs = os.listdir(path)
