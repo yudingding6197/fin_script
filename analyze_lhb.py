@@ -7,7 +7,6 @@ import datetime
 import getopt
 import json
 
-#sys.path.append('.')
 from internal.trade_date import *
 from internal.global_lhb import *
 from internal.url_dfcf.dc_lhb_daily import *

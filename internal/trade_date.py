@@ -11,7 +11,8 @@ from internal.format_parse import *
 import internal.update_tday_db as upday
 
 DB_PATH = 'internal/db'
-g_filenm = 'sh000001'
+#g_filenm = 'sh000001'
+g_filenm = 'sh000001_2'
 g_trade_list = []
 g_trade_flag = 0
 
@@ -70,6 +71,8 @@ def read_preday_csv(days, cur_day):
 	return pre_day
 
 #解析json文件，指定日期存在就不在更新，指定日期不存在就更新
+#通常，通过sina获取最新的交易日期，再从wy解析json后得到最新日期，
+#如果sina和wy的不匹配，说明需要获取最新的json文件
 def read_preday_json(days, cur_day):
 	pre_day = ''
 	bFlag = 0
@@ -139,6 +142,77 @@ def read_preday_json(days, cur_day):
 	#print days, js_cur_date
 	return js_cur_date
 
+def read_preday_json2(days, cur_day):
+	pre_day = ''
+	bFlag = 0
+	location = DB_PATH + '/' + g_filenm + '_json.txt'
+	if os.path.exists(location) is False:
+		get_index_history_byNetease_js2(location, g_filenm)
+	# internal/db/sh000001_json.txt
+	info = None
+	fl = open(location, 'r')
+	try:
+		info = json.load(fl)
+	except:
+		#处理异常：有文件，内容非json格式
+		fl.close()
+		print "Error: fail to load trade json object"
+		get_index_history_byNetease_js2(location, g_filenm)
+		fl = open(location, 'r')
+		info = json.load(fl)
+	fl.close()
+	if info is None:
+		print("Fail get file")
+		return None
+
+	js_date = info[0]
+	curDt = datetime.datetime.strptime(cur_day, '%Y-%m-%d').date()
+	jsDt = datetime.datetime.strptime(js_date, '%Y-%m-%d').date()
+	#print "trde_dt taildt=%s jsdt=%s c_d=%s"%(info[0], js_date, cur_day)
+
+	start_date = cur_day
+	#如果json文件的最后一天比需要查询的还早，说明需要更新json
+	if (curDt-jsDt).days>0:
+		get_index_history_byNetease_js2(location, g_filenm)
+		fl = open(location, 'r')
+		data = json.load(fl)
+		fl.close()
+		
+		info = data
+		js_date = info[0]
+		jsDt2 = datetime.datetime.strptime(js_date, '%Y-%m-%d').date()
+		if (curDt-jsDt2).days>0:
+			#print "Warning:Force append dt",cur_day,js_date
+			info.insert(0, cur_day)
+		else:
+			start_date = js_date
+
+	#先找到指定日期的index
+	dayCount = len(info)
+	pos = 0
+	while pos<dayCount:
+		js_cur_date = info[pos]
+		#print "Find ---",pos, js_cur_date
+		if start_date==js_cur_date:
+			break
+		else:
+			jsCurDt = datetime.datetime.strptime(js_cur_date, '%Y-%m-%d').date()
+			if (curDt-jsCurDt).days>0:
+				break
+		pos += 1
+
+	#开始推算前N天的日期
+	pos += 1
+	tDays = days
+	while tDays>0:
+		js_cur_date = info[pos]
+		#print "calll",pos, js_cur_date
+		pos += 1
+		tDays -= 1
+
+	#print("Read2", days, js_cur_date, cur_day)
+	return js_cur_date
+
 def get_preday(days=1, cur_day='', method=1):
 	pre_day = ''
 	if cur_day=='':
@@ -146,8 +220,9 @@ def get_preday(days=1, cur_day='', method=1):
 	if days==0:
 		return cur_day
 
+	#print ("Get lastDay ",days, cur_day, method)
 	if method==1:
-		pre_day = read_preday_json(days, cur_day)
+		pre_day = read_preday_json2(days, cur_day)
 	if method==2:
 		pre_day = read_preday_csv(days, cur_day)
 	return pre_day
@@ -183,6 +258,7 @@ def init_trade_list(cur_day='', method=1):
 	if method==1:
 		location = DB_PATH + '/' + g_filenm + '_json.txt'
 		fl = open(location, 'r')
+		'''
 		info = json.loads(json.load(fl))
 		fl.close()
 
@@ -192,6 +268,11 @@ def init_trade_list(cur_day='', method=1):
 			ret, cur_date = parseDate2(dLists[pos])
 			g_trade_list.append(cur_date)
 			pos -= 1
+		'''
+		info = json.load(fl)
+		fl.close()
+
+		g_trade_list = info
 		g_trade_flag = 1
 
 	elif method==2:

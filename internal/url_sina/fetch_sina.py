@@ -7,8 +7,20 @@ import getopt
 import urllib2
 import time
 
+
+common_sn_fetch = {
+	'Connection': 'keep-alive',
+	'Cache-Control': 'max-age=0',
+	'Referer':'http://finance.sina.com.cn',
+	'Upgrade-Insecure-Requests': 1,
+	'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
+	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+	'Accept-Language': 'zh-CN,zh;q=0.9'
+}
+
 #对数据解析
 def get_sina_lastday():
+	#return '2022-01-21'
 	param = 'sh000001'
 	stockData = ''
 	url = "http://hq.sinajs.cn/?_=0.7577027725009173&list=" + param
@@ -24,14 +36,16 @@ def get_sina_lastday():
 	#print "sina lastDay", url
 	while LOOP_COUNT<3:
 		try:
-			urlObj = urllib2.urlopen(url,timeout=3)
-			#print "urlObj", urlObj
-			stockData = urlObj.read()
-		except:
+			req = urllib2.Request(url, headers=common_sn_fetch)
+			stockData = urllib2.urlopen(req, timeout=3).read()
+		except Exception as e:
 			LOOP_COUNT += 1
 			time.sleep(0.5)
+			if LOOP_COUNT==2:
+				print "Error:", e
 		else:
 			break
+	#print "===",stockData
 
 	prestr = "var hq_str_" + param
 	objs = re.match(r'^' + prestr + '=\"(.*)\"', stockData)

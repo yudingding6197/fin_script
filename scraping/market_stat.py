@@ -47,7 +47,7 @@ def http_req(urlall, send_headers1, tp, qdate):
 			res_data = urllib2.urlopen(req, timeout=1)
 		except:
 			if LOOP_COUNT==2:
-				print "Error fupai urlopen"
+				print "Error",sys._getframe().f_code.co_name
 			LOOP_COUNT = LOOP_COUNT+1
 		else:
 			break

@@ -32,7 +32,7 @@ def query_gainianbankuai(listobj, bkInfo):
 		req = urllib2.Request(urlall,headers=send_headers)
 		res_data = urllib2.urlopen(req)
 	except:
-		print "Error fupai urlopen"
+		print "Error",sys._getframe().f_code.co_name
 		#LOOP_COUNT = LOOP_COUNT+1
 
 	if res_data is None:
@@ -344,7 +344,7 @@ pxDm-U8wjNX4i6gUh6HGld3r1jNmdez; uidal=6100112247957528goutou; sid=4725419;'
 		req = urllib2.Request(urlall,headers=send_headers)
 		res_data = urllib2.urlopen(req)
 	except:
-		print "Error fupai urlopen"
+		print "Error",sys._getframe().f_code.co_name
 		#LOOP_COUNT = LOOP_COUNT+1
 
 	if res_data is None:

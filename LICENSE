@@ -372,3 +372,11 @@ debug\sync_cixin.py 生成 _no_open_cx.txt
 cixin_data.py 调用前执行 debug\newstk_get.py 得到当天上的New
 
 max_limit.py 选择上榜天数满足条件的item
+
+概念板块的操作
+quick_realtime.py -e
+    -e 选项将下载当天的所有概念板块
+debug\gainian_bk.py 获取当天所有GNBK的日K线
+然后通过对比默认是15日新增的BK， 
+-q 参数可以比较消失的BK
+gainian_bk_change.py

@@ -19,6 +19,7 @@ from internal.update_tday_db import *
 from internal.analyze_realtime import *
 from internal.compare_realtime import *
 from internal.tingfupai import * 
+from internal.url_dfcf.dc_hq_push import * 
 
 class Logger_IO(object): 
 	def __init__(self, filename="Default.log"):
@@ -185,6 +186,21 @@ def filter_dtft(dtft_list, perc):
 			count += 1
 	return count
 
+def handle_gainian_dfcf(trade_date):
+	dcGaiNian = "../data/entry/gainian"+"/"+trade_date[:4]+"/gnbk_"+trade_date+".txt"
+	#print(dcGaiNian)
+	if os.path.exists(dcGaiNian):
+		return
+
+	content = fetch_dfcf_hangqing_data(0)
+	obj = json.loads(content)
+	if obj["data"]["total"]<100:
+		print("Get DFCF GaiNian fail")
+		return
+	file = open(dcGaiNian, "w+")
+	file.write(content)
+	file.close()
+	
 def handle_argument():
 	optlist, args = getopt.getopt(sys.argv[1:], 'ldtaqe')
 	for option, value in optlist:
@@ -232,7 +248,7 @@ if __name__=='__main__':
 
 	show_idx = ['000001', '399001', '399005', '399006','399678']
 	show_real_index(show_idx)
-	
+
 	#get_all_stk_info() 进行日期处理，获取最新交易日期
 	trade_date = get_lastday()
 	pre_date = get_preday(1, trade_date)
@@ -299,6 +315,8 @@ if __name__=='__main__':
 	if status==-1:
 		exit(0)
 
+	release_trade_list()
+	
 	cur2 = datetime.datetime.now()
 	#print ("collect all Fin",(cur2-cur1))
 	#exit(0)
@@ -481,4 +499,9 @@ if __name__=='__main__':
 	'''
 	'''
 	endTm = datetime.datetime.now()
+
+	#新增一项工作，获取当日的DC概念
+	if param_config["Exchange"]==1:
+		handle_gainian_dfcf(trade_date)
+
 	print "END ", (endTm-beginTm)

@@ -141,6 +141,17 @@ send_headers = {
 'Accept-Language': 'zh-CN,zh;q=0.8'
 }
 
+common_sn_inf_headers = {
+    'Host': 'hq.sinajs.cn',
+    'Connection': 'keep-alive',
+	"Referer":"http://finance.sina.com.cn",
+    'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language':'zh-CN,zh;q=0.8',
+    'User-Agent': "Mozilla/5.0 (Windows NT 6.1; rv:32.0) Gecko/20100101 Firefox/32.0",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Cache-Control": "max-age=0"
+	}
+
 def get_history_trade_info_bysn(len=10, code='sh000001', scale=240, ma='no'):
 	urlall = urlkline % (code, scale, ma, len)
 	#print(urlall)
@@ -148,7 +159,7 @@ def get_history_trade_info_bysn(len=10, code='sh000001', scale=240, ma='no'):
 		req = urllib2.Request(urlall,headers=send_headers)
 		res_data = urllib2.urlopen(req)
 	except:
-		print "Error fupai urlopen"
+		print "Error",sys._getframe().f_code.co_name
 		#LOOP_COUNT = LOOP_COUNT+1
 	if res_data is None:
 		print "Open URL fail"
@@ -203,7 +214,7 @@ def get_guben_change_bysn(code):
 		res_data = urllib2.urlopen(req)
 	except:
 		pass
-		#print("Error fupai urlopen")
+		#print "Error",sys._getframe().f_code.co_name
 		#LOOP_COUNT = LOOP_COUNT+1
 	if res_data is None:
 		print("Open URL fail", url)
@@ -276,15 +287,15 @@ def get_guben_change_bysn(code):
 def req_data_bysn(fmt_code):
 	retry = 0
 	req_url = url_sn + fmt_code
-	#print(req_url)
+	#print(sys._getframe().f_code.co_name,":",sys._getframe().f_lineno,req_url)
 	stockData = None
 	while retry<3:
 		try:
-			req = urllib2.Request(req_url)
+			req = urllib2.Request(req_url, headers=common_sn_inf_headers)
 			stockData = urllib2.urlopen(req, timeout=2).read()
 		except:
 			if retry==2:
-				print "URL timeout"
+				print "URL timeout",sys._getframe().f_code.co_name,":",sys._getframe().f_lineno
 			retry += 1
 			continue
 		else:
@@ -303,11 +314,13 @@ def get_index_data(idx_list, idx_str):
 	LOOP_COUNT = 0
 	while LOOP_COUNT<3:
 		try:
-			req = urllib2.Request(url)
+			req = urllib2.Request(url, headers=common_sn_inf_headers)
 			res_data = urllib2.urlopen(req, timeout=2).read()
-		except:
+		except Exception as e:
 			LOOP_COUNT += 1
 			time.sleep(0.5)
+			if LOOP_COUNT==2:
+				print "sina_inf",e
 		else:
 			break;
 	resObj = res_data.split(';')

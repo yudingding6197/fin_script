@@ -92,7 +92,7 @@ def get_trade_tips(curdate):
 			req = urllib2.Request(urlall, data, headers=jc_headers)
 			res_data = urllib2.urlopen(req)
 		except:
-			print "Error fupai urlopen"
+			print "Error",sys._getframe().f_code.co_name
 			LOOP_COUNT = LOOP_COUNT+1
 		else:
 			break
@@ -135,7 +135,7 @@ def get_tingfupai_res(curdate):
 			req = urllib2.Request(urlall, data, headers=jc_tfp_headers)
 			res_data = urllib2.urlopen(req)
 		except:
-			#print "Error fupai urlopen"
+			print "Error",sys._getframe().f_code.co_name
 			LOOP_COUNT = LOOP_COUNT+1
 		else:
 			break

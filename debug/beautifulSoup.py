@@ -96,7 +96,7 @@ while LOOP_COUNT<3:
 		#req = urllib2.Request(urlall)
 		res_data = urllib2.urlopen(urlall)
 	except:
-		print "Error fupai urlopen"
+		print "Error",sys._getframe().f_code.co_name
 		LOOP_COUNT = LOOP_COUNT+1
 	else:
 		break

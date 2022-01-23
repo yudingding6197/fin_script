@@ -17,7 +17,7 @@ from datetime import *
 
 ##############################1.
 def a():
-	print sys._getframe().f_code.co_name
+	print "_____",sys._getframe().f_code.co_name,":",sys._getframe().f_lineno
 
 
 ################################# 2. inspect模块

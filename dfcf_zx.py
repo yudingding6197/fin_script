@@ -28,7 +28,7 @@ def getStockObjects(command):
 		req = urllib2.Request(urlall,headers=send_headers)
 		res_data = urllib2.urlopen(req)
 	except:
-		print "Error fupai urlopen"
+		print "Error",sys._getframe().f_code.co_name
 
 	if res_data is None:
 		print "Open URL fail"

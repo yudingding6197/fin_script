@@ -188,9 +188,9 @@ if __name__=="__main__":
 	#当前时间对应情况
 	qt_stage = quotation_st()
 	#Index实时信息
-	qt_index = getHSIndexStat()
-	idxDict = {}
-	ret = get4IndexInfo(idxDict)
+	#qt_index = getHSIndexStat()
+	#idxDict = {}
+	#ret = get4IndexInfo(idxDict)
 
 	#show_idx = ['000001', '399001', '399005', '399006']
 	#idx_df=ts.get_index()

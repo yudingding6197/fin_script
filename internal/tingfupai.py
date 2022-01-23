@@ -224,6 +224,8 @@ def pickup_fupai_item(curdate, fp_list, fp_code_list=None):
 		return
 
 	s = json.loads(res_data)
+	if s["szshSRTbTrade0111"] is None:
+		return
 	resumpObj = s["szshSRTbTrade0111"]["resumptionTbTrades"]
 	if resumpObj is None:
 		return

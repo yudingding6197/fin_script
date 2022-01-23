@@ -32,7 +32,7 @@ def query_gainianbankuai(listobj, bkInfo):
 		req = urllib2.Request(urlall,headers=send_headers)
 		res_data = urllib2.urlopen(req)
 	except:
-		print "Error fupai urlopen"
+		print "Error",sys._getframe().f_code.co_name
 		#LOOP_COUNT = LOOP_COUNT+1
 
 	if res_data is None:
@@ -497,7 +497,7 @@ def get_new_stk_from_dfcf(stk_list):
 			req = urllib2.Request(url,headers=send_headers)
 			res_data = urllib2.urlopen(req)
 		except:
-			print "Error fupai urlopen"
+			print "Error",sys._getframe().f_code.co_name
 			LOOP_COUNT = LOOP_COUNT+1
 		else:
 			break

@@ -74,4 +74,10 @@ import codecs
 fp = codecs.open(filename, 'w+', 'utf-8')
 fp.write(json.dumps(listItem,ensure_ascii=False))
 fp.close()
+
+#如果list, dict对象包含中文，通过json.load(file)进行加载
+#期望在控制台输出中文，而不是unicode，可以通过
+json.dump(list/dict, encoding="UTF-8", ensure_ascii=False)
+#或者转为str后，处理为：(这种在utf-8的中文文件中，似乎不行)
+str(list).decode('string_escape')
 '''
