@@ -14,3 +14,9 @@ if __name__=='__main__':
 	strg = '中国'.decode('gbk').encode('gb2312')
 	print chardet.detect(strg)
 
+#字符串 数组转
+#"-".join(list)
+
+#字符串替换, count可以省略
+#str.replace("abc","xyz",count)
+

@@ -98,7 +98,8 @@ def fetch_yidong_hecha(filename, searchkey, startDate, endDate):
 	content = fetch_yidong_byPage(hcDict)
 	if content is None:
 		return
-
+	#print content.decode('utf-8')
+	
 	obj = json.loads(content)
 	listItem = []
 	filter_hecha_item(listItem, obj["announcements"])

@@ -142,7 +142,11 @@ if __name__=='__main__':
 		istYear = int(currTm[:4])
 	else:
 		istYear = int(param_config["StartDate"][:4])
-		
+
+	if istYear<1990 or istYear>2030:
+		print("Check year ", istYear)
+		exit(0)
+
 	if param_config["EndDate"] == '.' or param_config["EndDate"] == '':
 		iedYear = int(currTm[:4])
 	else:
@@ -165,6 +169,7 @@ if __name__=='__main__':
 			eDate = "%d-%s"%(year, currTm[5:])
 			fetch_yidong_hecha(fullpath, keyword, sDate, eDate)
 		else:
+			#print "DDD",year,fullpath
 			if not os.path.exists(fullpath):
 				sDate = "%d-%s"%(year, '01-01')
 				eDate = "%d-%s"%(year, '12-31')

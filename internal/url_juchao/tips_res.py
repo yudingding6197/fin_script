@@ -85,7 +85,7 @@ def get_trade_tips(curdate):
 
 	LOOP_COUNT = 0
 	res_data=None
-	#print('tingfup', urlall)
+	#print('get_trade_tips', urlall)
 	#’‚ «POST«Î«Û
 	while LOOP_COUNT<3:
 		try:
