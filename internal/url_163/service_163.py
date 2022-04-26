@@ -173,6 +173,7 @@ def fetch_kday_page2(url):  #获取页面数据
 	return content
 
 #获取所有交易日期
+# 获取数据链接地址： http://quotes.money.163.com/service/chddata.html?code=0000001
 def get_index_history_byNetease_js2(location, index_temp, st_dt=''):
 	"""
 	:param index_temp: for example, 'sh000001' 上证指数

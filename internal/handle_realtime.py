@@ -683,7 +683,8 @@ def check_new_market(new_stock_list, code, name, props, stcsItem, trade_day, tod
 def get_new_market_stock(trade_day, new_list, non_kaiban_list, new_code_list=None, src=''):
 	sort_list = []
 	if src=='' or src=='dc':
-		get_new_stk_from_dfcf(sort_list)
+		#get_new_stk_from_dfcf(sort_list)
+		get_new_stk_from_dfcf2(sort_list)
 	else:
 		print("Unknown source", src)
 		return

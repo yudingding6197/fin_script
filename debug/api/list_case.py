@@ -13,6 +13,10 @@ add_list = ['002815','300291']
 if __name__=="__main__":
 	#通过extend方法追加，不能使用append
 	yzzt_list.extend(add_list)
+	
+	#通过extend方法追加，不能使用append
+	yzzt_list.insert(0, "300111")
+	print(yzzt_list)
 
 	list = yzzt_list
 	print '\n遍历列表方法2：'

@@ -1,5 +1,7 @@
-#!/usr/bin/env python
+
 # -*- coding:gbk -*-
+#!/usr/bin/env python
+
 import sys
 import os
 import re
@@ -522,6 +524,85 @@ def get_new_stk_from_dfcf(stk_list):
 		dic = json.loads(item);
 		stk_list.append(dic)
 		#print  dic["securitycode"], dic["securityshortname"]
+
+#需要新的链接获取新上市的个股
+def get_new_stk_from_dfcf2(stk_list):
+	h_cook = 'qgqp_b_id=015901ad7a28161a23978a92c401c684; ct=Hix2I46MjD-xnmnI4-FCwZtlm5aiY1FBlVVkT7hOyl0TrTZ23_P-NSbz7tjzNGFcdtZVweKOFhs109FLlfBUIa0XtIl5Q0PXaBV_-B02KIKIODNMb1wdXDJqTn-39GOCfSJexm78mmU_Q6OVkDWXjDUNq5seZcMyJ4x19tU41h4; ut=FobyicMgeV5FJnFT189SwAVHQcnCViDRQ6qT5n733e5mQvT0mDaLePCeFbDolrGSKi3hwCSAahpSz-9o-uWSUURwMsE4COV3J8u-9lNP0B9y_vM8VfNcIoVDJwgTsAAMiS6EDF7G931Ufsf7yna4BxRT8PvpqyDJmEYFVZ6OrR9Qo5wyrY-K3kqmQhEuiZU3blfrQjQtq3sr2o3Q7EhIHKs7XmlceEdFwalMKr56-2Xnoe0NnTxujr_UJj_verPA1EWM4fwxPQgfGyKz4WaqoVu7E1ivgErznh9PHJIi7iGqcobX5hEwIFhkZkReVrho9nwPzSEe4OGVTKMK8n95d9W4pwL49san; pi=6100112247957528;yudingding6197;goutou;n1OcxrtieBSLqyWvw85AOiXce1VZjUBvwowTmZcB8bRYti0XAQXSBHObfm4O12CNyigFTNhD6tcK10sF9Nn6JofAUoFKHyl0hTz+1kRniVtMwwSvAqlj3iRBvcDHwOoECmbgaPXWxnAWHCwB7gM4GN1mi52gb/r0w5IyTc+FNVzViAUmDzo1C5heIlF8EMTnBxX4puWK;tn0B6oPKj3z/+/gTpxkuIxkH18QRRvoHNB0+4sqCss74EDlbalkr0YWYKv114pgEVgiin86M+npAp20XFtlaYZyXfS5mWccW9FW1nM/Y1xYro6+1y90wMu3Nz9uVXcoeTlL7cYWuiJCVthC5xL6Z/nCLncaD1w==; uidal=6100112247957528goutou; sid=4725419; em_hq_fls=js; em-quote-version=topspeed; vtpst=|; intellpositionL=1010.67px; cowminicookie=true; emshistory=["N%E5%92%8C%E9%A1%BA"]; xsb_history=873169|%u4E03%u4E30%u7CBE%u5DE5; HAList=a-sz-300251-%u5149%u7EBF%u4F20%u5A92,a-sz-301187-N%u6B27%u5723,a-sz-301150-C%u4E2D%u4E00,a-sz-002432-%u4E5D%u5B89%u533B%u7597,a-sh-600734-*ST%u5B9E%u8FBE,a-sz-300291-%u534E%u5F55%u767E%u7EB3,a-sz-301237-%u548C%u987A%u79D1%u6280,ty-100-HSI-%u6052%u751F%u6307%u6570,a-sh-600062-%u534E%u6DA6%u53CC%u9E64,a-sz-301109-N%u519B%u4FE1,a-sz-301279-N%u91D1%u9053; cowCookie=true; st_si=50864408522409; intellpositionT=855px; st_asi=delete; JSESSIONID=F410A5363087600D3C0FAB1CDE6D81B6; st_pvi=92457965025484; st_sp=2021-06-14 14:12:01; st_inirUrl=https://passport2.eastmoney.com/pub/login; st_sn=20; st_psi=2022042613062016-111000300841-3806071116'
+	url_req = 'https://datacenter-web.eastmoney.com/api/data/v1/get'
+	param = "?callback=%s&sortColumns=APPLY_DATE,SECURITY_CODE&sortTypes=-1,-1&pageSize=100&pageNumber=1&reportName=RPTA_APP_IPOAPPLY"
+	param2 = "&columns=SECURITY_CODE,SECURITY_NAME,TRADE_MARKET_CODE,APPLY_CODE,TRADE_MARKET,MARKET_TYPE,ORG_TYPE,ISSUE_NUM,ONLINE_ISSUE_NUM,OFFLINE_PLACING_NUM,TOP_APPLY_MARKETCAP,PREDICT_ONFUND_UPPER,ONLINE_APPLY_UPPER,PREDICT_ONAPPLY_UPPER,ISSUE_PRICE,LATELY_PRICE,CLOSE_PRICE,APPLY_DATE,BALLOT_NUM_DATE,BALLOT_PAY_DATE,LISTING_DATE,AFTER_ISSUE_PE,ONLINE_ISSUE_LWR,INITIAL_MULTIPLE,INDUSTRY_PE_NEW,OFFLINE_EP_OBJECT,CONTINUOUS_1WORD_NUM,TOTAL_CHANGE,PROFIT,LIMIT_UP_PRICE,INFO_CODE,OPEN_PRICE,LD_OPEN_PREMIUM,LD_CLOSE_CHANGE,TURNOVERRATE,LD_HIGH_CHANG,LD_AVERAGE_PRICE,OPEN_DATE,OPEN_AVERAGE_PRICE,PREDICT_PE,PREDICT_ISSUE_PRICE2,PREDICT_ISSUE_PRICE,PREDICT_ISSUE_PRICE1,PREDICT_ISSUE_PE,PREDICT_PE_THREE,ONLINE_APPLY_PRICE,MAIN_BUSINESS,PAGE_PREDICT_PRICE1,PAGE_PREDICT_PRICE2,PAGE_PREDICT_PRICE3,PAGE_PREDICT_PE1,PAGE_PREDICT_PE2,PAGE_PREDICT_PE3,SELECT_LISTING_DATE,IS_BEIJING,INDUSTRY_PE_RATIO&quoteColumns=f2~01~SECURITY_CODE~NEWEST_PRICE&filter=(APPLY_DATE%3E%272010-01-01%27)"
+	jquery = 'jQuery112302960253986578696_1650945385469'
+	send_headers = {
+		'Host': 'datacenter-web.eastmoney.com',
+		'Connection': 'keep-alive',
+		'Cache-Control': 'max-age=0',
+		'Upgrade-Insecure-Requests': 1,
+		'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36',
+		'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+		'Accept-Encoding': 'gzip, deflate, br',
+		'Accept-Language': 'zh-CN,zh;q=0.9',
+		'Cookie': h_cook
+	}
+
+	urlfmt = url_req + param
+	urlfmt = param % (jquery)
+	url = url_req + urlfmt + param2
+	#print("get_new_stk_from_dfcf2",url)
+
+	res_data = None
+	LOOP_COUNT = 0
+	while LOOP_COUNT<3:
+		try:
+			#方法1
+			#res_data = urllib2.urlopen(urlall)
+
+			#方法2
+			req = urllib2.Request(url,headers=send_headers)
+			res_data = urllib2.urlopen(req)
+		except Exception as e:
+			print "Error",sys._getframe().f_code.co_name
+			print "Error", e
+			LOOP_COUNT = LOOP_COUNT+1
+		else:
+			break
+	if res_data is None:
+		print "Open URL fail"
+		return
+
+	content = res_data.read()
+	
+	#print content.decode('utf8')
+	objs = re.match(jquery+"\((.*)\);", content)
+	#objs = re.match(jquery+"\((.*)\);", content.decode('utf8'))
+	if objs is None:
+		print("Error: format invalid")
+		#print rslt_pre, content[:20]
+		return
+	#print objs.group(1)
+	dicObj = json.loads(objs.group(1))
+	for item in dicObj['result']['data']:
+		'''
+		for key,value in item.items():
+			if isinstance(value, unicode):
+				print key,value.encode('gbk')
+			else:
+				print key,value
+		print "\n"
+		'''
+		if item['LISTING_DATE'] is None:
+			continue
+		
+		item['listingdate'] = item['LISTING_DATE'][:10]
+		item['securitycode'] = item['SECURITY_CODE']
+		item['securityshortname'] = item['SECURITY_NAME']
+		if item['CONTINUOUS_1WORD_NUM'] is None:
+			item['sl'] = '-'
+		else:
+			item['sl'] = item['CONTINUOUS_1WORD_NUM']
+		item['kb'] = item['CONTINUOUS_1WORD_NUM']
+		#print item['securitycode'],item['listingdate'],item['securityshortname'].encode('gbk'),type(item['CONTINUOUS_1WORD_NUM'])
+		#print  dic["securitycode"], dic["securityshortname"]
+		stk_list.append(item)
 	
 def getNoOpenYZB(yz_list):
 	new_stk_list = []

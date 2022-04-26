@@ -240,6 +240,8 @@ if __name__=='__main__':
 	if os.path.isfile(flname):
 		os.remove(flname)
 	sys.stdout = Logger_IO(flname)
+	#设置调试为0不输出，需要调试改为非0值
+	log_set(0)
 
 	handle_argument()
 	t_fmt = '%d-%02d-%02d %02d:%02d'
@@ -248,12 +250,14 @@ if __name__=='__main__':
 
 	show_idx = ['000001', '399001', '399005', '399006','399678']
 	show_real_index(show_idx)
+	log_output(sys._getframe().f_code.co_name,sys._getframe().f_lineno)
 
 	#get_all_stk_info() 进行日期处理，获取最新交易日期
 	trade_date = get_lastday()
 	pre_date = get_preday(1, trade_date)
 	init_trade_list(trade_date)
 	#print ("Current trade day:", trade_date, pre_date)
+	log_output(sys._getframe().f_code.co_name,sys._getframe().f_lineno)
 	
 	trdDt = datetime.datetime.strptime(trade_date, '%Y-%m-%d').date()
 	cybDt = datetime.datetime.strptime(CYB_REFORM_DT, '%Y-%m-%d').date()
@@ -264,11 +268,13 @@ if __name__=='__main__':
 	new_st_code_list = []
 	non_kb_list = []
 	get_new_market_stock(trade_date, new_st_list, non_kb_list, new_st_code_list)
+	log_output(sys._getframe().f_code.co_name,sys._getframe().f_lineno)
 
 	#重出江湖STK
 	fp_list = []
 	fp_code_list = []
 	pickup_fupai_item(trade_date, fp_list, fp_code_list)
+	log_output(sys._getframe().f_code.co_name,sys._getframe().f_lineno)
 	
 	#获取上一日的Info
 	preFlag = 1
@@ -279,6 +285,7 @@ if __name__=='__main__':
 		print("Error:No find matched item", pre_date)
 		exit(0)
 	
+	log_output(sys._getframe().f_code.co_name,sys._getframe().f_lineno)
 	debug = 0
 	today_open = []
 	
@@ -291,6 +298,7 @@ if __name__=='__main__':
 	#通过条件查询所有STK, start from 000001
 	st_all_list = []
 	ret = get_stk_code_by_dfcf(st_all_list, 'A', 0)
+	log_output(sys._getframe().f_code.co_name,sys._getframe().f_lineno)
 	#ret = get_stk_code_by_cond1(st_all_list, 'A', 0)
 	if ret==-1:
 		exit(0)
@@ -310,6 +318,7 @@ if __name__=='__main__':
 	#print "new_stk",new_st_code_list
 	#print "=====>", len(stcsItem.lst_non_yzcx_zthl)
 	stcsItem=statisticsItem()
+	log_output(sys._getframe().f_code.co_name,sys._getframe().f_lineno)
 	print trade_date
 	status = collect_all_stock_data(st_dict, today_open, stcsItem, preStatItem, trade_date, debug)
 	if status==-1:

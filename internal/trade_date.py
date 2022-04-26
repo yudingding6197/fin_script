@@ -142,6 +142,7 @@ def read_preday_json(days, cur_day):
 	#print days, js_cur_date
 	return js_cur_date
 
+#先判断最新的json文件是否存在，不存在先下载
 def read_preday_json2(days, cur_day):
 	pre_day = ''
 	bFlag = 0
@@ -220,7 +221,7 @@ def get_preday(days=1, cur_day='', method=1):
 	if days==0:
 		return cur_day
 
-	#print ("Get lastDay ",days, cur_day, method)
+	#print ("_____ Get lastDay ",days, cur_day, method)
 	if method==1:
 		pre_day = read_preday_json2(days, cur_day)
 	if method==2:
@@ -271,6 +272,11 @@ def init_trade_list(cur_day='', method=1):
 		'''
 		info = json.load(fl)
 		fl.close()
+		
+		#判断当天是否加上，交易时段不会有，需要加上
+		ret, cur_date = parseDate2(cur_day)
+		if cur_date!=info[0]:
+			info.insert(0, cur_date)		
 
 		g_trade_list = info
 		g_trade_flag = 1
@@ -320,7 +326,7 @@ def calcu_back_date(days, base_date):
 		print ("Not find base date", base_date)
 		return ""
 	if index<days:
-		print ("days exceed range", days, index)
+		print ("days1 exceed range", days, index)
 		return ""
 
 	item =  g_trade_list[:(index)][-days]
@@ -344,7 +350,7 @@ def calcu_pre_date(days, base_date):
 		print ("Not find base date", base_date)
 		return ""
 	if (trdLen-index)<days:
-		print ("days exceed range", days, index)
+		print ("days2 exceed range", days, index)
 		return ""
 
 	item = g_trade_list[index:][days]
@@ -369,5 +375,6 @@ if __name__ == "__main__":
 	print calcu_back_date(2, dt)
 	dt = calcu_pre_date(3, dt)
 	print dt
+	release_trade_list()
 
 	pass

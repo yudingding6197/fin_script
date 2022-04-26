@@ -117,11 +117,12 @@ def get_each_page_push_data1(new_st_list, curpage, st='A', sr=-1, ps=80):
 	debug = (curpage==1)
 	#if debug==1:
 	#	print(dfcf_url)
-
+	content = ''
 	while LOOP_COUNT<3:
 		try:
 			req = urllib2.Request(dfcf_url, headers=send_headers)
 			response = urllib2.urlopen(req, timeout=5)
+			content = response.read()
 		except:
 			LOOP_COUNT += 1
 			#print("URL request timeout ", dfcf_url)
@@ -131,7 +132,6 @@ def get_each_page_push_data1(new_st_list, curpage, st='A', sr=-1, ps=80):
 		print "Please check data from DongCai at", curpage
 		return -1
 
-	content = response.read()
 	respInfo = response.info()
 	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
 		#print "Content compressed"

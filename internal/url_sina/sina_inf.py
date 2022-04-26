@@ -340,6 +340,14 @@ def sina_code(code):
 
 url_fenshi_k="https://quotes.sina.cn/cn/api/json_v2.php/CN_MarketDataService.getKLineData"
 def get_k5_data_bysn(code, fenshi=5, ma='no', len=240):
+	headers = {
+		   'Host':'quotes.sina.cn',
+           'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+           'Accept-Language':'zh-CN,zh;q=0.8',
+           'User-Agent': "Mozilla/5.0 (Windows NT 6.1; rv:32.0) Gecko/20100101 Firefox/32.0",
+           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+           "Cookie": "ustat=__223.104.39.17_1625652566_0.84962100; genTime=1625652566; SINAGLOBAL=1800063964466.785.1625652569186; ULV=1646061748866:12:4:2:4277968689698.477.1646061748859:1645891514921; vt=99; QUOTES-SINA-CN=",
+           "Cache-Control": "max-age=0"}
 	url_arg = "symbol=%s&scale=%d&ma=%s&datalen=%d"
 	ret, ncode=parseCode(code)
 	url_arg_fill = url_arg % (ncode, fenshi, ma, len)
@@ -350,14 +358,17 @@ def get_k5_data_bysn(code, fenshi=5, ma='no', len=240):
 	LOOP_COUNT=0
 	while LOOP_COUNT<3:
 		try:
-			stockData = urllib2.urlopen(url).read()
+			#stockData = urllib2.urlopen(url).read()
+			req = urllib2.Request(url, headers=headers)
+			res_data = urllib2.urlopen(req)
+			stockData = res_data.read()
 		except:
 			LOOP_COUNT += 1
 			continue
 		else:
 			break
 	if stockData is None:
-		print("Get sina fenshi K fail", url)
+		print("Get sina fenshi K fail1", url)
 		return None
 	
 	klist = json.loads(stockData)
@@ -382,7 +393,7 @@ def get_kday_data_bysn(code, fenshi=240, ma='no', len=60):
 		else:
 			break
 	if stockData is None:
-		print("Get sina fenshi K fail", url)
+		print("Get sina fenshi K fail2", url)
 		return None
 	
 	klist = json.loads(stockData)

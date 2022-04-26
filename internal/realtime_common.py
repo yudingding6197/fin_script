@@ -214,7 +214,7 @@ def get_stk_code_by_dfcf(new_st_list, st='C', sr=-1, ps=80):
 	for threadIdx in range(len(qryThread)):
 		if qryThread[threadIdx] == []:
 			print ("Warning: Empty data")
-			continue
+			exit(0)
 		new_st_list.extend(qryThread[threadIdx])
 	'''
 	while 1:

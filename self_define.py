@@ -151,21 +151,21 @@ def update_juchao_tips():
 #Main
 curdate = ''
 data_path = "debug/_self_define.txt"
-exclude = 0
+onlytxt = 0
 show_flag = 0
 stockCode = []
 stockCode_sn = []
 qt_stage = 0
 if __name__=="__main__":
-	optlist, args = getopt.getopt(sys.argv[1:], '?f:en')
+	optlist, args = getopt.getopt(sys.argv[1:], '?f:tn')
 	for option, value in optlist:
 		if option in ["-f","--file"]:
 			if value=='.':
 				data_path='../data/entry/miner/filter.txt'
 			else:
 				data_path=value
-		elif option in ["-e","--exclude"]:
-			exclude = 1
+		elif option in ["-t","--onlytxt"]:
+			onlytxt = 1
 		elif option in ["-n","--notice"]:
 			show_flag = 1
 		elif option in ["-?","--???"]:
@@ -218,7 +218,7 @@ if __name__=="__main__":
 	#Get self def from DFCF(DongCai)
 	rt_list = []
 	stockCode_sn = []
-	if exclude==0:
+	if onlytxt!=1:
 		stock_array = []
 		getSelfDefStock(stock_array)
 		if len(stock_array)==0:
