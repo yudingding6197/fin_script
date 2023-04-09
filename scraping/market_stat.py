@@ -54,7 +54,7 @@ def http_req(urlall, send_headers1, tp, qdate):
 
 	#print res_data
 	if res_data is None:
-		print("Open URL fail", qdate)
+		print("Open URL fail", sys._getframe().f_code.co_name,qdate)
 		return
 
 	content = res_data.read()

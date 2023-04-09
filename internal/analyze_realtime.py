@@ -238,8 +238,9 @@ def parse_summary_info(f, stcsItem, rt_ver='V1'):
 	line = f.readline()
 	while line:
 		#cond = "[ ]+(\d+)\([ ]+(\d+)\)[\t ]+ZERO:[\t ]+(\d+)[\t ]+(\d+)[\t ]+\([\t ]+(\d+)\)"
-		cond  = "[ ]*(\d+)\([ ]*(\d+)\)[\t ]*ZERO:[\t ]+(\d+)[\t ]*(\d+)[\t ]*\([\t ]*(\d+)\)"
+		cond  = "[ ]*(\d+)\([ ]*(\d+)\)[\t ]*ZERO:[\t ]*(\d+)[\t ]*(\d+)[\t ]*\([\t ]*(\d+)\)"
 		objs = re.match(cond, line)
+		#line=line.strip();
 		#print(line, objs)
 		if objs is None:
 			print("Error: parse fail4", line)

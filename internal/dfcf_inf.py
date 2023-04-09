@@ -36,7 +36,7 @@ def query_gainianbankuai(listobj, bkInfo):
 		#LOOP_COUNT = LOOP_COUNT+1
 
 	if res_data is None:
-		print "Open URL fail"
+		print ("Open URL fail",sys._getframe().f_code.co_name)
 		return
 
 	content = res_data.read()
@@ -348,7 +348,7 @@ pxDm-U8wjNX4i6gUh6HGld3r1jNmdez; uidal=6100112247957528goutou; sid=4725419;'
 		#LOOP_COUNT = LOOP_COUNT+1
 
 	if res_data is None:
-		print "Open URL fail"
+		print ("Open URL fail",sys._getframe().f_code.co_name)
 		return
 
 	content = res_data.read()
@@ -377,10 +377,10 @@ def getHSIndexStat():
 		req = urllib2.Request(urlall,headers=send_headers)
 		res_data = urllib2.urlopen(req)
 	except:
-		print "Error: open url"
+		print ("Open URL fail",sys._getframe().f_code.co_name)
 
 	if res_data is None:
-		print "Open URL fail"
+		print ("Open URL fail",sys._getframe().f_code.co_name)
 		return None
 
 	content = res_data.read()
@@ -401,7 +401,7 @@ def get4IndexRaw():
 		return None
 
 	if res_data is None:
-		print "Open URL fail", urlall
+		print ("Open URL fail", sys._getframe().f_code.co_name,urlall)
 		return None
 
 	content = res_data.read()

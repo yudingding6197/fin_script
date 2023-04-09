@@ -31,7 +31,7 @@ def getStockObjects(command):
 		print "Error",sys._getframe().f_code.co_name
 
 	if res_data is None:
-		print "Open URL fail"
+		print ("Open URL fail",sys._getframe().f_code.co_name)
 		return None
 
 	content = res_data.read()

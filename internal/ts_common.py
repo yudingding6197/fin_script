@@ -1042,7 +1042,7 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 		else:
 			break
 	if res_data is None:
-		print("Open URL fail", code, urlall)
+		print("Open URL fail", sys._getframe().f_code.co_name,code, urlall)
 		return -1
 
 	content1 = res_data.read()

@@ -7,7 +7,8 @@ from internal.url_juchao.tips_res import *
 from internal.url_dfcf.dc_hq_push import *
 from internal.trade_date import *
 
-def fetch_kday_page1(url):  #获取页面数据
+kLine='kline_dayhfq'
+def fetch_kday_page_qq(url):  #获取页面数据
 	req=urllib2.Request(url,headers={
 		'Connection': 'Keep-Alive',
 		'Accept': 'text/html, application/xhtml+xml, */*',
@@ -25,7 +26,7 @@ def fetch_kday_page1(url):  #获取页面数据
 		else:
 			break
 	if opener is None:
-		return ''
+		return None
 	
 	content = opener.read()
 	respInfo = opener.info()
@@ -35,7 +36,7 @@ def fetch_kday_page1(url):  #获取页面数据
 	return content
 
 
-def get_index_history_byNetease_js1(location, index_temp):
+def get_index_history_byQQ(location, index_temp):
 	"""
 	:param index_temp: for example, 'sh000001' 上证指数
 	:return:
@@ -49,32 +50,30 @@ def get_index_history_byNetease_js1(location, index_temp):
 	#url='http://quotes.money.163.com/service/chddata.html?code=%s&start=19900101&
 	#end=%s&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;VOTURNOVER;VATURNOVER'%(index_id,time.strftime("%Y%m%d"))
 	#url='http://img1.money.126.net/data/hs/kline/day/times/%s.json'%(index_id)
-	url = 'http://quotes.money.163.com/service/chddata.html?code=0000001'
+	url = 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=kline_dayhfq&param=sh000001,day,,,30,hfq&r=0.9860043111257255'
 	#print('netease js', url)
 
-	page=fetch_kday_page1(url)
+	page=fetch_kday_page_qq(url)
 	#print page[:300]
 	#print "pp", type(page)
-	if page=='':
+	if page is None:
 		return -1
+	page = page[len(kLine)+1:]
+	#print page[0:100]
+	#print page[-50:]
+	dictObj = json.loads(page);
+	#print dictObj['data']
+	#print "\n\n"
+	shDayData = dictObj['data']['sh000001']['day']
 
 	#print page
 	#json.dumps(page.encode('gbk'))
-	obj = re.split('\r\n', page)
-	print len(obj)
-	dtObj = []
-	for i in range(1, len(obj)):
-		#print obj[i][:10]
-		if obj[i][-5:]!=',None':
-			print obj[i]
-		else:
-			dtObj.append(obj[i][:10])
+	shDayList = []
+	for item in reversed(shDayData):
+		shDayList.append(item[0])
 	file = open('_test.json','w')
-	json.dump(dtObj, file)
+	json.dump(shDayList, file)
 	file.close()
-	#print obj[0]
-	#print obj[1]
-	#print obj[2]
 	
 	file = open('_test.json','r')
 	info = json.load(file)
@@ -95,9 +94,8 @@ if __name__=='__main__':
 	#pre_day = read_preday_json(days, cur_day)
 	dt= get_preday(0)
 	print dt;
-	exit(0)
 	location = '_cur_json.txt'
 	index_temp = 'sh000001'
-	get_index_history_byNetease_js1(location, index_temp)
+	get_index_history_byQQ(location, index_temp)
 	
 	

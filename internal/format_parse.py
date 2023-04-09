@@ -53,8 +53,18 @@ def parseCode(code, mode='sn'):
 			else:
 				print "非法代码:" +code+ "\n"
 				return (-1, '')
+	elif mode=='dc_push2':
+		if head3 in g_szcd:
+			ncode = '0.' + code
+		else:
+			if head3 in g_shcd:
+				ncode = '1.' + code
+			else:
+				print "非法代码:" +code+ "\n"
+				return (-1, '')
+		return (0, ncode)
 	else:
-		print("WIP parse code", mode)
+		print("WIP parse code fmt", mode)
 		return (-1, '')
 	return (0, ncode)
 
@@ -90,7 +100,7 @@ def parseDate(qdate, today, ai=0):
 			strdate = '%04d-%02d-%02d' %(year, month, day)
 	return (0, strdate)
 
-def parseDate2(qdate):
+def parseDate2(qdate, con_ch='-'):
 	dlen = len(qdate)
 	beginTm = datetime.datetime.now()
 	dateObj = None
@@ -140,7 +150,7 @@ def parseDate2(qdate):
 		print year, month, day, "is invalid date"
 		return (-1, '')
 
-	strdate = '%04d-%02d-%02d' %(year, month, day)
+	strdate = '%04d%s%02d%s%02d' %(year, con_ch, month, con_ch, day)
 	return (0, strdate)
 
 def parseTime(qtime):

@@ -87,6 +87,62 @@ def get_qq_mul_info(codeList):
 	print stInfo
 	#print cnt
 
+#获取K Line日线的记录
+kLine='kline_dayhfq'
+QQ_KLine_Day = {
+	'Host': 'web.ifzq.gtimg.cn',
+	'Connection': 'keep-alive',
+	'Cache-Control': 'max-age=0',
+	'Upgrade-Insecure-Requests': 1,
+	'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko',
+	'Accept': 'text/html, application/xhtml+xml, */*',
+	'Accept-Encoding': 'gzip, deflate, br',
+	'Accept-Language': 'zh-CN,zh;q=0.9',
+}
+def fetch_kday_page_qq(url):  #获取页面数据
+	req=urllib2.Request(url,headers=QQ_KLine_Day)
+	LOOP_COUNT = 0
+	opener = None
+	while LOOP_COUNT<3:
+		try:
+			opener=urllib2.urlopen(req)
+		except:
+			LOOP_COUNT += 1
+			time.sleep(1)
+		else:
+			break
+	if opener is None:
+		return None
+	
+	content = opener.read()
+	respInfo = opener.info()
+	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
+		#print "Content compressed"
+		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
+	return content
+
+def get_tecent_kline_day(location, index_temp, days=201):
+	"""
+	:param index_temp: for example, 'sh000001' 上证指数
+	"""
+	urlFmt = 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=%s&param=%s,day,,,%d,hfq&r=0.9860043111257255'
+	url = urlFmt % (kLine, index_temp, 201)
+	#print "QQ-url",url
+	page=fetch_kday_page_qq(url)
+	if page is None:
+		return -1
+	page = page[len(kLine)+1:]
+	dictObj = json.loads(page);
+	#print dictObj['data'][index_temp]['day']
+	listObj = dictObj['data'][index_temp]['day']
+	dtObj = []
+	for item in reversed(listObj):
+		dtObj.append(item[0])
+	file = open(location,'w')
+	json.dump(dtObj, file)
+	file.close()
+
+
 
 if __name__ == "__main__":
 	#get_qq_lastday()

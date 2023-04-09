@@ -90,7 +90,7 @@ def parseCode(code, mode='sn'):
 				print "·Ç·¨´úÂë:" +code+ "\n"
 				return (-1, '')
 	else:
-		print("WIP parse code", mode)
+		print("WIP parse code com", mode)
 		return (-1, '')
 	return (0, ncode)
 

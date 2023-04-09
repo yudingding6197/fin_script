@@ -214,6 +214,7 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 					if yzcx_flag==0:
 						bGetDays, count=checkZDTInfo(code, name, fpFlag, 0, preStat)
 						if bGetDays==1 or count==-1:
+							#print "chk ZDT",code,bGetDays,count
 							count = get_zf_days(code, 1, trade_date, 1, stk_list)
 						else:
 							count += 1
@@ -223,7 +224,7 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 							
 						list = [code, name, change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0]]
 						stcsItem.lst_non_yzcx_yzzt.append(list)
-						#print "Not YZCXXXX",code,name
+						#print "Not YZCX",code,change_percent, price, open_percent, high_zf_percent, low_df_percent, count, stk_list[0]
 					#print stcsItem.s_zt,code,name,price,change_percent,open
 		elif open<pre_close:
 			#if low!=dt_price:
@@ -606,7 +607,7 @@ def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre3
 						yzzt_day -= 1
 				chg_perc = round((price-preClose)*100/preClose,2)
 				open_list = [code, name, chg_perc, price, yzzt_day]
-				#print "kbbb", bAppend, code, high, low,price,zt_price
+				print "kbbb", bAppend, code, high, low,price,zt_price
 				if bAppend == 1:
 					today_open.append(open_list)
 			else:
@@ -619,15 +620,16 @@ def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre3
 				yzb_days = 0
 			else:
 				yzb_days = int(float(item['sl']))
+			#print code, name.encode('gbk'), item['sl'],yzb_days,listing_date
 			kb_date = calcu_back_date(yzb_days, listing_date)
 			if kb_date!="" and kb_date==trade_date:
-				#print "handle KB",code,name,item['kb'],item['sl'],yzb_days,kb_date
+				print "handle KB",code,item['kb'],item['sl'],yzb_days,kb_date
 				preClose = float(props[9])
 				price = float(props[3])
 				chg_perc = round((price-preClose)*100/preClose,2)
 
 				open_list = [code, name, chg_perc, price, yzb_days]
-				#print "today open", code, name
+				print ("today open",code, name)
 				today_open.append(open_list)
 		break
 	if bopen==0:

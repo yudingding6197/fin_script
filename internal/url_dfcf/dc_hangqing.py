@@ -38,7 +38,7 @@ def query_gainianbankuai(listobj, bkInfo):
 		#LOOP_COUNT = LOOP_COUNT+1
 
 	if res_data is None:
-		print "Open URL fail"
+		print ("Open URL fail",sys._getframe().f_code.co_name)
 		return
 
 	content = res_data.read()
@@ -504,13 +504,13 @@ def get_new_stk_from_dfcf(stk_list):
 		else:
 			break
 	if res_data is None:
-		print "Open URL fail"
+		print ("Open URL fail",sys._getframe().f_code.co_name)
 		return
 
 	content = res_data.read()
 	objs = re.match(rslt_pre+"={pages:(\d+),data:\[(.*)\]}", content)
 	if objs is None:
-		print("Error: format invalid")
+		print("Error: format invalid1")
 		print rslt_pre, content[:20]
 		return
 	items = objs.group(2).split('},{')
@@ -566,16 +566,18 @@ def get_new_stk_from_dfcf2(stk_list):
 		else:
 			break
 	if res_data is None:
-		print "Open URL fail"
+		print ("Open URL fail",sys._getframe().f_code.co_name)
 		return
 
 	content = res_data.read()
-	
+	respInfo = res_data.info()
+	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):
+		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
 	#print content.decode('utf8')
 	objs = re.match(jquery+"\((.*)\);", content)
 	#objs = re.match(jquery+"\((.*)\);", content.decode('utf8'))
 	if objs is None:
-		print("Error: format invalid")
+		print("Error: format invalid2")
 		#print rslt_pre, content[:20]
 		return
 	#print objs.group(1)

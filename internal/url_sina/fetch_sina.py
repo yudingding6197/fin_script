@@ -8,6 +8,7 @@ import urllib2
 import time
 
 
+# The fucking SINA, need add "Referer":"http://finance.sina.com.cn", otherwise will occur error!
 common_sn_fetch = {
 	'Connection': 'keep-alive',
 	'Cache-Control': 'max-age=0',
@@ -32,7 +33,7 @@ def get_sina_lastday():
 		return
 	'''
 	LOOP_COUNT  = 0
-	# http://hq.sinajs.cn/?_=0.7577027725009173&list=sh000001,sz300855
+	# https://hq.sinajs.cn/?_=0.7577027725009173&list=sh000001,sz300855
 	#print "sina lastDay", url
 	while LOOP_COUNT<3:
 		try:

@@ -3,10 +3,13 @@
 import os
 import sys
 import datetime
+from shutil import copyfile
 
 sys.path.append(".")
 from internal.url_sina.fetch_sina import *
 from internal.url_163.service_163 import *
+from internal.url_163.fetch_163 import *
+from internal.url_tecent.fetch_tecent import *
 from internal.format_parse import *
 import internal.update_tday_db as upday
 
@@ -15,6 +18,8 @@ DB_PATH = 'internal/db'
 g_filenm = 'sh000001_2'
 g_trade_list = []
 g_trade_flag = 0
+
+g_filenm_qq = 'sh000001'
 
 def read_preday_csv(days, cur_day):
 	pre_day = ''
@@ -163,9 +168,14 @@ def read_preday_json2(days, cur_day):
 		info = json.load(fl)
 	fl.close()
 	if info is None:
-		print("Fail get file")
+		print("WY: Fail get file")
+		return None
+	elif len(info)==0:
+		print("WY: data is Empty")
+		exit(0)
 		return None
 
+	#从json文件读出最新日期转为jsDt，和当前日期做对比
 	js_date = info[0]
 	curDt = datetime.datetime.strptime(cur_day, '%Y-%m-%d').date()
 	jsDt = datetime.datetime.strptime(js_date, '%Y-%m-%d').date()
@@ -202,12 +212,13 @@ def read_preday_json2(days, cur_day):
 				break
 		pos += 1
 
+	#print "tradt read json1",days, pos, start_date, js_cur_date
 	#开始推算前N天的日期
 	pos += 1
 	tDays = days
 	while tDays>0:
+		#print "tradt read json2",tDays, pos, js_cur_date
 		js_cur_date = info[pos]
-		#print "calll",pos, js_cur_date
 		pos += 1
 		tDays -= 1
 
@@ -329,6 +340,8 @@ def calcu_back_date(days, base_date):
 		print ("days1 exceed range", days, index)
 		return ""
 
+	if days==0:
+		return base_date
 	item =  g_trade_list[:(index)][-days]
 	#print "find_date",item
 	return item
@@ -366,14 +379,107 @@ def is_trade_date(verifyDate):
 		return True
 	return False
 
+def read_preday_QQ_json(days, cur_day):
+	pre_day = ''
+	bFlag = 0
+	location = DB_PATH + '/' + g_filenm_qq + '_qq.txt'
+	if os.path.exists(location) is False:
+		get_tecent_kline_day(location, g_filenm_qq)
+
+	info = None
+	fl = open(location, 'r')
+	try:
+		info = json.load(fl)
+	except:
+		#处理异常：有文件，内容非json格式
+		fl.close()
+		print "Error: fail to load trade json object"
+		get_tecent_kline_day(location, g_filenm_qq)
+		fl = open(location, 'r')
+		info = json.load(fl)
+	fl.close()
+	if info is None:
+		print("Fail get file")
+		return None
+
+	#从json文件读出最新日期转为jsDt，和当前日期做对比
+	js_date = info[0]
+	
+	curDt = datetime.datetime.strptime(cur_day, '%Y-%m-%d').date()
+	jsDt = datetime.datetime.strptime(js_date, '%Y-%m-%d').date()
+	#print "trde_dt taildt=%s jsdt=%s c_d=%s"%(info[0], js_date, cur_day)
+
+	start_date = cur_day
+	#如果json文件的最后一天比需要查询的还早，说明需要更新json
+	if (curDt-jsDt).days>0:
+		get_tecent_kline_day(location, g_filenm_qq)
+		fl = open(location, 'r')
+		data = json.load(fl)
+		fl.close()
+
+		info = data
+		js_date = info[0]
+		jsDt2 = datetime.datetime.strptime(js_date, '%Y-%m-%d').date()
+		if (curDt-jsDt2).days>0:
+			#print "Warning:Force append dt",cur_day,js_date
+			info.insert(0, cur_day)
+		else:
+			start_date = js_date
+
+	#先找到指定日期的index
+	dayCount = len(info)
+	pos = 0
+	while pos<dayCount:
+		js_cur_date = info[pos]
+		#print "Find ---",pos, js_cur_date
+		if start_date==js_cur_date:
+			break
+		else:
+			jsCurDt = datetime.datetime.strptime(js_cur_date, '%Y-%m-%d').date()
+			if (curDt-jsCurDt).days>0:
+				break
+		pos += 1
+
+	#开始推算前N天的日期
+	pos += 1
+	tDays = days
+	while tDays>0:
+		js_cur_date = info[pos]
+		#print "calll",pos, js_cur_date
+		pos += 1
+		tDays -= 1
+
+	#print("Read2", days, js_cur_date, cur_day)
+	return js_cur_date
+
+def get_QQ_preday(days=1, cur_day=''):
+	#if cur_day=='':
+	#	cur_day = get_lastday()
+	if days==0:
+		return cur_day
+
+	#print ("_____ Get QQ lastDay ",days, cur_day, method)
+	pre_QQ_day = read_preday_QQ_json(days, cur_day)
+	return pre_QQ_day
+
+def sync163FromQQ():
+	src = DB_PATH + '/' + g_filenm_qq + '_qq.txt'
+	dest = DB_PATH + '/' + g_filenm + '_json.txt'
+	copyfile(src, dest)
+
 #Main
 #for i in range(0,1000):
 #	formatRand()
 if __name__ == "__main__":
+	trade_date = get_lastday()
+	print "trd_dt", trade_date
+	#preDay = read_preday_QQ_json(1,trade_date)
+	#print "PPPP", preDay
+	#exit(0)
 	init_trade_list()
 	dt = '2020-06-24'
-	print calcu_back_date(2, dt)
-	dt = calcu_pre_date(3, dt)
+	print calcu_back_date(2, trade_date)
+	#dt = calcu_pre_date(3, dt)
 	print dt
 	release_trade_list()
 

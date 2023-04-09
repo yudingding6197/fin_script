@@ -17,6 +17,7 @@ from url_dfcf.dc_hangqing import *
 from url_dfcf.limit_ban import *
 from url_sina.sina_inf import *
 from internal.math_common import *
+from internal.trade_date import *
 from internal.global_var import *
 
 def handle_today_ticks(df, code, trade_date, chk_price, type):
@@ -224,12 +225,76 @@ def get_zdt_time(code, trade_date, chk_price, type, tm_array):
 #返回值是ZDT的天数，
 #stk_list[0]返回上市交易天数，用于判断是否是次新
 #cur_zdt:表示当天是否是ZDT状态
+#type:   
+#	1:ZT;  2:DT
 #TODO：方法不精确，需要改进
 def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
+	dcMethod=1
+	if dcMethod==1:
+		#print("TODO: harry UP,SB",code,trade_date)
+		count = 0
+		yzcount = 0
+
+		pre_date = get_preday(50, trade_date)
+		rt,bg=parseDate2(pre_date,'')
+		rt,ed=parseDate2(trade_date,'')
+		content = get_kline_by_dc(code, bg, ed, 1, 6)
+		if content is None:
+			stk_list[0] = 0
+			return -1
+		jsObj=json.loads(content)
+		klineObj = jsObj['data']['klines']
+		klLen=len(klineObj)
+		lastDt=''
+		for item in reversed(klineObj):
+			#print item
+			itemList = item.split(',')
+			#获取最新的交易日，和trade_date比较，判断ZDT数量是否需要加1
+			if lastDt=='':
+				lastDt = itemList[0]
+				if lastDt != trade_date:
+					print("Not tradedate", code, lastDt,trade_date)
+			openp = float(itemList[1])
+			close = float(itemList[2])
+			high = float(itemList[3])
+			low = float(itemList[4])
+			val = float(itemList[8])
+			bZDT = 0
+			if type==1:
+				if code[:3] in G_LARGE_FLUC:
+					if (val>19.8 and high==close) or (high==low and val>2):
+						bZDT = 1
+				else:
+					if (val>9.8 and high==close) or (high==low and val>2):
+						bZDT = 1
+						#print val, itemList[0],high,close,low
+				if bZDT==1:
+					count += 1
+					if high==low:
+						yzcount += 1
+			elif type==2:
+				if code[:3] in G_LARGE_FLUC:
+					if (val<-19.88 and low==close) or (high==low and val<-2):
+						bZDT = -1
+				else:
+					if (val<-9.88 and low==close) or (high==low and val<-2):
+						bZDT = -1
+				if bZDT==-1:
+					count += 1
+					if high==low:
+						yzcount += 1
+			#碰到某一天不再满足ZDT条件，中断计数
+			if bZDT==0:
+				break
+		#print("%s,%s,count=%d yzct=%d"%(code, lastDt, count, yzcount))
+		return count
 	rtntype = 1
 	jstr = 'fsData1515847425760'
 	content = get_zdting_by_dc(code, jstr, rtntype)
-	#print "get_zdf_d", content
+	#print "get_zdf_d", code, content
+	if content is None:
+		stk_list[0] = 0
+		return -1
 
 	jslen = len(jstr)
 	content = content[(jslen+1):]
@@ -305,6 +370,65 @@ def get_zf_days(code, type, trade_date, cur_zdt, stk_list):
 #返回值是ZDT的天数，stk_list[0]表示上市交易的天数，判断是否是次新
 def check_pre_day_state(code, trade_date):
 	rtntype = 1
+	if 1:
+		pre_date = get_preday(50, trade_date)
+		rt,bg=parseDate2(pre_date,'')
+		rt,ed=parseDate2(trade_date,'')
+		content = get_kline_by_dc(code, bg, ed, 1, 6)
+		if content is None:
+			print("No content")
+			return 'ERROR'
+		#print(content)
+		jsObj=json.loads(content)
+		name = jsObj['data']['name']
+		if name[:2]==u'退市':
+			print("TuiShi?")
+			item[1] = name[2:]
+		elif name[-1:]==u'退':
+			print("TuiShi?")
+			item[1] = name[:-1]
+		klineObj = jsObj['data']['klines']
+		klLen=len(klineObj)
+		lastDt=''
+		desc = ''
+		#仅仅判断前一天的ZDT情况
+		for item in reversed(klineObj):
+			#print item
+			itemList = item.split(',')
+			#获取最新的交易日，和trade_date比较，判断ZDT数量是否需要加1
+			if lastDt=='':
+				lastDt = itemList[0]
+				if lastDt != trade_date:
+					print("Not tradedate", code, lastDt,trade_date)
+			openp = float(itemList[1])
+			close = float(itemList[2])
+			high = float(itemList[3])
+			low = float(itemList[4])
+			val = float(itemList[8])
+			bZDT = 0
+			if code[:3] in G_LARGE_FLUC:
+				if (val>19.8 and high==close):
+					if (high==low and val>2):
+						desc = 'YZZT'
+					else:
+						desc = 'ZT'
+				elif (val<-19.8 and low==close):
+					if (high==low and val<-2):
+						desc = 'YZDT'
+					else:
+						desc = 'DT'
+			else:
+				if (val>9.8 and high==close):
+					if (high==low and val>2):
+						desc = 'YZZT'
+					else:
+						desc = 'ZT'
+				elif (val<-9.8 and low==close):
+					if (high==low and val<-2):
+						desc = 'YZDT'
+					else:
+						desc = 'DT'
+		return desc
 	jstr = 'fsData1515847425760'
 	content = get_zdting_by_dc(code, jstr, rtntype)
 	if content is None:
@@ -385,9 +509,17 @@ def check_pre_day_state(code, trade_date):
 
 if __name__=="__main__":
 	stk_list=[0, 0]
-	#get_zf_days('000796', 1, '2020-07-12', 1, stk_list)
+	trade_date='2022-12-09'
+	get_zf_days('600185', 1, trade_date, 1, stk_list)
 	tm_array=['','']
-	get_zdt_time('600095', '2020-08-20', 20.13, 0, tm_array)
+	#get_zdt_time('600095', '2020-08-20', 20.13, 0, tm_array)
 	#check_pre_day_state('600158', '2019-06-27')
-	print "TM Array", tm_array[0],tm_array[1]
+	#print "TM Array", tm_array[0],tm_array[1]
+	rtntype = 1
+	jstr = 'fsData1515847425760'
+	pre_date = get_preday(90, trade_date)
+	rt,bg=parseDate2(pre_date,'')
+	rt,ed=parseDate2(trade_date,'')
+	#content = get_kline_by_dc('000520', bg, ed,1,6)
+	#print content
 	

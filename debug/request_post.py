@@ -35,7 +35,7 @@ def func1():
 		print "Error",sys._getframe().f_code.co_name
 		#LOOP_COUNT = LOOP_COUNT+1
 	if res_data is None:
-		print "Open URL fail"
+		print ("Open URL fail",sys._getframe().f_code.co_name)
 		exit(0)
 
 	content = res_data.read()
@@ -65,7 +65,7 @@ def func2(searchkey):
 		print "Error",sys._getframe().f_code.co_name
 		#LOOP_COUNT = LOOP_COUNT+1
 	if res_data is None:
-		print "Open URL fail"
+		print ("Open URL fail",sys._getframe().f_code.co_name)
 		exit(0)
 
 	content = res_data.read()

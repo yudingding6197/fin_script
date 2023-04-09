@@ -162,7 +162,7 @@ def get_history_trade_info_bysn(len=10, code='sh000001', scale=240, ma='no'):
 		print "Error",sys._getframe().f_code.co_name
 		#LOOP_COUNT = LOOP_COUNT+1
 	if res_data is None:
-		print "Open URL fail"
+		print ("Open URL fail",sys._getframe().f_code.co_name)
 		exit(0)
 
 	content = res_data.read()
@@ -217,7 +217,7 @@ def get_guben_change_bysn(code):
 		#print "Error",sys._getframe().f_code.co_name
 		#LOOP_COUNT = LOOP_COUNT+1
 	if res_data is None:
-		print("Open URL fail", url)
+		print("Open URL fail", sys._getframe().f_code.co_name,url)
 		return None
 
 	content = res_data.read()

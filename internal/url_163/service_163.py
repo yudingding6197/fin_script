@@ -41,6 +41,10 @@ def get_price_list_163(code, price_dict, sort='PRICE', order=-1):
 	urlfmt = "http://quotes.money.163.com/service/fenjia_table.html?symbol=%s&sort=%s&order=%d"
 	url = urlfmt %(code, sort, order)
 	#print ("fenjiabiao=",url)
+	# TODO: 临时忽略
+	price_dict[1]=2
+	price_dict[2]=2	
+	return
 
 	priceListPage = None
 	LOOP_COUNT=0

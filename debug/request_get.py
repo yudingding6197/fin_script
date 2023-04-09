@@ -30,7 +30,7 @@ def http_req(urlall, send_headers1):
 		
 	#print res_data
 	if res_data is None:
-		print "Open URL fail"
+		print ("Open URL fail",sys._getframe().f_code.co_name)
 		exit(0)
 
 	content = res_data.read()

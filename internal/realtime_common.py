@@ -89,6 +89,9 @@ def searchInList(code, src_list, desc):
 #type:
 # 0: ZT
 # 1: DT
+#获得之前涨跌停的天数，解析前一天的txt记录的票子信息
+#查找当前的代码是否在前一天txt中有记录。
+#如果是复牌个股没有前一天的记录，需要通过服务器获取数据
 def getPreZDtDays(code, type, preStat):
 	bPreZt = 0
 	if type==0:
@@ -132,7 +135,9 @@ def verify_one_year_cx(market_date, pre300_date, type, stk_list):
 #type:
 # 0: ZT
 # 1: DT
-#判断是不是复牌STK，或者退市STK
+#复牌STK需要通过服务器获取以前的涨跌停数量
+#退市STK，通过名字判断，退市票通过服务器获取以前的涨跌停数量
+#其他STK可以通过前一天txt找到涨跌停的天数
 def checkZDTInfo(code, name, fpFlag, type, preStat):
 	if fpFlag==1:
 		#print "FuPai YZZT", code, name.encode('gbk')
