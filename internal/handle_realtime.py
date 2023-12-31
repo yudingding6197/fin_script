@@ -520,22 +520,32 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 	if low_df_percent<=-4.0:
 		stcsItem.s_low_df += 1
 
-	#统计表现震撼个股 排除YZZT的新股
+	#统计表现震撼个股 排除YZZT的新股,2023-4-10主板新规，前5个交易日涨跌幅限制取消
+	#通过前5交易日、个股上市日期对比，判断是否是新股或者C字开头
 	zf_range = high_zf_percent-low_df_percent
+	cxFlag = 0
 	if code[:3] in G_LARGE_FLUC:
 		if zf_range>=25.0:
-			if change_percent>=12.0:
+			mktDt = datetime.datetime.strptime(market_date, '%Y-%m-%d').date()
+			pre5Dt = datetime.datetime.strptime(pre5_date, '%Y-%m-%d').date()
+			if (mktDt-pre5Dt).days>0:
+				cxFlag=1
+			if change_percent>=12.0 and cxFlag==0:
 				list = [code, name, change_percent, price, zf_range]
 				stcsItem.lst_large_nb.append(list)
-			elif change_percent<=-12.0:
+			elif change_percent<=-12.0 and cxFlag==0:
 				list = [code, name, change_percent, price, zf_range]
 				stcsItem.lst_large_jc.append(list)
 	else:
 		if zf_range>=15.0 and yzcx_flag==0:
-			if change_percent>=6.0:
+			mktDt = datetime.datetime.strptime(market_date, '%Y-%m-%d').date()
+			pre5Dt = datetime.datetime.strptime(pre5_date, '%Y-%m-%d').date()
+			if (mktDt-pre5Dt).days>0:
+				cxFlag=1
+			if change_percent>=6.0 and cxFlag==0:
 				list = [code, name, change_percent, price, zf_range]
 				stcsItem.lst_nb.append(list)
-			elif change_percent<=-6.0:
+			elif change_percent<=-6.0 and cxFlag==0:
 				list = [code, name, change_percent, price, zf_range]
 				stcsItem.lst_jc.append(list)
 	'''
@@ -544,7 +554,9 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 
 def check_CX_open_ban(non_kb_list, code, name, props, stcsItem, trade_date, pre30_date, today_open):
 	itemLen = 26
-	#KCB CYB不限涨跌幅，所以是开板
+	#KCB CYB不限涨跌幅，所以是开板，但是注册制之后，不存在YZZT的个股了
+	#ZHUCEZHI
+	return 1
 	if code[:3] in G_LARGE_FLUC:
 		return 1
 	if len(props)!=itemLen:
@@ -656,8 +668,10 @@ def check_new_market(new_stock_list, code, name, props, stcsItem, trade_day, tod
 
 	#print(props)
 	if code in new_stock_list:
-		#检查第一天是否开板了
-		ret = check_YZ_new_market(code, stcsItem)
+		#检查第一天是否开板了，注册制以后不再有限制
+		#ret = check_YZ_new_market(code, stcsItem)
+		#ZHUCEZHI
+		ret = 0
 		if ret==-1:
 			#如果第一天就开板，加入当日开板的List中
 			price = round(float(props[3]),2)
@@ -858,6 +872,7 @@ def collect_all_stock_data(st_dict, today_open, stcsItem, preStat, trade_date, d
 		else:
 			code = item
 			name = "XXXX"
+		vol = item[8]
 
 		#if item[1]=='300291':
 		#	for i in range(len(item)):
@@ -868,7 +883,8 @@ def collect_all_stock_data(st_dict, today_open, stcsItem, preStat, trade_date, d
 		#	continue
 		#排除退市的个股
 		if name[:2]==u'退市' or name[-1:]==u'退':
-			st_dict['tui_stk'].append(item)
+			if isinstance(vol,int):
+				st_dict['tui_stk'].append(item)
 			continue
 
 		#if code[:3] not in G_LARGE_FLUC:

@@ -121,13 +121,13 @@ def fetch_kday_page_qq(url):  #获取页面数据
 		content = zlib.decompress(content, 16+zlib.MAX_WBITS);
 	return content
 
-def get_tecent_kline_day(location, index_temp, days=201):
+def get_tecent_kline_day(location, index_temp, days=301):
 	"""
 	:param index_temp: for example, 'sh000001' 上证指数
 	"""
 	urlFmt = 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=%s&param=%s,day,,,%d,hfq&r=0.9860043111257255'
-	url = urlFmt % (kLine, index_temp, 201)
-	#print "QQ-url",url
+	url = urlFmt % (kLine, index_temp, 601)
+	print "QQ-url",url
 	page=fetch_kday_page_qq(url)
 	if page is None:
 		return -1

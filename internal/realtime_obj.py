@@ -54,7 +54,7 @@ class statisticsItem:
 	s_total = 0			#总计所有交易票
 	s_sw_zt = 0			#上午ZT
 	s_xw_zt = 0			#下午ZT
-	s_zhenfu = 0		#振幅大
+	s_zhenfu = 0		#振幅大，主板个股超15%
 	s_zhenfu_zt = 0		#振幅大 and ZT
 	s_zhenfu_dt = 0		#振幅大 and DT
 	lst_kd = []			#坑爹个股
@@ -72,7 +72,7 @@ class statisticsItem:
 	s_large_dt = 0
 	s_large_zthl = 0
 	s_large_dtft = 0
-	s_large_yzzt = 0
+	s_large_yzzt = 0			#目前可能不存在了，新股规则前5天不限制，盘中30%，60%限制10分钟，以后创字板20%，其它10%
 	s_large_yzdt = 0
 	s_large_cxzt = 0
 	s_large_cxdt = 0
@@ -101,8 +101,8 @@ class statisticsItem:
 	s_large_open_dt_dk	 = 0
 	s_large_sw_zt = 0
 	s_large_xw_zt = 0
-	s_large_5day_cx = 0		#振幅大，前5天CX
-	s_large_zhenfu = 0		#振幅大
+	s_large_5day_cx = 0		#振幅大，前5天CX，没有涨幅限制，上市5日振幅超过29%的新股
+	s_large_zhenfu = 0		#振幅大，创字板，超过23%
 	s_large_zhenfu_zt = 0		#振幅大 and ZT
 	s_large_zhenfu_dt = 0		#振幅大 and DT
 	lst_large_kd = []			

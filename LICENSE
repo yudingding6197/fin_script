@@ -371,7 +371,9 @@ debug\sync_cixin.py 生成 _no_open_cx.txt
 
 cixin_data.py 调用前执行 debug\newstk_get.py 得到当天上的New
 
-max_limit.py 选择上榜天数满足条件的item
+max_limit.py 选择上榜天数满足条件的item，默认是ZT数量超过8天
+    因为需要读取交易日，但是交易日是动态生成的，目前最大是前600日
+    -g -l -e -d -n
 
 概念板块的操作
 quick_realtime.py -e
@@ -383,6 +385,7 @@ gainian_bk_change.py
 
 #时间处理的接口，能够对"2022-01-30","20220130"进行处理
 parseDate()
+parseDate2()
 
 #停牌股查询
 yidongTp.py 

@@ -62,7 +62,8 @@ def read_tfp_fh_in_tips(dt, jc_dict):
 			#print dict['fupai']
 		elif item['tradingTipsName']==u'分红转增除权除息日':
 			list = jc_dict['fenhong']
-			#print item['tradingTipsName']
+			if item['tbTrade0112s'] is None:
+				continue
 			for dict in item['tbTrade0112s']:
 				code = dict['obSeccode0110']
 				#print dict['obSeccode0110'], dict['obSecname0110']
@@ -74,6 +75,8 @@ def read_tfp_fh_in_tips(dt, jc_dict):
 		elif item['tradingTipsName']==u'分红转增红利发放日':
 			list = jc_dict['fenhong']
 			#print item['tradingTipsName']
+			if item['tbTrade0112s'] is None:
+				continue
 			for dict in item['tbTrade0112s']:
 				code = dict['obSeccode0110']
 				#print dict['obSeccode0110'], dict['obSecname0110']

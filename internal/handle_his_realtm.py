@@ -641,7 +641,8 @@ def collect_all_stock_data_pre(st_dict, today_open, stcsItem, preStat, trade_dat
 			continue
 		#排除退市的个股
 		if name[:2]==u'退市' or name[-1:]==u'退':
-			st_dict['tui_stk'].append(item)
+			if isinstance(vol,int):
+				st_dict['tui_stk'].append(item)
 			continue
 
 		#如果是当天上的就忽略了

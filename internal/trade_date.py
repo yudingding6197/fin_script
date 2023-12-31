@@ -172,7 +172,7 @@ def read_preday_json2(days, cur_day):
 		return None
 	elif len(info)==0:
 		print("WY: data is Empty")
-		exit(0)
+		#exit(0)
 		return None
 
 	#从json文件读出最新日期转为jsDt，和当前日期做对比

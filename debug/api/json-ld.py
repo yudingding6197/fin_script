@@ -28,6 +28,13 @@ from collections import OrderedDict
 #   info = json.load(file)
 #   info = json.load(file,encoding='utf-8')
 
+#	location = 'internal/db/sh000001_json2.txt'
+#	file = open(location, 'r')
+#	jFile = json.load(file)
+#	jStr = jFile.decode('unicode_escape').encode('utf-8')
+#	jDict = json.loads(jStr)
+#	file.close()
+
 #3. json_info = json.dumps(dict or list 对象) 
 
 #4. json_info = {'age': '12'}

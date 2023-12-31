@@ -2,9 +2,6 @@
 # -*- coding:utf8 -*-
 import sys
 import re
-import datetime
-import getopt
-from internal.common import *
 
 #支持中文
 param_config = {
@@ -12,14 +9,25 @@ param_config = {
 }
 
 if __name__ == '__main__':
-	today = datetime.date.today()
-	optlist, args = getopt.getopt(sys.argv[1:], 'd:')
-	for option, value in optlist:
-		if option in ["-d","--date"]:
-			ret,stdate = parseDate(value, today)
-			if ret==-1:
-				exit(1)
-			param_config['Date'] = stdate
-
-	print param_config['Date']
-	req_count=0
+	file = open("score.txt")
+	nfile = open("_order.csv","w")
+	line = file.readline()
+	num = ''
+	while line:
+		line=line.strip()
+		if line=='':
+			line = file.readline()
+			continue
+		if line[0]=='X':
+			num = line
+		else:
+			if line=="缺考":
+				st = "%s,%s\n"%(num,"缺考")
+				#st = st.decode('utf8')
+			else:
+				st = "%s,%s\n"%(num,line)
+			nfile.write(st)
+		line = file.readline()
+	file.close()
+	nfile.close()
+	

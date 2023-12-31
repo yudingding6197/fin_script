@@ -135,10 +135,14 @@ def get_tingfupai_res(curdate):
 			req = urllib2.Request(urlall, data, headers=jc_tfp_headers)
 			res_data = urllib2.urlopen(req)
 		except:
-			print "Error",sys._getframe().f_code.co_name
+			if LOOP_COUNT==2:
+				print "Error",sys._getframe().f_code.co_name
 			LOOP_COUNT = LOOP_COUNT+1
 		else:
 			break
+	#意外：偶然juchao网站无法访问
+	if res_data is None:
+		return None
 	content = res_data.read()
 	respInfo = res_data.info()
 	if( ("Content-Encoding" in respInfo) and (respInfo['Content-Encoding'] == "gzip")):

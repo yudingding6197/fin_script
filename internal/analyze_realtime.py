@@ -320,7 +320,7 @@ def parse_cixin_item(f, stcsItem, rt_ver='V1'):
 		line = f.readline()
 	return 0
 
-def parse_total_line(line, stcsItem):
+def parse_total_line(fl, line, stcsItem):
 	#tol_str = "Total( %d = %d + %d	YZ: %d=%d(%d)+%d   %d CXZT,%d CXDT ):"
 	#tol_str%( stcsItem.s_zt, stcsItem.s_zt-non_cx, non_cx, stcsItem.s_yzzt, cx_yz, stcsItem.s_cx_yzzt, non_cx_yz, stcsItem.s_cxzt, stcsItem.s_cxdt)
 	cond = "Total\( (\d+) = (\d+) \+ (\d+)	YZ: (\d+)=(\d+)\((\d+)\)\+(\d+)   (\d+) CXZT,(\d+) CXDT \):"
@@ -328,17 +328,19 @@ def parse_total_line(line, stcsItem):
 	if objs is None:
 		print("Error, Total line", line)
 		return -1
-	#print(objs, line)
+	#print("parse22_total_line", line)
 	stcsItem.s_zt = int(objs.group(1))
-	#已经保存该值
-	if stcsItem.s_cx_yz!=int(objs.group(2)):
-		print("Error: CX_YZ",stcsItem.s_cx_yz,objs.group(2))
+	#已经保存该值，注册制下CX没有YZZT
+	#print("parse_total1_line",stcsItem.s_yzzt,objs.group(2),objs.group(4))
+	if stcsItem.s_yzzt!=int(objs.group(2)):
+		#print("Error: CX_YZ1",stcsItem.s_yzzt,objs.group(2),fl.name)
+		pass
 	#stcsItem.s_non_cx_zt = int(objs.group(3))
 	if stcsItem.s_yzzt!=int(objs.group(4)):
-		print("Error: CX_YZ",stcsItem.s_yzzt,objs.group(4))
+		print("Error: CX_YZ2",stcsItem.s_yzzt,objs.group(4),fl.name)
 	#stcsItem.s_yzzt = int(objs.group(4))
 	if stcsItem.s_cx_yz!=int(objs.group(5)):
-		print("Error: CX_YZ",stcsItem.s_cx_yz,objs.group(5))
+		print("Error: CX_YZ3",stcsItem.s_cx_yz,objs.group(5),fl.name)
 	#stcsItem.s_cx_yz = int(objs.group(5))
 	stcsItem.s_cx_yzzt = int(objs.group(6))
 	#stcsItem.non_cx_yz = int(objs.group(7))
@@ -385,9 +387,9 @@ def parse_nb_jc_item(f, stcsItem, rt_ver='V1', firstLn=''):
 			line = f.readline()
 			pass
 		elif line[:5]=="Total":
-			#print(line)
+			#print("parse_nb_jc1_item",line)
 			#print("line is EMPTY")
-			ret = parse_total_line(line, stcsItem)
+			ret = parse_total_line(f, line, stcsItem)
 			break
 		elif len(line)>10 and line[:5]=="#####":
 			print("Error: Read next block")
