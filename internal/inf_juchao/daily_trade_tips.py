@@ -19,6 +19,21 @@ JUCHAO_PRE_FD = "../data/entry/juchao/"
 def fetch_jc_trade_tips(sdate, edate, lock=None):
 	startDt = datetime.datetime.strptime(sdate, '%Y-%m-%d').date()
 	endDt = datetime.datetime.strptime(edate, '%Y-%m-%d').date()
+
+	if lock is None:
+		date_str = startDt.strftime('%Y-%m-%d')
+		year_start = date_str[:4]
+		date_str = endDt.strftime('%Y-%m-%d')
+		year_end = date_str[:4]
+		fd = JUCHAO_PRE_FD + year_start
+		if not os.path.exists(fd):
+			print "Creat folder", fd
+			os.makedirs(fd)
+		if year_end!=year_start:
+			fd = JUCHAO_PRE_FD + year_end
+			if not os.path.exists(fd):
+				print "Creat folder", fd
+				os.makedirs(fd)
 	while startDt<=endDt:
 		date_str = startDt.strftime('%Y-%m-%d')
 		#print(date_str)

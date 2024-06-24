@@ -135,7 +135,6 @@ def read_def(data_path, stockCode, stockCode_sn):
 
 def update_juchao_tips():
 	curr = datetime.datetime.now()
-	trade_date = get_lastday()
 	if curr.hour<9:
 		return
 	t_fmt = '%d-%02d-%02d'
@@ -178,6 +177,14 @@ if __name__=="__main__":
 
 	today = datetime.date.today()
 	curdate = '%04d-%02d-%02d' %(today.year, today.month, today.day)
+	trade_date = get_lastday()
+	fmt = '%Y-%m-%d'
+	tdate = datetime.datetime.strptime(trade_date, fmt).date()
+	delta = today - tdate
+	if delta.days<0:
+		print("Please check date", delta.days)
+		exit(0)
+
 	#更新巨潮的tips信息
 	update_juchao_tips()
 

@@ -5,6 +5,7 @@ import json
 import re
 import urllib2
 import zlib
+import time
 import datetime
 sys.path.append(".")
 from internal.format_parse import *
@@ -127,7 +128,7 @@ def get_tecent_kline_day(location, index_temp, days=301):
 	"""
 	urlFmt = 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=%s&param=%s,day,,,%d,hfq&r=0.9860043111257255'
 	url = urlFmt % (kLine, index_temp, 601)
-	print "QQ-url",url
+	#print "QQ-url",url
 	page=fetch_kday_page_qq(url)
 	if page is None:
 		return -1

@@ -187,7 +187,11 @@ def filter_dtft(dtft_list, perc):
 	return count
 
 def handle_gainian_dfcf(trade_date):
-	dcGaiNian = "../data/entry/gainian"+"/"+trade_date[:4]+"/gnbk_"+trade_date+".txt"
+	dcFolder = "../data/entry/gainian"+"/"+trade_date[:4]
+	if not os.path.exists(dcFolder):
+		os.makedirs(dcFolder)
+	
+	dcGaiNian = dcFolder+"/gnbk_"+trade_date+".txt"
 	#print(dcGaiNian)
 	if os.path.exists(dcGaiNian):
 		return
@@ -248,23 +252,26 @@ if __name__=='__main__':
 	fmt_time = t_fmt %(beginTm.year, beginTm.month, beginTm.day, beginTm.hour, beginTm.minute)
 	print "TIME:",fmt_time
 
+	trade_date = get_lastday()
+	tdate = datetime.datetime.strptime(trade_date, '%Y-%m-%d')
+	delta = beginTm - tdate
+	if delta.days<0:
+		print("Please check date", delta.days)
+		exit(0)
+
 	show_idx = ['000001', '399001', '399005', '399006','399678']
 	show_real_index(show_idx)
 	log_output(sys._getframe().f_code.co_name,sys._getframe().f_lineno)
 
 	#get_all_stk_info() 进行日期处理，获取最新交易日期
-	trade_date = get_lastday()
-	#pre_date = None
 	pre_date = get_preday(1, trade_date)
 	pre_QQ_date = get_QQ_preday(1, trade_date)
 	if pre_date is None and pre_QQ_date is None:
 		print "WY and QQ date is None, tradt=%s"%(trade_date)
 		exit(0)
-	if pre_date != pre_QQ_date:
-		#print "Not Equal Date 163=%s QQ=%s"%(pre_date,pre_QQ_date)
-		if pre_date is None:
-			pre_date = pre_QQ_date
-			sync163FromQQ()
+	if pre_date is None:
+		pre_date = pre_QQ_date
+		sync163FromQQ()
 
 	init_trade_list(trade_date)
 	#print ("Current trade day:", trade_date, pre_date)
