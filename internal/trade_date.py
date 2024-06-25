@@ -239,6 +239,7 @@ def get_preday(days=1, cur_day='', method=1):
 		pre_day = read_preday_csv(days, cur_day)
 	return pre_day
 
+#仅仅从这几家网站获取最新的交易日期，如最新上证指数，没有其它的操作
 def get_lastday(src='sina'):
 	value = ''
 	if src=='sina':

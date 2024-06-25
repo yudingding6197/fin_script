@@ -266,13 +266,18 @@ if __name__=='__main__':
 	#get_all_stk_info() 进行日期处理，获取最新交易日期
 	pre_date = get_preday(1, trade_date)
 	pre_QQ_date = get_QQ_preday(1, trade_date)
+	#print ("preDay:", pre_date, pre_QQ_date)
 	if pre_date is None and pre_QQ_date is None:
 		print "WY and QQ date is None, tradt=%s"%(trade_date)
 		exit(0)
 	if pre_date is None:
 		pre_date = pre_QQ_date
 		sync163FromQQ()
+	elif pre_date<pre_QQ_date:
+		pre_date = pre_QQ_date
+		sync163FromQQ()
 
+	#initialize database
 	init_trade_list(trade_date)
 	#print ("Current trade day:", trade_date, pre_date)
 	log_output(sys._getframe().f_code.co_name,sys._getframe().f_lineno)
