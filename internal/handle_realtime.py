@@ -132,6 +132,8 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 
 	b_ST = 0
 	b_C_ST = 0
+	b_ZT_P = 0
+	b_DT_P = 0
 	if name.find("ST")>=0 or name[0:1]=="S":
 		#CYB ST保持 20% ZDF
 		if code[:3] in G_LARGE_FLUC:
@@ -316,6 +318,7 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 				'''
 				#最新报价处于ZT
 				if price==zt_price:
+					b_ZT_P = 1
 					if bGetDays==1 or count==-1:
 						count = get_zf_days(code, 1, trade_date, 1, stk_list)
 					else:
@@ -397,6 +400,7 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 						stcsItem.lst_non_yzcx_zthl.append(list)
 						if change_percent<=3:
 							stcsItem.lst_kd.append(name)
+							stcsItem.lst_full_kd.append(list)
 						if price<open:
 							stcsItem.s_zt_o_gt_c += 1
 		if low==dt_price:
@@ -436,6 +440,7 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 					count = getPreZDtDays(code, 2, preStat)
 				'''
 				if price==dt_price:
+					b_DT_P = 1
 					if bGetDays==1 or count==-1:
 						count = get_zf_days(code, 2, trade_date, 1, stk_list)
 					else:
@@ -545,9 +550,18 @@ def analyze_status(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tra
 			if change_percent>=6.0 and cxFlag==0:
 				list = [code, name, change_percent, price, zf_range]
 				stcsItem.lst_nb.append(list)
+				if b_ZT_P==1:
+					stcsItem.lst_zt_nb.append(list)
+				else:
+					stcsItem.lst_non_zt_nb.append(list)
+				#print(code, b_ZT_P, change_percent)
 			elif change_percent<=-6.0 and cxFlag==0:
 				list = [code, name, change_percent, price, zf_range]
 				stcsItem.lst_jc.append(list)
+				if b_DT_P==1:
+					stcsItem.lst_dt_jc.append(list)
+				else:
+					stcsItem.lst_non_dt_jc.append(list)
 	'''
 	'''
 	return status

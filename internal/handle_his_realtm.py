@@ -279,6 +279,7 @@ def analyze_status2(st_dict, code, name, props, stcsItem, preStat, yzcx_flag, tr
 					stcsItem.lst_non_yzcx_zthl.append(list)
 				if change_percent<=3:
 					stcsItem.lst_kd.append(name)
+					stcsItem.lst_full_kd.append(list)
 				if price<open:
 					stcsItem.s_zt_o_gt_c += 1
 

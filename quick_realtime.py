@@ -391,10 +391,17 @@ if __name__=='__main__':
 	print "%4d-ZT		%4d-DT		%d--%s" % (stcsItem.s_large_zt,stcsItem.s_large_dt,stcsItem.s_large_yzzt, str_opn_lrg)
 	
 	dtft_qiang = filter_dtft(stcsItem.lst_dtft, -3)
-	kd_str = ','.join(stcsItem.lst_kd)
+	#kd_str = ','.join(stcsItem.lst_kd)
+	kd_str = ''
+	kd_items = sorted(stcsItem.lst_full_kd, reverse=True, key=lambda x:(x[2]))
+	for tmp_item in kd_items:
+		kd_str += ',' + tmp_item[1]
+	if len(kd_str)>0:
+		kd_str = kd_str[1:]
 	if isinstance(kd_str, unicode): kd_str = kd_str.encode('gbk')
 	print "%4d-CG(%d)	%4d-FT(%d)	%2d-YIN  KD:[%s]" %(stcsItem.s_zthl,len(stcsItem.lst_kd),stcsItem.s_dtft,dtft_qiang,stcsItem.s_zt_o_gt_c,kd_str)
 	# Handle FLUC
+
 	dtft_qiang_lrg = filter_dtft(stcsItem.lst_large_dtft, -6)
 	kd_str_lrg = ','.join(stcsItem.lst_large_kd)
 	if isinstance(kd_str_lrg, unicode): kd_str_lrg = kd_str_lrg.encode('gbk')
@@ -431,10 +438,51 @@ if __name__=='__main__':
 	print desc_zf
 	print ''
 	
-	str = ''
-	list = stcsItem.lst_nb
+	#list = stcsItem.lst_nb
+	lst_all = []
+	#lst_zt_item = sorted(stcsItem.lst_zt_nb, reverse=True, key=lambda x:(x[2], x[4]))
+	#list = sorted(stcsItem.lst_nb, reverse=True, key=lambda x:(x[2], x[4]))
+	
+	lst_zt_sort = sorted(stcsItem.lst_zt_nb, reverse=True, key=lambda x:x[4])
+	lst_not_zt_sort = sorted(stcsItem.lst_non_zt_nb, reverse=True, key=lambda x:x[2])
+	# lst_non_zt_nb
+	#print lst_zt_sort
+	#print "===="
+	'''
 	if len(list)>0:
 		print "NB:"
+		for itm_lst in list:
+			if type(itm_lst[1]) is unicode:
+				sname = itm_lst[1].encode('gbk')
+			else:
+				sname = itm_lst[1]
+			str1 = "%s(%.2f%%, %.2f%%), " % (sname, itm_lst[2], itm_lst[4])
+			str += str1
+		print str
+	'''
+	str = ''
+	if len(stcsItem.lst_nb)>0:
+		print "NB:"
+		for itm_lst in lst_zt_sort:
+			if type(itm_lst[1]) is unicode:
+				sname = itm_lst[1].encode('gbk')
+			else:
+				sname = itm_lst[1]
+			str1 = "%s(%.2f%%, %.2f%%), " % (sname, itm_lst[2], itm_lst[4])
+			str += str1
+		for itm_lst in lst_not_zt_sort:
+			if type(itm_lst[1]) is unicode:
+				sname = itm_lst[1].encode('gbk')
+			else:
+				sname = itm_lst[1]
+			str1 = "%s(%.2f%%, %.2f%%), " % (sname, itm_lst[2], itm_lst[4])
+			str += str1
+		print str
+
+	'''
+	list = sorted(stcsItem.lst_jc, key=lambda x:(x[2], x[4]))
+	if len(list)>0:
+		print "JC:"
 		for i in range(0, len(list)):
 			itm_lst = list[i]
 			if type(itm_lst[1]) is unicode:
@@ -444,13 +492,20 @@ if __name__=='__main__':
 			str1 = "%s(%.2f%%, %.2f%%), " % (sname, itm_lst[2], itm_lst[4])
 			str += str1
 		print str
-
+	'''
+	lst_dt_sort = sorted(stcsItem.lst_dt_jc, reverse=True, key=lambda x:x[4])
+	lst_not_dt_sort = sorted(stcsItem.lst_non_dt_jc, reverse=True, key=lambda x:x[2])
 	str = ''
-	list = stcsItem.lst_jc
-	if len(list)>0:
+	if len(stcsItem.lst_jc)>0:
 		print "JC:"
-		for i in range(0, len(list)):
-			itm_lst = list[i]
+		for itm_lst in lst_dt_sort:
+			if type(itm_lst[1]) is unicode:
+				sname = itm_lst[1].encode('gbk')
+			else:
+				sname = itm_lst[1]
+			str1 = "%s(%.2f%%, %.2f%%), " % (sname, itm_lst[2], itm_lst[4])
+			str += str1
+		for itm_lst in lst_not_dt_sort:
 			if type(itm_lst[1]) is unicode:
 				sname = itm_lst[1].encode('gbk')
 			else:

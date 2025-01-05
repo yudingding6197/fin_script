@@ -57,9 +57,14 @@ class statisticsItem:
 	s_zhenfu = 0		#振幅大，主板个股超15%
 	s_zhenfu_zt = 0		#振幅大 and ZT
 	s_zhenfu_dt = 0		#振幅大 and DT
-	lst_kd = []			#坑爹个股
-	lst_nb = []			#NB，低位强拉高位
+	lst_kd = []			#坑爹个股，仅仅是name
+	lst_full_kd = []	#坑爹个股，包含list
+	lst_nb = []			#NB，振幅大而且涨幅大
+	lst_zt_nb = []			#NB，振幅大而且涨幅大，且ZT
+	lst_non_zt_nb = []		#NB，振幅大而且涨幅大，非ZT
 	lst_jc = []			#韭菜了，严重坑人
+	lst_dt_jc = []			#JC，振幅大而且跌幅大，且ZT
+	lst_non_dt_jc = []		#JC，振幅大而且跌幅大，非ZT
 	lst_non_yzcx_zt = []		#非次新涨停
 	lst_non_yzcx_yzzt = []		#非次新一字涨停
 	lst_non_yzcx_zthl = []		#非次新涨停回落
@@ -154,6 +159,7 @@ class statisticsItem:
 		self.s_zhenfu_zt = 0
 		self.s_zhenfu_dt = 0
 		self.lst_kd = []
+		self.lst_full_kd = []
 		self.lst_nb = []
 		self.lst_jc = []
 		self.lst_non_yzcx_zt = []

@@ -222,6 +222,7 @@ def parse_summary_info(f, stcsItem, rt_ver='V1'):
 		objs = objs.group(5).split(',')
 		for item in objs:
 			stcsItem.lst_kd.append(item)
+			stcsItem.lst_full_kd.append(objs)
 		break
 
 	if rt_ver=="V2":

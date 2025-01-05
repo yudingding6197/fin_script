@@ -73,8 +73,12 @@ class statisticsItem:
 	s_sw_zt = 0			#上午ZT
 	s_xw_zt = 0			#下午ZT
 	lst_kd = []			#坑爹个股
-	lst_nb = []			#NB，低位强拉高位
+	lst_nb = []			#NB，振幅大而且涨幅大
+	lst_zt_nb = []			#NB，振幅大而且涨幅大，且ZT
+	lst_non_zt_nb = []		#NB，振幅大而且涨幅大，非ZT
 	lst_jc = []			#韭菜了，严重坑人
+	lst_dt_jc = []			#JC，振幅大而且跌幅大，且ZT
+	lst_non_dt_jc = []		#JC，振幅大而且跌幅大，非ZT
 	lst_non_yzcx_zt = []		#非次新涨停
 	lst_non_yzcx_yzzt = []		#非次新一字涨停
 	lst_non_yzcx_zthl = []		#非次新涨停回落
